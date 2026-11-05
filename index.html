@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nexoria By TaherJs</title>
+<meta name="theme-color" content="#050308">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://server-taher-default-rtdb.firebaseio.com">
+<link rel="preconnect" href="https://securetoken.googleapis.com">
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+:root{
+  --bg:#050308;--void:#02010a;--card:#0f0c1e;--cardhi:#151230;--line:#8b7bff2b;--line2:#ffffff14;
+  --ink:#f3f1ff;--mute:#9a93c2;--mute2:#6d6796;
+  --cy:#39f4ff;--mg:#ff2fa6;--vi:#8b5cf6;--gold:#ffcf6b;--ok:#33f2a0;--bad:#ff4d6a;
+  --font-d:'Orbitron',sans-serif;--font-b:'Sora',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#050308}}
+:root[data-theme="dark"]{--bg:#050308}
+html,body{overscroll-behavior-x:none;-webkit-user-select:none;user-select:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--font-b)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{position:relative;overflow-x:hidden;background:var(--bg)}
+button{font-family:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+#stars{position:fixed;inset:0;z-index:-1;background:var(--bg)}
+
+/* ---------- Blackhole visual ---------- */
+.bh{position:absolute;pointer-events:none}
+.bh::before{content:'';position:absolute;inset:-45%;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0deg,var(--cy) 35deg,transparent 90deg,var(--mg) 170deg,transparent 230deg,var(--vi) 300deg,transparent 360deg);
+  filter:blur(22px);opacity:.8;animation:spin 22s linear infinite}
+.bh::after{content:'';position:absolute;inset:16%;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#1c1236 0%,#050308 55%,#000 100%);
+  box-shadow:0 0 70px 14px #000,inset 0 0 46px #000}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.bh::before{animation:none}}
+
+/* ---------- Layar username ---------- */
+#splash{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto;background:var(--void)}
+#splash .bh{width:420px;height:420px;top:-140px;right:-140px}
+.sp-card{position:relative;z-index:1;width:min(92vw,420px);text-align:center;padding:34px 24px 26px;border-radius:24px;
+  background:linear-gradient(180deg,var(--cardhi),var(--card));border:1px solid var(--line);box-shadow:0 30px 90px #000c,0 0 0 1px #ffffff08 inset}
+.logo{font-family:var(--font-d);font-weight:900;font-size:clamp(32px,10vw,46px);letter-spacing:.12em;margin:0;line-height:1;
+  background:linear-gradient(90deg,var(--cy),var(--vi) 55%,var(--mg));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo-sub{margin:12px 0 26px;color:var(--mute);font-size:14px;line-height:1.5}
+.field{display:flex;flex-direction:column;gap:8px;text-align:left}
+.field label{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--mute)}
+.field input{height:52px;border-radius:14px;border:1.5px solid var(--line);background:var(--void);color:var(--ink);padding:0 16px;font:inherit;font-size:17px;font-weight:600;outline:none;transition:border-color .15s,box-shadow .15s}
+.field input:focus{border-color:var(--cy);box-shadow:0 0 0 4px #39f4ff22}
+.hint{font-size:12px;color:var(--mute2);margin:2px 0 0}
+.pwhint{margin:2px 0 0;font-size:13px;font-weight:700;color:var(--gold)}
+.pwhint.shake{animation:pwShake .4s}
+@keyframes pwShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#upw.need{border-color:var(--gold)!important;box-shadow:0 0 0 2px #ffcf6b55}
+.err{min-height:18px;margin:10px 0 0;font-size:13px;font-weight:700;color:var(--bad)}
+.btn{width:100%;height:52px;margin-top:8px;border:0;border-radius:14px;font-size:16px;font-weight:800;letter-spacing:.02em;color:#04101c;
+  background:linear-gradient(90deg,var(--cy),var(--vi));cursor:pointer;box-shadow:0 10px 28px #39f4ff33;transition:transform .12s,box-shadow .12s}
+.btn:hover{box-shadow:0 12px 34px #39f4ff4d}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn:disabled{opacity:.5;cursor:wait;box-shadow:none}
+.btn.ghost{background:#ffffff10;color:var(--ink);box-shadow:none;border:1px solid var(--line)}
+.btn.small{width:auto;padding:0 18px;height:44px;font-size:14px}
+
+/* ---------- Bilah atas ---------- */
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));
+  background:#050308cc;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line2)}
+#menuBtn{width:42px;height:42px;flex:none;border-radius:12px;border:1px solid var(--line);background:#ffffff0a;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;cursor:pointer;padding:0}
+#menuBtn span{display:block;width:20px;height:2px;border-radius:2px;background:var(--ink)}
+.brand{font-family:var(--font-d);font-weight:900;font-size:19px;letter-spacing:.14em;
+  background:linear-gradient(90deg,var(--cy),var(--vi) 55%,var(--mg));-webkit-background-clip:text;background-clip:text;color:transparent}
+.chip{margin-left:auto;display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:30px;background:#ffffff0a;border:1px solid var(--line);font-weight:700;font-size:13px;max-width:44vw}
+.chip b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ava{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:900;font-size:14px;color:#04101c;background:linear-gradient(135deg,var(--cy),var(--mg))}
+
+/* ---------- Drawer ---------- */
+#scrim{position:fixed;inset:0;z-index:30;background:#000b;opacity:0;pointer-events:none;transition:opacity .2s}
+#scrim.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;bottom:0;left:0;z-index:31;width:min(80vw,290px);display:flex;flex-direction:column;
+  background:linear-gradient(180deg,var(--cardhi),#08061a);border-right:1px solid var(--line);transform:translateX(-102%);transition:transform .24s cubic-bezier(.2,.8,.2,1);
+  padding:max(18px,env(safe-area-inset-top)) 14px 18px}
+#drawer.on{transform:none}
+.d-head{display:flex;align-items:center;gap:12px;padding:8px 6px 18px;border-bottom:1px solid var(--line2);margin-bottom:10px}
+.d-head .ava{width:44px;height:44px;font-size:20px}
+.d-head b{display:block;font-size:16px}
+.d-head small{color:var(--mute)}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav button{display:flex;align-items:center;gap:12px;height:46px;padding:0 12px;border:0;border-radius:12px;background:transparent;color:var(--ink);font-size:15px;font-weight:600;text-align:left;cursor:pointer;transition:background .15s}
+.nav button:hover,.nav button.on{background:#ffffff10}
+.nav button.on{color:var(--cy)}
+.nav .sp{flex:1}
+.nav button.out{color:var(--bad);margin-top:auto}
+.d-foot{margin-top:auto}
+#drawer>.nav{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:6px;scrollbar-width:thin;scrollbar-color:var(--cy) #ffffff14}
+#drawer>.nav button{flex:none}
+#drawer>.nav::-webkit-scrollbar{width:6px}
+#drawer>.nav::-webkit-scrollbar-track{background:#ffffff14;border-radius:6px}
+#drawer>.nav::-webkit-scrollbar-thumb{background:var(--cy);border-radius:6px}
+.d-foot{flex:none}
+
+/* ---------- Beranda ---------- */
+main{max-width:1100px;margin:0 auto;padding:16px 14px 40px;position:relative}
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:26px 22px;background:linear-gradient(135deg,#150a30,#0a1a3a 55%,#071e28);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px;min-height:180px}
+.hero .bh{width:260px;height:260px;top:-90px;right:-90px}
+.hero small{position:relative;z-index:1;color:var(--cy);font-weight:700;letter-spacing:.06em;font-size:12px}
+.hero h1{position:relative;z-index:1;margin:0;font-family:var(--font-d);font-weight:800;font-size:clamp(20px,5vw,30px);line-height:1.2}
+.hero p{position:relative;z-index:1;margin:0;color:#c7cdf5;max-width:42ch;font-size:14px;line-height:1.5}
+.hero .btn{position:relative;z-index:1;width:auto;align-self:flex-start;padding:0 22px;margin-top:10px}
+/* ---------- Teman (status online/offline) ---------- */
+.fRow{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.fRow::-webkit-scrollbar{display:none}
+.fr{flex:none;width:84px;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;padding:0;color:inherit;cursor:pointer;font:inherit}
+.fc{position:relative;width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:900;font-size:30px;color:#04101c;border:3px solid #3a3a48}
+.fr:not(.on):not(.pl) .fc{filter:grayscale(.85) brightness(.65)}
+.fr.on .fc{border-color:var(--ok)}.fr.pl .fc{border-color:var(--cy)}
+.fc i{position:absolute;right:0;bottom:0;width:16px;height:16px;border-radius:50%;background:#666;border:3px solid var(--bg)}
+.fr.on .fc i{background:var(--ok)}.fr.pl .fc i{background:var(--cy)}
+.fn{max-width:84px;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fs{max-width:84px;font-size:11px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fr.on .fs{color:var(--ok)}.fr.pl .fs{color:var(--cy)}
+.fc.add{background:#ffffff10;color:var(--ink);border:2px dashed var(--line);font-size:34px;font-weight:400;filter:none!important}
+.fEmpty{flex:none;align-self:center;max-width:180px;color:var(--mute);font-size:12.5px;line-height:1.4}
+
+.sec{display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap}
+.sec h2{margin:0;font-family:var(--font-d);font-weight:800;font-size:18px;letter-spacing:.02em}
+.sec .sp{flex:1}
+.seg{display:flex;gap:4px;padding:4px;border-radius:12px;background:#ffffff08;border:1px solid var(--line2)}
+.seg button{border:0;background:transparent;color:var(--mute);font-weight:700;font-size:13px;padding:7px 13px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
+.seg button.on{background:linear-gradient(90deg,var(--cy),var(--vi));color:#04101c}
+.search{height:40px;width:min(48vw,240px);border-radius:12px;border:1px solid var(--line);background:#ffffff08;color:var(--ink);padding:0 14px;font:inherit;font-size:14px;outline:none;transition:border-color .15s}
+.search:focus{border-color:var(--cy)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{position:relative;display:flex;flex-direction:column;border-radius:18px;background:var(--card);border:1px solid var(--line2);overflow:hidden;cursor:pointer;text-align:left;color:inherit;padding:0;
+  transition:transform .18s,border-color .18s,box-shadow .18s}
+.card:hover,.card:focus-visible{transform:translateY(-4px);border-color:#39f4ff66;box-shadow:0 14px 34px #00000066,0 0 0 1px #39f4ff22}
+.card:active{transform:scale(.98)}
+.thumb{position:relative;aspect-ratio:16/10;background:var(--void);overflow:hidden}
+.thumb img,.thumb svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.badge{position:absolute;left:10px;top:10px;z-index:1;padding:4px 10px;border-radius:20px;background:#000a;backdrop-filter:blur(4px);font-size:11px;font-weight:800;letter-spacing:.03em;border:1px solid #ffffff22}
+.badge.recent{left:auto;right:44px;background:linear-gradient(90deg,var(--mg),var(--vi));border:0;color:#fff}
+.fav{position:absolute;right:8px;top:8px;z-index:2;width:30px;height:30px;border-radius:50%;border:1px solid #ffffff22;background:#000a;backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mute);font-size:15px;line-height:1;transition:color .15s,transform .15s}
+.fav:hover{transform:scale(1.08)}
+.fav.on{color:var(--gold)}
+.meta{padding:13px 14px 15px;display:flex;flex-direction:column;gap:4px}
+.meta b{font-size:16px;font-weight:700}
+.meta span{color:var(--mute);font-size:12.5px;line-height:1.4}
+.meta .play{margin-top:9px;height:38px;border:0;border-radius:11px;background:linear-gradient(90deg,var(--ok),#1fd18a);color:#04140c;font-weight:800;font-size:14px;cursor:pointer}
+.empty{color:var(--mute);padding:30px 4px;text-align:center;font-size:14px}
+footer{color:var(--mute2);font-size:12px;text-align:center;padding:14px 0 30px}
+
+/* ---------- Modal ---------- */
+#modal{position:fixed;inset:0;z-index:50;background:#000c;backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px}
+.m-card{width:min(92vw,380px);border-radius:20px;background:linear-gradient(180deg,var(--cardhi),var(--card));border:1px solid var(--line);padding:24px 22px;text-align:center}
+.m-card h3{margin:0 0 10px;font-family:var(--font-d);font-size:18px;font-weight:800}
+.m-card p{margin:0 0 16px;color:var(--mute);font-size:14px;line-height:1.5}
+.m-card .stats{display:flex;gap:8px;margin-bottom:16px}
+.m-card .stat{flex:1;border-radius:12px;background:#ffffff08;border:1px solid var(--line2);padding:10px 6px}
+.m-card .stat b{display:block;font-size:19px;color:var(--cy)}
+.m-card .stat span{font-size:11px;color:var(--mute)}
+.m-card .row{display:flex;gap:10px}
+.m-card .btn{margin-top:0}
+.status{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:14px;
+  background:#0d0b1de6;border:1px solid var(--line);font-weight:700;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 10px 30px #0008}
+.status.on{opacity:1;transform:translateX(-50%) translateY(-2px)}
+.status.err{border-color:#ff4d6a55}
+.status.ok{border-color:#33f2a055}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.hr{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0}
+.hr .chip{margin-left:0}
+.coinchip{padding:5px 12px;color:var(--gold);border-color:#ffcf6b44}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:nxspin .7s linear infinite;vertical-align:-2px;opacity:.85}
+@keyframes nxspin{to{transform:rotate(360deg)}}
+.fs .spin{width:10px;height:10px}
+#avM{position:fixed;inset:0;z-index:60;background:#000d;display:flex;align-items:center;justify-content:center;padding:12px}
+#avM .av-card{width:min(96vw,560px);max-height:94vh;overflow:auto;border-radius:20px;background:linear-gradient(180deg,var(--cardhi),var(--card));border:1px solid var(--line);padding:16px}
+#avM h3{margin:0 0 10px;font-family:var(--font-d);font-size:17px;font-weight:800}
+.av-top{display:flex;gap:14px;align-items:flex-start}
+.av-prev{flex:none;width:130px;border-radius:14px;background:#ffffff08;border:1px solid var(--line2);padding:6px}
+.av-prev svg{width:100%;height:auto;display:block}
+.av-side{flex:1;min-width:0}
+.av-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.av-tabs button,.av-opts button,.av-sets button{font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:#ffffff0d;border:1px solid var(--line2);border-radius:10px;padding:7px 10px;cursor:pointer}
+.av-tabs button.on,.av-opts button.on{border-color:var(--cy);background:#39f4ff1f}
+.av-opts{display:flex;flex-direction:column;gap:6px}
+.av-opts button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left}
+.av-opts button[disabled]{opacity:.45;cursor:not-allowed}
+.av-opts i{font-style:normal;font-size:10px;color:var(--mute)}
+.av-sw{display:flex;flex-wrap:wrap;gap:8px}
+.av-sw button{width:38px;height:38px;border-radius:50%;border:2px solid var(--line2);cursor:pointer;padding:0}
+.av-sw button.on{border-color:var(--cy);box-shadow:0 0 0 2px #39f4ff55}
+.av-prog{margin:12px 0 4px;font-size:12px;color:var(--mute);padding:8px 10px;border-radius:12px;background:#ffffff08;border:1px solid var(--line2)}
+.av-prog b{color:var(--ink)}.dots{display:flex;gap:5px;margin-top:5px}.dots i{flex:1;height:7px;border-radius:4px;background:#ffffff1a}.dots i.on{background:var(--cy);box-shadow:0 0 6px var(--cy)}
+.av-opts button.lk{opacity:.7}
+.av-prev.pv-ninja svg{transform:rotate(13deg) translateX(4px);animation:pvn .5s ease-in-out infinite alternate}
+.av-prev.pv-fly svg{transform:rotate(-72deg) scale(.82);animation:pvf 1.4s ease-in-out infinite alternate}
+@keyframes pvn{to{transform:rotate(16deg) translate(7px,-3px)}}@keyframes pvf{to{transform:rotate(-72deg) scale(.82) translateX(10px)}}
+.mdl{position:fixed;inset:0;z-index:60;background:#000d;display:flex;align-items:center;justify-content:center;padding:12px}
+.mdl-card{width:min(94vw,440px);max-height:92vh;overflow:auto;border-radius:20px;background:linear-gradient(180deg,var(--cardhi),var(--card));border:1px solid var(--line);padding:16px}
+.mdl h3{margin:0 0 12px;font-family:var(--font-d);font-size:17px;font-weight:800}
+.up-cur{text-align:center;padding:12px;border-radius:14px;background:#ffffff08;border:1px solid var(--line2);margin-bottom:10px;font-size:13px;color:var(--mute)}.up-cur b{font-size:28px;color:var(--gold)}
+.up-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.up-row{display:flex;justify-content:space-between;padding:9px 12px;border-radius:10px;background:#ffffff0a;border:1px solid var(--line2);font-weight:700}.up-row.nx{border-color:var(--cy);background:#39f4ff14}
+.gf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.gf{position:relative;text-align:center;padding:8px 2px;border-radius:12px;background:#ffffff0a;border:1px solid var(--line2);font-size:12px}.gf small{display:block;color:var(--mute);font-size:10px}.gf div{font-size:20px;margin:2px 0}.gf b{font-size:11px;color:var(--gold)}
+.gf.big{grid-column:span 2}.gf.cur{border-color:var(--cy);box-shadow:0 0 8px #39f4ff66}.gf.done{opacity:.55}.gf em{position:absolute;top:3px;right:6px;font-style:normal;color:#5be38f}
+.av-sets{display:flex;gap:6px;margin:12px 0 8px}
+.av-sets{flex-wrap:wrap}
+.av-foot{display:flex;gap:8px;margin-top:10px;position:sticky;bottom:-16px;padding:10px 0 4px;background:linear-gradient(180deg,#0000,var(--card) 30%)}
+/* ---- keyboard: keycap 1/2/3 di kartu game + daftar pintasan (hanya perangkat dengan mouse) ---- */
+.kc{display:none;position:absolute;left:10px;bottom:10px;z-index:2;min-width:26px;height:26px;padding:0 7px;border-radius:7px;background:#fff;color:#111;font:900 14px/26px system-ui,sans-serif;text-align:center;box-shadow:0 2px 0 #0007}
+#navKeys{display:none}
+.kh{display:grid;gap:6px;margin:6px 0 14px}.kh div{display:flex;align-items:center;gap:10px;font-size:14px}.kh kbd{min-width:92px;text-align:center;padding:3px 8px;border-radius:7px;background:#ffffff1c;border:1px solid #ffffff33;font:800 12px system-ui,sans-serif}
+@media (hover:hover) and (pointer:fine){.kc{display:block}#navKeys{display:flex}}
+
+/* ---- fitur baru: foto, suka, komentar ---- */
+button.chip{color:inherit;font-family:inherit;cursor:pointer}
+div.chip{cursor:default}
+.ava.ph{background-size:cover;background-position:center}
+.pf-av{width:96px;height:96px;margin:0 auto 12px;font-size:42px}
+.card:focus-visible{outline:2px solid var(--cy)}
+.acts{display:flex;align-items:center;gap:8px;padding:0 14px 14px}
+.acts-l{display:flex;gap:6px;flex:1;min-width:0}
+.acts-l button{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 11px;border-radius:11px;border:1px solid var(--line2);background:#ffffff08;color:var(--mute);font:700 13px var(--font-b);cursor:pointer}
+.acts-l svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.acts-l .lk.on{color:#ff4d6a;border-color:#ff4d6a66}.acts-l .lk.on svg{fill:currentColor}
+.acts-l .pop svg{animation:pop .3s}
+@keyframes pop{40%{transform:scale(1.35)}}
+.acts .play{display:flex;align-items:center;justify-content:center;height:38px;padding:0 18px;border-radius:11px;background:linear-gradient(90deg,var(--ok),#1fd18a);color:#04140c;font-weight:800;font-size:14px;white-space:nowrap}
+.mdl.cm{align-items:flex-end;padding:0}
+.cm .mdl-card{width:min(100vw,520px);height:min(78vh,600px);display:flex;flex-direction:column;border-radius:20px 20px 0 0;overflow:hidden}
+@media(min-width:700px){.mdl.cm{align-items:center}.cm .mdl-card{border-radius:20px}}
+.cm-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cm-h h3{margin:0}
+.cm-list{flex:1;overflow:auto;display:flex;flex-direction:column;gap:14px;padding:6px 2px;overscroll-behavior:contain}
+.cmi{display:flex;gap:10px}
+.cmav{flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:900 15px var(--font-d);color:#04101c}
+.cmh{display:flex;gap:8px;align-items:baseline;font-size:13px}
+.cmh time{color:var(--mute2);font-size:11.5px}
+.cmh button{margin-left:auto;background:none;border:0;color:var(--mute2);font-size:12px;cursor:pointer}
+.cmi p{margin:2px 0 0;font-size:14px;line-height:1.45;word-break:break-word}
+.cm-form{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line2)}
+.cm-form .search{flex:1;width:auto}
+/* ---- perbaikan: tidak bisa digeser kanan-kiri + aman saat layar miring (notch/poni) ---- */
+html{overflow-x:hidden;overflow-y:auto;max-width:100%;height:auto}
+body{overflow-x:hidden;max-width:100%;height:auto;touch-action:manipulation}
+@supports (overflow:clip){body{overflow-x:clip}}
+main{padding-bottom:96px}
+#splash{align-items:flex-start;overflow-x:hidden;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
+.sp-card{margin:auto}
+header{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+#drawer{padding-left:max(14px,env(safe-area-inset-left))}
+#sndBtn{right:max(12px,env(safe-area-inset-right))!important;bottom:max(12px,env(safe-area-inset-bottom))!important}
+.brand{white-space:nowrap}
+@media (orientation:landscape) and (max-height:520px){
+  .sp-card{padding:18px 22px 16px}
+  .logo{font-size:30px}.logo-sub{margin:6px 0 12px;font-size:13px}
+  .field input,.btn{height:44px}.hint{display:none}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+<button id="sndBtn" type="button" aria-label="Suara musik" title="Musik" style="position:fixed;right:12px;bottom:12px;z-index:90;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#0f0c1ecc;color:var(--ink);font-size:20px;cursor:pointer;backdrop-filter:blur(6px)">🔊</button>
+
+<!-- LAYAR AWAL: MASUKKAN USERNAME -->
+<section id="splash" hidden>
+  <div class="bh" aria-hidden="true"></div>
+  <div class="sp-card">
+    <h1 class="logo">NEXORIA</h1>
+    <p class="logo-sub">Platform game mabar. Buat username dan langsung main.</p>
+    <div class="field">
+      <label for="uname">Username</label>
+      <input id="uname" type="text" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="contoh: Budi_123">
+      <p class="hint">3–16 karakter: huruf, angka, atau garis bawah (_).</p>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label for="upw">Password (opsional)</label>
+      <input id="upw" type="password" maxlength="999" autocomplete="off" spellcheck="false" placeholder="Kosongkan jika tidak pakai password">
+      <p class="pwhint" id="pwHint" hidden>🔒 Akun ini memiliki password. Masukkan password yang benar untuk masuk.</p>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+    <button class="btn" id="goBtn">MASUK</button>
+    <p class="hint" style="text-align:center;margin-top:14px">build 18-okt-d</p>
+  </div>
+</section>
+
+<!-- APLIKASI (BERANDA) -->
+<div id="app" hidden>
+  <header>
+    <button id="menuBtn" aria-label="Buka menu navigasi"><span></span><span></span><span></span></button>
+    <div class="brand">NEXORIA</div>
+    <div class="hr"><div class="chip coinchip" title="Koin: +0,5/d saat bermain"><span>💵</span><b id="coinV"><span class="spin"></span></b></div><button class="chip" id="chipMe" aria-label="Buka profil"><div class="ava" id="avaTop">N</div><b id="nameTop"></b></button></div>
+  </header>
+
+  <div id="scrim"></div>
+  <aside id="drawer" aria-label="Navigasi">
+    <div class="d-head"><div class="ava" id="avaSide">N</div><div><b id="nameSide"></b><small>Akun terdaftar</small></div></div>
+    <div class="nav">
+      <button id="navHome" class="on">🏠 Beranda</button>
+      <button id="navGames">🎮Semua Game</button>
+      <button id="navStudio">🛠️ Studio Game</button>
+      <button id="navAvatar"> 👕 Avatar</button>
+      <button id="navShop">🛒 Shop</button>
+      <button id="navGift">🎁 Hadiah Harian</button>
+      <button id="navRedeem">🎟️ Redeem Code</button>
+      <button id="navProfile">👤 Profil</button>
+      <button id="navKeys">⌨️ Pintasan Keyboard</button>
+    </div>
+    <button id="navPw">🔒 Ubah Password</button><button id="navLogout">⛔ Logout</button></div></div>
+  </aside>
+
+  <main id="home">
+    <section class="friends">
+      <div class="sec" style="margin-top:6px"><h2>👥 Teman</h2></div>
+      <div class="fRow" id="fRow"></div>
+    </section>
+
+    <div class="sec" id="gamesTop">
+      <h2>Game</h2>
+      <div class="sp"></div>
+      <div class="seg" role="group" aria-label="Filter game">
+        <button class="on" id="filAll">Semua</button>
+        <button id="filFav">⭐ Favorit</button>
+        <button id="lobStudio">🛠️ Studio</button>
+      </div>
+      <input class="search" id="search" type="search" placeholder="Cari game…" aria-label="Cari game">
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="none" hidden>Game tidak ditemukan.</div>
+    <footer>NEXORIA · ©by Taherjs</footer>
+  </main>
+</div>
+
+<div id="modal" hidden><div class="m-card" id="mcard"></div></div>
+<div class="status" id="status" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================================================================
+   DAFTAR GAME — "img" = nama file foto (satu folder dengan index.html): stealanegg.jpg, battleshoot.png,balap.png.
+   Kalau "img" dikosongkan, dipakai gambar ilustrasi bawaan.
+   ================================================================ */
+const GAMES=[
+  {id:'battleshoot',name:'Battle Shoot',file:'battleshoot.html',img:'battleshoot.png',tag:'Aksi · Tembak',
+   desc:'Baku tembak 3D di layar HP. Bidik cepat, bertahan paling lama.',
+   art:{a:'#3a0d2a',b:'#ff2fa6',emoji:'🔫'}},
+  {id:'curitelur',name:'Curi Telur',file:'stealanegg.html',img:'stealanegg.jpg',tag:'Mabar 4 pemain',
+   desc:'Curi telur dari penjaga, kabur ke zona aman, tetaskan di kandangmu.',
+   art:{a:'#062a3a',b:'#39f4ff',emoji:'🥚'}},
+  {id:'balap',name:'Nexo City Drive',file:'balap.html',img:'balap.png',tag:'versi 3.2',
+   desc:'Menjelajahi kota tanpa batas dan mencari sensasi kehidupan yang damai dan tenang.',
+   art:{a:'#2a0f05',b:'#ff7a1a',emoji:'🏍️'}}
+];
+
+const FB_CFG={
+  apiKey:"AIzaSyBp4P3nv9w1xYEH_9wNPxq2E-no292ugDM",
+  authDomain:"server-taher.firebaseapp.com",
+  databaseURL:"https://server-taher-default-rtdb.firebaseio.com",
+  projectId:"server-taher",
+  storageBucket:"server-taher.firebasestorage.app",
+  messagingSenderId:"79596136495",
+  appId:"1:79596136495:web:93779c3b3983376253beda",
+  measurementId:"G-K1BF1T4PM3"
+};
+
+const LS_USER='nexoria_user',LS_RECENT='nexoria_recent',LS_FAV='nexoria_favs',LS_PLAYS='nexoria_plays';
+const $=id=>document.getElementById(id);
+/* SHA-256 murni JS (tetap jalan walau halaman bukan HTTPS) */
+function sha256(str){
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const b=Array.from(new TextEncoder().encode(str)),l=b.length*8;
+  b.push(0x80);while(b.length%64!==56)b.push(0);
+  for(let i=7;i>=0;i--)b.push(i>3?0:(l>>>(i*8))&255);
+  let h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const r=(x,n)=>(x>>>n)|(x<<(32-n));
+  for(let o=0;o<b.length;o+=64){
+    const w=new Array(64);
+    for(let i=0;i<16;i++)w[i]=(b[o+i*4]<<24)|(b[o+i*4+1]<<16)|(b[o+i*4+2]<<8)|b[o+i*4+3];
+    for(let i=16;i<64;i++){const s0=r(w[i-15],7)^r(w[i-15],18)^(w[i-15]>>>3),s1=r(w[i-2],17)^r(w[i-2],19)^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0;}
+    let [a,c,d,e,f,g,hh,j]=h;
+    for(let i=0;i<64;i++){
+      const S1=r(f,6)^r(f,11)^r(f,25),ch=(f&g)^(~f&hh),t1=(j+S1+ch+K[i]+w[i])|0;
+      const S0=r(a,2)^r(a,13)^r(a,22),mj=(a&c)^(a&d)^(c&d),t2=(S0+mj)|0;
+      j=hh;hh=g;g=f;f=(e+t1)|0;e=d;d=c;c=a;a=(t1+t2)|0;
+    }
+    h=[(h[0]+a)|0,(h[1]+c)|0,(h[2]+d)|0,(h[3]+e)|0,(h[4]+f)|0,(h[5]+g)|0,(h[6]+hh)|0,(h[7]+j)|0];
+  }
+  return h.map(x=>('00000000'+(x>>>0).toString(16)).slice(-8)).join('');
+}
+/* hash password: digarami dengan username, diputar 2000x supaya sulit ditebak */
+function hashPw(key,pw){
+  let x='nx1|'+key+'|'+pw;
+  for(let i=0;i<2000;i++)x=sha256(x+'|'+key);
+  return x;
+}
+/* login anonim Firebase: tiap HP punya uid sendiri, dipakai rules untuk tahu siapa pemilik akun */
+let AUTHP=null,AUTHERR='',CLAIMERR='';
+function authReady(){
+  if(AUTHP)return AUTHP;
+  AUTHP=new Promise(res=>{
+    let done=false,un=null,tried=false;
+    const fin=u=>{if(done)return;done=true;try{if(un)un();}catch(e){}res(u);};
+    const fail=e=>{AUTHERR=(e&&(e.code||e.message))||'gagal';AUTHP=null;fin(null);};
+    try{
+      if(!getDB()||typeof firebase.auth!=='function'){AUTHERR='script-auth-tidak-termuat';AUTHP=null;fin(null);return;}
+      const a=firebase.auth();
+      /* coba login anonim biasa; kalau gagal (mis. penyimpanan browser diblokir aplikasi), coba lagi tanpa penyimpanan */
+      const sign=()=>{
+        if(tried)return;tried=true;
+        a.signInAnonymously().then(c=>fin(c&&c.user)).catch(e1=>{
+          a.setPersistence(firebase.auth.Auth.Persistence.NONE)
+            .then(()=>a.signInAnonymously()).then(c=>fin(c&&c.user))
+            .catch(e2=>fail(e1&&e1.code?e1:e2));
+        });
+      };
+      un=a.onAuthStateChanged(u=>{if(u)fin(u);else sign();},fail);
+      setTimeout(()=>{if(!done)sign();},4000);
+      setTimeout(()=>{if(!done){AUTHERR=AUTHERR||'timeout';AUTHP=null;fin(null);}},12000);
+    }catch(e){fail(e);}
+  });
+  return AUTHP;
+}
+/* klaim akun: berhasil kalau tanpa password, atau bukti (hash) cocok dengan password rahasia di server */
+async function claimOwner(key,proof){
+  const d=getDB(),u=await authReady();if(!d||!u)return false;
+  try{await withTimeout(d.ref('nexoria/users/'+key+'/owners/'+u.uid).set(proof),10000);return true;}
+  catch(e){CLAIMERR=(e&&(e.code||e.message))||'?';return false;}
+}
+
+/* cek password di sisi aplikasi: cocokkan hash dengan hash password terakhir yang tersimpan di akun (owners).
+   true = cocok, false = pasti salah, null = tidak bisa dipastikan (aturan server yang memutuskan) */
+function pwMatches(key,typed,v){
+  if(v&&typeof v.pwv==='string'&&v.pwv.length>8)return v.pwv===hashPw(key,typed);
+  const o=v&&v.owners;if(!o||typeof o!=='object')return null;
+  const hs=Object.values(o).filter(x=>typeof x==='string'&&x.length>8);
+  if(!hs.length)return null;
+  return hs.includes(hashPw(key,typed));
+}
+function setPwHint(on,shake){
+  const h=$('pwHint'),i=$('upw');if(!h||!i)return;
+  h.hidden=!on;i.classList.toggle('need',!!on);
+  if(on&&shake){h.classList.remove('shake');void h.offsetWidth;h.classList.add('shake');}
+}
+const valid=n=>/^[A-Za-z0-9_]{3,16}$/.test(n);
+let db=null,USER='',FILTER='all';
+
+function getDB(){
+  if(db)return db;
+  try{
+    if(typeof firebase==='undefined'||typeof firebase.database!=='function')return null;
+    if(!window.__nxLoaded&&typeof firebase.auth!=='function')return null;
+    if(!firebase.apps.length)firebase.initializeApp(FB_CFG);
+    db=firebase.database();
+  }catch(e){db=null;}
+  return db;
+}
+window.addEventListener('load',()=>{window.__nxLoaded=1;});
+const fbReady=()=>typeof firebase!=='undefined'&&typeof firebase.database==='function'&&typeof firebase.auth==='function';
+function whenDB(fn){if(fbReady()){if(getDB())fn();return;}let n=0;const t=setInterval(()=>{n++;if(fbReady()||n>160){clearInterval(t);if(getDB())fn();}},50);}
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+let stT=0;
+function status(msg,kind){const s=$('status');s.textContent=msg;s.className='status on'+(kind?' '+kind:'');clearTimeout(stT);stT=setTimeout(()=>s.classList.remove('on'),2600);}
+
+/* ---------- penyimpanan lokal kecil ---------- */
+function readJSON(k,fb){try{return JSON.parse(localStorage.getItem(k))||fb;}catch(e){return fb;}}
+function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function getFavs(){return readJSON(LS_FAV,[]);}
+function toggleFav(id){
+  let f=getFavs();
+  f=f.includes(id)?f.filter(x=>x!==id):[...f,id];
+  writeJSON(LS_FAV,f);return f;
+}
+function bumpPlays(id){const p=readJSON(LS_PLAYS,{});p[id]=(p[id]||0)+1;writeJSON(LS_PLAYS,p);return p;}
+function totalPlays(){const p=readJSON(LS_PLAYS,{});return Object.values(p).reduce((a,b)=>a+b,0);}
+
+/* ---------- starfield latar ---------- */
+let galaxyRAF=0;
+function drawStars(){
+  const c=$('stars'),ctx=c.getContext('2d'),dpr=Math.min(devicePixelRatio||1,2),W=innerWidth,H=innerHeight,M=Math.min(W,H);
+  c.width=W*dpr;c.height=H*dpr;c.style.width=W+'px';c.style.height=H+'px';
+  cancelAnimationFrame(galaxyRAF);
+  const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  /* nebula + galaksi spiral digambar sekali ke kanvas tersembunyi */
+  const nb=document.createElement('canvas');nb.width=W;nb.height=H;const nx=nb.getContext('2d');
+  nx.fillStyle='#050308';nx.fillRect(0,0,W,H);
+  [[.18,.22,.62,'139,92,246',.34],[.85,.18,.5,'57,244,255',.17],[.75,.8,.66,'255,47,166',.22],[.1,.88,.55,'70,50,220',.26],[.5,.5,.8,'30,14,96',.38]].forEach(q=>{
+    const x=q[0]*W,y=q[1]*H,r=q[2]*M*1.25,g=nx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,'rgba('+q[3]+','+q[4]+')');g.addColorStop(.55,'rgba('+q[3]+','+(q[4]*.35).toFixed(3)+')');g.addColorStop(1,'rgba('+q[3]+',0)');
+    nx.fillStyle=g;nx.fillRect(0,0,W,H);
+  });
+  {const gx=W*.72,gy=H*.3,R=M*.42,cg=nx.createRadialGradient(gx,gy,0,gx,gy,R*.35);
+   cg.addColorStop(0,'rgba(255,236,200,.55)');cg.addColorStop(.35,'rgba(190,150,255,.28)');cg.addColorStop(1,'rgba(139,92,246,0)');nx.fillStyle=cg;nx.fillRect(gx-R,gy-R,R*2,R*2);
+   for(let arm=0;arm<2;arm++)for(let i=0;i<900;i++){
+     const t=Math.random()*3.4,rr=R*.06*Math.exp(t*.62),an=t*2.1+arm*Math.PI+(Math.random()-.5)*.55,sc=(Math.random()-.5)*rr*.22;
+     const px=gx+Math.cos(an)*rr+sc,py=gy+Math.sin(an)*rr*.46+sc*.5,al=(Math.random()*.5+.15)*(1-t/3.8);
+     nx.fillStyle=(i%5===0?'rgba(255,170,230,':i%3===0?'rgba(150,235,255,':'rgba(215,200,255,')+al.toFixed(2)+')';
+     nx.beginPath();nx.arc(px,py,Math.random()*1.1+.2,0,7);nx.fill();
+   }}
+  const lay=[{n:Math.round(W*H/7500),s:.012,r:[.2,.9],a:[.15,.55]},{n:Math.round(W*H/14000),s:.03,r:[.5,1.4],a:[.3,.8]},{n:Math.round(W*H/40000),s:.07,r:[1,2.1],a:[.55,1]}]
+   .map(L=>({s:L.s,st:Array.from({length:L.n},()=>({x:Math.random()*W,y:Math.random()*H,r:L.r[0]+Math.random()*(L.r[1]-L.r[0]),a:L.a[0]+Math.random()*(L.a[1]-L.a[0]),ph:Math.random()*6.28,sp:.6+Math.random()*2.2,col:Math.random()<.18?'255,190,235':Math.random()<.3?'170,235,255':'232,234,255'}))}));
+  let shoot=null,nextShoot=performance.now()+3000;
+  function frame(now){
+    const t=now/1000;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.drawImage(nb,Math.sin(t*.05)*14-14,Math.cos(t*.04)*10-10,W+28,H+20);
+    lay.forEach(L=>{
+      const dx=((t*L.s*60)%W);
+      L.st.forEach(s=>{
+        const x=((s.x-dx)%W+W)%W,tw=still?1:.55+.45*Math.sin(t*s.sp+s.ph);
+        ctx.fillStyle='rgba('+s.col+','+(s.a*tw).toFixed(2)+')';
+        ctx.beginPath();ctx.arc(x,s.y,s.r,0,7);ctx.fill();
+        if(s.r>1.6){ctx.fillStyle='rgba('+s.col+','+(s.a*tw*.25).toFixed(2)+')';ctx.fillRect(x-s.r*3,s.y-.4,s.r*6,.8);ctx.fillRect(x-.4,s.y-s.r*3,.8,s.r*6);}
+      });
+    });
+    if(!still){
+      if(!shoot&&now>nextShoot){const an=.5+Math.random()*.4;shoot={x:Math.random()*W*.8+W*.2,y:Math.random()*H*.4,vx:-Math.cos(an)*9,vy:Math.sin(an)*9,l:0};}
+      if(shoot){
+        shoot.x+=shoot.vx;shoot.y+=shoot.vy;shoot.l++;
+        const g=ctx.createLinearGradient(shoot.x,shoot.y,shoot.x-shoot.vx*9,shoot.y-shoot.vy*9);
+        g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(139,92,246,0)');
+        ctx.strokeStyle=g;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(shoot.x,shoot.y);ctx.lineTo(shoot.x-shoot.vx*9,shoot.y-shoot.vy*9);ctx.stroke();
+        if(shoot.l>60||shoot.x<-60||shoot.y>H+60){shoot=null;nextShoot=now+4000+Math.random()*6000;}
+      }
+      if(!document.hidden)galaxyRAF=requestAnimationFrame(frame);
+    }
+  }
+  frame(performance.now());
+  if(!still)document.addEventListener('visibilitychange',()=>{if(!document.hidden){cancelAnimationFrame(galaxyRAF);galaxyRAF=requestAnimationFrame(frame);}});
+}
+drawStars();let rT=0;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(drawStars,200);});
+
+/* ---------- ilustrasi bawaan ---------- */
+function artSVG(g){
+  const a=g.art;
+  return '<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'
+   +'<defs><linearGradient id="g_'+g.id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+a.a+'"/><stop offset="1" stop-color="'+a.b+'"/></linearGradient></defs>'
+   +'<rect width="320" height="200" fill="url(#g_'+g.id+')"/>'
+   +'<circle cx="270" cy="30" r="70" fill="#ffffff14"/><circle cx="40" cy="190" r="90" fill="#00000030"/>'
+   +'<path d="M0 150 Q80 110 160 150 T320 140 V200 H0Z" fill="#00000038"/>'
+   +'<text x="160" y="118" font-size="84" text-anchor="middle">'+a.emoji+'</text></svg>';
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---------- daftar game ---------- */
+function renderGames(filter){
+  const q=(filter||'').trim().toLowerCase();
+  let recent='';try{recent=localStorage.getItem(LS_RECENT)||'';}catch(e){}
+  const favs=getFavs();
+  let list=GAMES.filter(g=>!q||g.name.toLowerCase().includes(q)||g.tag.toLowerCase().includes(q));
+  if(FILTER==='fav')list=list.filter(g=>favs.includes(g.id));
+  const grid=$('grid');
+  grid.innerHTML=list.map(g=>{
+    const isFav=favs.includes(g.id),isRecent=g.id===recent;
+    return '<div class="card" tabindex="0" role="group" data-id="'+g.id+'" aria-label="'+esc(g.name)+'"><div class="thumb">'
+    +(g.img?'<img src="'+esc(g.img)+'" alt="'+esc(g.name)+'" loading="lazy" data-fallback="'+g.id+'">':artSVG(g))
+    +'<span class="badge">'+esc(g.tag)+'</span>'+(GAMES.indexOf(g)<9?'<span class="kc">'+(GAMES.indexOf(g)+1)+'</span>':'')
+    +(isRecent?'<span class="badge recent">Terakhir</span>':'')
+    +'<span class="fav'+(isFav?' on':'')+'" data-favid="'+g.id+'" role="button" aria-label="Tandai favorit" title="Favorit">'+(isFav?'★':'☆')+'</span></div>'
+    +'<div class="meta"><b>'+esc(g.name)+'</b><span>'+esc(g.desc)+'</span></div>'
+    +'<div class="acts"><div class="acts-l">'+actsHTML(g.id)+'</div><div class="play">▶ Main</div></div></div>';
+  }).join('');
+  $('none').hidden=list.length>0;
+  $('none').textContent=(FILTER==='fav'&&favs.length===0)?'Belum ada game favorit. Tap ☆ pada kartu untuk menambah.':'Game tidak ditemukan.';
+  grid.querySelectorAll('img[data-fallback]').forEach(im=>{
+    im.addEventListener('error',()=>{
+      const g=GAMES.find(x=>x.id===im.dataset.fallback);if(!g)return;
+      const box=im.parentNode;im.remove();box.insertAdjacentHTML('afterbegin',artSVG(g));
+    });
+  });
+  grid.querySelectorAll('.fav').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      const favsNow=toggleFav(b.dataset.favid);
+      b.classList.toggle('on',favsNow.includes(b.dataset.favid));
+      b.textContent=favsNow.includes(b.dataset.favid)?'★':'☆';
+      if(FILTER==='fav')renderGames($('search').value);
+    });
+  });
+}
+function launch(id){
+  const g=GAMES.find(x=>x.id===id);if(!g||!USER)return;if(g.cm){stPlay(g);return;}
+  try{localStorage.setItem(LS_RECENT,id);}catch(e){}
+  bumpPlays(id);
+  const url=g.file+'?u='+encodeURIComponent(USER),d=getDB();
+  if(!d){location.href=url;return;}
+  launching=true;
+  try{d.ref('nexoria/presence/'+USER.toLowerCase()).onDisconnect().cancel();}catch(e){}
+  Promise.race([setPres(id,0),new Promise(r=>setTimeout(r,700))]).then(()=>{location.href=url;});
+}
+
+/* ---------- tampilan ---------- */
+function setUserUI(){
+  try{PHOTO=localStorage.getItem(PH_K())||'';}catch(e){PHOTO='';}if(!okPhoto(PHOTO))PHOTO='';
+  $('nameTop').textContent=USER;$('nameSide').textContent=USER;paintPhoto();
+}
+function showApp(){
+  $('splash').hidden=true;$('app').hidden=false;
+  setUserUI();renderGames($('search').value);paintCache();whenDB(()=>{watchBan();watchCoins();watchHero();watchFriends();watchSocial();watchPhoto();});
+  setTimeout(()=>{if(!COINLOADED&&$('coinV').querySelector('.spin'))$('coinV').textContent='—';},15000);
+  let rec='curitelur';try{rec=localStorage.getItem(LS_RECENT)||'curitelur';}catch(e){}
+  const g=GAMES.find(x=>x.id===rec)||GAMES[1];
+  closeDrawer();window.scrollTo(0,0);
+}
+function showSplash(){
+  endSession();
+  $('app').hidden=true;$('splash').hidden=false;
+  $('uname').value='';$('upw').value='';$('err').textContent='';$('goBtn').disabled=false;$('goBtn').textContent='MASUK';
+  setTimeout(()=>{try{$('uname').focus();}catch(e){}},80);
+}
+
+/* ---------- drawer navigasi ---------- */
+function openDrawer(){$('drawer').classList.add('on');$('scrim').classList.add('on');}
+function closeDrawer(){$('drawer').classList.remove('on');$('scrim').classList.remove('on');}
+$('menuBtn').addEventListener('click',()=>{$('drawer').classList.contains('on')?closeDrawer():openDrawer();});
+$('scrim').addEventListener('click',closeDrawer);
+$('navHome').addEventListener('click',()=>{closeDrawer();window.scrollTo({top:0,behavior:'smooth'});});
+$('navGames').addEventListener('click',()=>{closeDrawer();$('gamesTop').scrollIntoView({behavior:'smooth',block:'start'});});
+$('navProfile').addEventListener('click',()=>{closeDrawer();showProfile();});
+$('navPw').addEventListener('click',()=>{closeDrawer();changePw();});
+$('navLogout').addEventListener('click',()=>{
+  closeDrawer();
+  try{localStorage.removeItem(LS_USER);}catch(e){}
+  USER='';showSplash();
+});
+$('search').addEventListener('input',e=>renderGames(e.target.value));
+$('filAll').addEventListener('click',()=>{FILTER='all';$('filAll').classList.add('on');$('filFav').classList.remove('on');renderGames($('search').value);});
+$('filFav').addEventListener('click',()=>{FILTER='fav';$('filFav').classList.add('on');$('filAll').classList.remove('on');renderGames($('search').value);});
+
+/* ---------- modal ---------- */
+function modal(html,onReady){
+  $('mcard').innerHTML=html;$('modal').hidden=false;
+  if(onReady)onReady($('mcard'));
+}
+function closeModal(){$('modal').hidden=true;$('mcard').innerHTML='';}
+$('modal').addEventListener('pointerdown',e=>{if(e.target===$('modal'))closeModal();});
+function askConfirm(title,text,yes,no){
+  return new Promise(res=>{
+    modal('<h3>'+esc(title)+'</h3><p>'+esc(text)+'</p><div class="row"><button class="btn ghost" id="mNo">'+esc(no)+'</button><button class="btn" id="mYes">'+esc(yes)+'</button></div>',c=>{
+      c.querySelector('#mYes').onclick=()=>{closeModal();res(true);};
+      c.querySelector('#mNo').onclick=()=>{closeModal();res(false);};
+    });
+  });
+}
+function banMsg(b){const u=+b.until||0;return 'Akun diblokir '+(u>=9e12?'permanen':'sampai '+new Date(u).toLocaleString('id-ID'))+(b.reason?'. Alasan: '+b.reason:'')+'.';}
+const isBanned=b=>!!(b&&(+b.until||0)>Date.now()+srvOff);
+let banRef=null;
+function watchBan(){
+  const d=getDB();if(!d||!USER)return;
+  if(banRef)banRef.off();
+  banRef=d.ref('nexoria/bans/'+USER.toLowerCase());
+  banRef.on('value',sn=>{const b=sn.val();
+    if(isBanned(b)){try{localStorage.removeItem(LS_USER);}catch(e){}USER='';showSplash();$('err').textContent=banMsg(b);}
+  },()=>{});
+}
+async function changePw(){
+  const d=getDB();if(!d){status('Belum terhubung ke server','err');return;}
+  const au=await authReady();if(!au){status('Gagal autentikasi ke server','err');return;}
+  const key=USER.toLowerCase(),uref=d.ref('nexoria/users/'+key),sref=d.ref('nexoria/secrets/'+key+'/pw');
+  let has=false;
+  try{const sn=await withTimeout(uref.child('hasPw').once('value'),8000);has=sn.val()===true;}
+  catch(e){status('Gagal memuat data akun','err');return;}
+  const inp='style="width:100%;margin-bottom:10px" maxlength="999" autocomplete="off" type="password"';
+  modal('<h3>🔒 Ubah Password</h3><p>'+(has?'Akunmu memakai password.':'Akunmu belum memakai password.')+' Kosongkan password baru untuk '+(has?'menghapus password.':'tetap tanpa password.')+'</p>'
+    +(has?'<input id="pwOld" class="search" '+inp+' placeholder="Password lama">':'')
+    +'<input id="pwNew" class="search" '+inp+' placeholder="Password baru">'
+    +'<div class="err" id="pwErr" style="min-height:18px;margin-bottom:8px"></div>'
+    +'<div class="row"><button class="btn ghost" id="pwNo">Batal</button><button class="btn" id="pwOk">Simpan</button></div>',c=>{
+    c.querySelector('#pwNo').onclick=closeModal;
+    const ok=c.querySelector('#pwOk'),er=c.querySelector('#pwErr');
+    ok.onclick=async()=>{
+      er.textContent='';ok.disabled=true;
+      try{
+        if(has){
+          const o=c.querySelector('#pwOld').value;
+          let cur={};try{cur=(await withTimeout(uref.once('value'),8000)).val()||{};}catch(e){}
+          const m=pwMatches(key,o,cur);
+          if(m===false){er.textContent='Password lama salah.';ok.disabled=false;return;}
+          const cl=await claimOwner(key,hashPw(key,o));
+          if(!cl&&m!==true){er.textContent='Password lama salah.';ok.disabled=false;return;}
+        }
+        const nv=c.querySelector('#pwNew').value;
+        if(nv){
+          const h=hashPw(key,nv);
+          await withTimeout(sref.set(h),10000);
+          /* perangkat lain dicabut aksesnya, harus login ulang pakai password baru */
+          await withTimeout(uref.update({hasPw:true,pwv:h,owners:{[au.uid]:h}}),10000);
+          status('🔒 Password disimpan','ok');
+        }else{
+          await withTimeout(uref.update({hasPw:false,pwv:null,owners:{[au.uid]:'1'}}),10000);
+          await withTimeout(sref.remove(),10000);
+          status('🔓 Password dihapus','ok');
+        }
+        closeModal();
+      }catch(e){er.textContent='Gagal menyimpan. Coba lagi.';ok.disabled=false;}
+    };
+    setTimeout(()=>{try{c.querySelector(has?'#pwOld':'#pwNew').focus();}catch(e){}},60);
+  });
+}
+async function showProfile(){
+  const plays=totalPlays(),favs=getFavs().length;
+  modal('<div class="ava pf-av" id="pfAv"></div><h3>'+esc(USER)+'</h3><p id="pinfo">Memuat data akun…</p><div class="row" style="margin-bottom:14px"><button class="btn ghost small" id="pfPick" style="flex:1">Ganti foto</button><button class="btn ghost small" id="pfDel" style="flex:1">Hapus foto</button></div>'
+    +'<div class="stats"><div class="stat"><b>'+plays+'</b><span>Kali Main</span></div><div class="stat"><b>'+favs+'</b><span>Favorit</span></div></div>'
+    +'<button class="btn ghost" id="pOk">Tutup</button>',c=>{c.querySelector('#pOk').onclick=closeModal;c.querySelector('#pfPick').onclick=pickPhoto;c.querySelector('#pfDel').onclick=()=>savePhoto('');paintPhoto();});
+  const d=getDB();
+  if(!d){$('pinfo').textContent='Tidak terhubung ke server.';return;}
+  try{
+    const s=await withTimeout(d.ref('nexoria/users/'+USER.toLowerCase()).once('value'),8000);
+    const v=s.val()||{};
+    const dt=v.createdAt?new Date(v.createdAt).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'-';
+    const el=$('pinfo');if(el)el.textContent='Terdaftar sejak '+dt+'.';
+  }catch(e){const el=$('pinfo');if(el)el.textContent='Gagal memuat data akun.';}
+}
+
+/* ---------- daftar / masuk ---------- */
+async function submitName(){
+  const name=$('uname').value.trim(),btn=$('goBtn'),err=$('err');
+  err.textContent='';
+  if(!valid(name)){err.textContent='Username harus 3–16 karakter: huruf, angka, atau _';return;}
+  const d=getDB();
+  if(!d){err.textContent='Tidak bisa terhubung ke server. Periksa internet lalu coba lagi.';return;}
+  btn.disabled=true;btn.textContent='MEMERIKSA…';
+  let step='auth';
+  try{
+    const au=await authReady();
+    if(!au){const hint=/admin-restricted|operation-not-allowed/.test(AUTHERR)?' Aktifkan Anonymous lalu tekan Save di Firebase Authentication.':(/network|timeout/.test(AUTHERR)?' Cek koneksi internet.':'');
+    err.textContent='Gagal login anonim ['+(AUTHERR||'?')+'].'+hint;btn.disabled=false;btn.textContent='MASUK';return;}
+    step='baca-akun';
+    const key=name.toLowerCase(),ref=d.ref('nexoria/users/'+key);
+    const bsn=await withTimeout(d.ref('nexoria/bans/'+key).once('value'),8000);
+    if(isBanned(bsn.val())){err.textContent=banMsg(bsn.val());btn.disabled=false;btn.textContent='MASUK';return;}
+    const snap=await withTimeout(ref.once('value'),10000);
+    let finalName=name;
+    if(snap.exists()){
+      const v=snap.val()||{};finalName=(v.name&&String(v.name).toLowerCase()===key)?v.name:name;
+      const typed=$('upw').value,hasPw=v.hasPw===true;
+      const back=m=>{err.textContent=m;btn.disabled=false;btn.textContent='MASUK';};
+      if(hasPw){
+        /* akun ini punya password: wajib diisi, tidak boleh masuk hanya dengan username */
+        setPwHint(true,true);
+        if(!typed){back('🔒 Akun ini memiliki password. Masukkan password untuk masuk.');try{$('upw').focus();}catch(e){}return;}
+        if(pwMatches(key,typed,v)===false){back('Password salah.');return;}
+      }
+      step='klaim-akun';CLAIMERR='';
+      if(!(await claimOwner(key,(hasPw&&typed)?hashPw(key,typed):'1'))){
+        back(hasPw?'Password salah.':'Gagal masuk ke akun ini ('+CLAIMERR+'). Coba lagi.');return;
+      }
+      step='konfirmasi';
+      const ok=await askConfirm('Username sudah terdaftar','"'+finalName+'" sudah ada di NEXORIA. Masuk ke akun ini?','Masuk','Batal');
+      if(!ok){btn.disabled=false;btn.textContent='MASUK';return;}
+      step='simpan-login';
+      await withTimeout(ref.update({lastLogin:Date.now()}),10000);
+    }else{
+      const pw0=$('upw').value;
+      const nu={name:name,createdAt:Date.now(),lastLogin:Date.now(),hasPw:!!pw0,owners:{[au.uid]:'1'}};
+      if(pw0)nu.pwv=hashPw(key,pw0);
+      step='buat-akun';
+      await withTimeout(ref.set(nu),10000);
+      step='simpan-password';
+      if(pw0)await withTimeout(d.ref('nexoria/secrets/'+key+'/pw').set(hashPw(key,pw0)),10000);
+    }
+    USER=finalName;
+    try{localStorage.setItem(LS_USER,USER);}catch(e){}
+    status('Selamat datang, '+USER+'!','ok');
+    showApp();tickLoginStreak();
+  }catch(e){
+    console.error('login gagal di langkah',step,e);
+    err.textContent=(e&&e.message==='timeout')?'Server tidak merespons (langkah: '+step+'). Coba lagi.':'Gagal di langkah '+step+': '+((e&&(e.code||e.message))||'?');
+    btn.disabled=false;btn.textContent='MASUK';
+  }
+}
+let hintT=0;
+$('uname').addEventListener('input',()=>{
+  clearTimeout(hintT);setPwHint(false);const n=$('uname').value.trim();if(!valid(n))return;
+  hintT=setTimeout(async()=>{
+    try{const d=getDB();if(!d)return;const au=await authReady();if(!au)return;
+      const sn=await withTimeout(d.ref('nexoria/users/'+n.toLowerCase()+'/hasPw').once('value'),6000);
+      if($('uname').value.trim()===n)setPwHint(sn.val()===true);
+    }catch(e){}
+  },500);
+});
+$('goBtn').addEventListener('click',submitName);
+$('uname').addEventListener('keydown',e=>{if(e.key==='Enter')submitName();});
+$('upw').addEventListener('keydown',e=>{if(e.key==='Enter')submitName();});
+
+/* ---------- musik latar: music.mp3 (mulai setelah sentuhan pertama, browser melarang autoplay) ---------- */
+(function bgm(){
+  const a=$('bgm'),b=$('sndBtn');if(!a||!b)return;
+  let muted=false;try{muted=localStorage.getItem('nx_mute')==='1';}catch(e){}
+  a.volume=.5;
+  const ui=()=>{b.textContent=muted?'🔇':'🔊';};ui();
+  const start=()=>{if(muted)return;a.play().then(()=>{['pointerdown','keydown','touchstart'].forEach(ev=>document.removeEventListener(ev,start,true));}).catch(()=>{});};
+  ['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,start,true));
+  start();
+  b.addEventListener('click',e=>{
+    e.stopPropagation();muted=!muted;try{localStorage.setItem('nx_mute',muted?'1':'0');}catch(x){}
+    if(muted)a.pause();else a.play().catch(()=>{});
+    ui();
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)a.pause();else if(!muted)a.play().catch(()=>{});});
+})();
+
+/* ---------- 💵 koin & avatar ---------- */
+
+/* ---------- 🍥 Event Skin Naruto (30 hari) + misi login 7 hari berturut-turut ---------- */
+const NSE_PATH='nexoria/curitelur/narutoSkinEvent';
+let skinEv=null,heroOn=false,streakInfo={n:0,last:''},heroWatch=false;
+function todayUTC(off){const d=new Date(Date.now()-(off||0)*86400000);return d.toISOString().slice(0,10);}
+function watchHero(){
+  const d=getDB();if(!d||!USER||heroWatch)return;heroWatch=true;
+  const key=USER.toLowerCase();
+  (heroRefs[0]=d.ref(NSE_PATH)).on('value',sn=>{skinEv=sn.val()||null;if($('avM'))renderAv();});
+  (heroRefs[1]=d.ref('nexoria/users/'+key+'/heroUnlocked')).on('value',sn=>{heroOn=!!sn.val();if($('avM'))renderAv();});
+  (heroRefs[2]=d.ref('nexoria/users/'+key+'/streak')).on('value',sn=>{streakInfo=sn.val()||{n:0,last:''};if($('avM'))renderAv();});
+}
+function skinEventActive(){return !!(skinEv&&skinEv.start&&Date.now()<+skinEv.start+30*86400000);}
+function tickLoginStreak(){
+  const d=getDB();if(!d||!USER)return;
+  watchHero();
+  const ref=d.ref('nexoria/users/'+USER.toLowerCase()+'/streak'),today=todayUTC(0),yst=todayUTC(1);
+  ref.transaction(cur=>{
+    if(!skinEventActive())return cur;   /* misi hanya berjalan selama event Naruto aktif */
+    cur=cur||{n:0,last:'',got:0};
+    if(cur.last===today)return cur;
+    const n=cur.last===yst?(cur.n||0)+1:1;
+    return {n,last:today,got:cur.got||0};
+  }).then(r=>{
+    if(!r.committed)return;
+    const v=r.snapshot.val();
+    if(v&&v.n>=7&&!v.got){
+      d.ref('nexoria/users/'+USER.toLowerCase()+'/streak/got').set(1).catch(()=>{});
+      d.ref('nexoria/users/'+USER.toLowerCase()+'/heroUnlocked').set(1).catch(()=>{});
+      status('🎉 Misi 7 hari selesai! Kostum Naruto & Sasuke terbuka untuk selamanya!','ok');
+    }
+  }).catch(()=>{});
+}
+
+const fmtC=n=>{n=Math.floor(+n||0);if(n<1000)return String(n);const u=['','K','M','B','T'];let i=0,v=n;while(v>=1000&&i<4){v/=1000;i++;}const f=v>=100?Math.floor(v):Math.floor(v*10)/10;return String(f)+u[i];};
+let COINRAW=null,COINLOADED=false,coinRef=null,KON=false,konRef=null,COINS=0,SPON=false,spRef=null,OWN={},INC=0,DAILY={n:0,last:''},mdlRender=null;
+const SP_PRICE=5000,ANIM_PRICE=5000,INC_MAX=25;
+const incRate=l=>l<=0?.5:5*Math.pow(2,l-1);   /* koin per detik: Lv0 0,5/d · Lv1 5/d · Lv2 10/d · Lv3 20/d … */
+const incCost=l=>500*Math.pow(2,l);           /* biaya naik dari level l: 500, 1K, 2K, 4K … */
+const fmtR=r=>r<1?String(r).replace('.',','):fmtC(r);
+const GIFT=[[100,300],[200,500],[300,800],[500,1200],[800,2000],[1200,3000],[2500,6000]];   /* hadiah harian hari 1-7 (uang, acak) */   /* harga bundle Shadow Purple: 5K koin */
+function watchCoins(){
+  const d=getDB();if(!d||!USER)return;
+  if(coinRef)coinRef.off();
+  coinRef=d.ref('nexoria/users/'+USER.toLowerCase()+'/coins');
+  coinRef.on('value',sn=>{COINS=Math.floor(+sn.val()||0);COINRAW=sn.val();COINLOADED=true;$('coinV').textContent=fmtC(sn.val());saveCache();refreshUI();},()=>{if(!COINLOADED)$('coinV').textContent='—';});
+  if(window._nxRefs)window._nxRefs.forEach(r=>{try{r.off();}catch(e){}});
+  {const K='nexoria/users/'+USER.toLowerCase(),R=window._nxRefs=[d.ref(K+'/owned'),d.ref(K+'/incomeLv'),d.ref(K+'/daily'),d.ref(K+'/anim')];
+   R[0].on('value',sn=>{OWN=sn.val()||{};SPON=!!OWN.shadowpurple;refreshUI();});
+   R[1].on('value',sn=>{INC=Math.max(0,Math.min(INC_MAX,Math.floor(+sn.val()||0)));refreshUI();});
+   R[2].on('value',sn=>{DAILY=sn.val()||{n:0,last:''};refreshUI();});}
+  if(!konRef){konRef=d.ref('nexoria/curitelur/konoha');konRef.on('value',sn=>{const v=sn.val();KON=!!(v&&+v.on);if($('avM'))renderAv();});}
+}
+const AV_CAT=[['sk','Kulit'],['h','Rambut'],['f','Wajah'],['t','Baju'],['c','Aksesoris'],['p','Celana'],['s','Sepatu'],['an','Animasi']];
+const SKINS=['#f2c9a0','#e0ac82','#c68642','#8d5524','#ffe0cf','#b98a6a'];
+const AVI={
+ h:{a:{n:'Pendek Klasik',g:'A',st:'short',c:'#3b2a1a'},b:{n:'Duri Neon',g:'B',st:'spiky',c:'#39f4ff'},n1:{n:'Duri Kuning',g:'N',st:'spiky',c:'#ffd54a'},n2:{n:'Duri Perak',g:'N',st:'spiky',c:'#c8ccd4'},n3:{n:'Panjang Merah',g:'N',st:'long',c:'#c0392b'},hnar:{n:'Rambut Naruto',g:'H',st:'spiky',c:'#ffd54a'},hsas:{n:'Rambut Sasuke',g:'H',st:'spiky',c:'#1a1a22'},g:{n:'Rambut Ganteng',g:'C',st:'short',c:'#1a1a22'},sp:{n:'Rambut Shadow',g:'S',st:'short',c:'#0c0c12',x:'spk'}},
+ f:{a:{n:'Wajah Biasa',g:'A'},b:{n:'Mata Neon',g:'B',x:'glow'},n1:{n:'Kumis Kucing',g:'N',x:'whisk'},n2:{n:'Topeng Rubah',g:'N',x:'mask'},n3:{n:'Mata Merah',g:'N',x:'red'},hnar:{n:'Wajah Naruto',g:'H',x:'whisk'},hsas:{n:'Sharingan Sasuke',g:'H',x:'sharingan'},g:{n:'Mata Ungu Ganteng',g:'C',x:'glow'},sp:{n:'Topeng Oni Shadow',g:'S',x:'oni'}},
+ t:{a:{n:'Kaos Klasik',g:'A',c:'#3d8bff'},b:{n:'Jaket Neon',g:'B',c:'#8b5cf6',x:'stripe'},n1:{n:'Baju Oranye Genin',g:'N',c:'#ff8a3a'},n2:{n:'Rompi Abu ANBU',g:'N',c:'#15151c',x:'vest'},n3:{n:'Jubah Merah Gelap',g:'N',c:'#5a1414',x:'cloak'},hnar:{n:'Jaket Naruto',g:'H',c:'#ff6a1a',x:'naruto'},hsas:{n:'Baju Sasuke',g:'H',c:'#8f939c',x:'sasuke'},g:{n:'Jaket Orang Ganteng',g:'C',c:'#141416',x:'ganteng'},sp:{n:'Kaos Shadow Purple',g:'S',c:'#0e0e12',x:'spt'}},
+ c:{a:{n:'Kacamata',g:'A',x:'glass'},b:{n:'Headphone Neon',g:'B',x:'phone'},n1:{n:'Ikat Kepala Konoha',g:'N',x:'band'},n2:{n:'Syal Merah',g:'N',x:'scarf'},n3:{n:'Pedang Punggung',g:'N',x:'sword'},hnar:{n:'Ikat Kepala Naruto',g:'H',x:'band'},hsas:{n:'Tali Ungu Sasuke',g:'H',x:'rope'},g:{n:'Kalung Mahkota',g:'C',x:'crown'},sp:{n:'Kalung Shadow',g:'S',x:'spn'}},
+ p:{a:{n:'Celana Biru',g:'A',c:'#34405c'},b:{n:'Celana Neon',g:'B',c:'#1a1a2e',x:'stripe'},n1:{n:'Celana Ninja Oranye',g:'N',c:'#ff6a1a'},n2:{n:'Celana Pita ANBU',g:'N',c:'#1c2038',x:'wrap'},n3:{n:'Celana Merah Gelap',g:'N',c:'#5a1a1a'},hnar:{n:'Celana Naruto',g:'H',c:'#ff6a1a'},hsas:{n:'Celana Sasuke',g:'H',c:'#1c2038'},g:{n:'Celana Cargo Ganteng',g:'C',c:'#141416',x:'gpants'},sp:{n:'Cargo Shadow Purple',g:'S',c:'#0e0e12',x:'spp'}},
+ s:{a:{n:'Sepatu Hitam',g:'A',c:'#222222'},b:{n:'Sepatu Neon',g:'B',c:'#39f4ff'},n1:{n:'Sandal Ninja',g:'N',c:'#151520',x:'sandal'},n2:{n:'Sepatu Merah',g:'N',c:'#b02020'},n3:{n:'Sepatu Emas',g:'N',c:'#ffd54a'},hnar:{n:'Sandal Naruto',g:'H',c:'#151520',x:'sandal'},hsas:{n:'Sandal Sasuke',g:'H',c:'#151520',x:'sandal'},g:{n:'Sneaker Ganteng',g:'C',c:'#1a1a22',x:'gshoe'},sp:{n:'Sneaker Shadow Purple',g:'S',c:'#15151c',x:'sps'}}
+};
+AVI.an={a:{n:'Lari Normal',g:'A'},ninja:{n:'🍥 Jalan Ninja Naruto',g:'AN'},fly:{n:'🦸 Gaya Terbang Hero',g:'AF'}};
+const LOOK_RE=/^\d\.[a-z0-9]+(\.[a-z0-9]+){5}$/,DEF_LOOK='0.a.a.a.a.a.a';
+const lookKey=()=>'nx_av_'+USER.toLowerCase();
+function getLook(){let l='';try{l=localStorage.getItem(lookKey())||'';}catch(e){}return LOOK_RE.test(l)?l:DEF_LOOK;}
+function svgAvatar(lk){
+  const P=lk.split('.'),g=(k,i)=>AVI[k][P[i]]||AVI[k].a,sk=SKINS[+P[0]]||SKINS[0];
+  const h=g('h',1),f=g('f',2),t=g('t',3),c=g('c',4),p=g('p',5),s=g('s',6);
+  let o='<svg viewBox="0 0 120 210" xmlns="http://www.w3.org/2000/svg">';
+  if(c.x==='sword')o+='<rect x="76" y="50" width="5" height="90" rx="2" fill="#15151a" transform="rotate(25 78 95)"/>';
+  [[38,0],[62,1]].forEach(([x,i])=>{
+    o+='<rect x="'+x+'" y="120" width="20" height="68" fill="'+p.c+'"/>';
+    if(p.x==='stripe')o+='<rect x="'+(i?x+17:x)+'" y="120" width="3" height="68" fill="#39f4ff"/>';
+    if(p.x==='wrap')o+='<rect x="'+(x-1)+'" y="166" width="22" height="14" fill="#f4f4f4"/>';
+    if(p.x==='spp'){o+='<rect x="'+(i?x+13:x+2)+'" y="150" width="5" height="12" fill="#1b1b22"/><rect x="'+(i?x+14:x+3)+'" y="122" width="2.6" height="56" fill="#7a2df0"/><rect x="'+(i?x+13:x+2)+'" y="170" width="4.6" height="2" fill="#b07bff"/>';}
+    if(p.x==='gpants')o+='<rect x="'+(i?x+14:x+3)+'" y="120" width="3" height="68" fill="#8a4dff"/>';
+    if(s.x==='sandal')o+='<rect x="'+(x-1)+'" y="190" width="22" height="8" fill="'+s.c+'"/><rect x="'+(x+2)+'" y="184" width="16" height="6" fill="'+sk+'"/>';
+    else if(s.x==='sps')o+='<rect x="'+(x-2)+'" y="186" width="25" height="14" rx="4" fill="#15151c"/><rect x="'+(x+2)+'" y="188" width="11" height="6" rx="2" fill="#f2f2f7"/><rect x="'+(x-2)+'" y="197" width="25" height="3.5" rx="1.5" fill="#f2f2f7"/><rect x="'+(x+5)+'" y="191" width="7" height="2" fill="#8a4dff"/>';
+    else if(s.x==='gshoe')o+='<rect x="'+(x-2)+'" y="188" width="24" height="12" rx="3" fill="'+s.c+'"/><rect x="'+(x-2)+'" y="197" width="24" height="3" fill="#8a4dff"/>';
+    else o+='<rect x="'+(x-2)+'" y="188" width="24" height="12" rx="3" fill="'+s.c+'"/>';
+  });
+  o+='<rect x="32" y="62" width="56" height="60" fill="'+t.c+'"/>';
+  if(t.x==='cloak')o+='<rect x="30" y="118" width="60" height="46" fill="'+t.c+'"/>';
+  if(t.x==='stripe')o+='<rect x="57" y="62" width="6" height="60" fill="#39f4ff"/>';
+  if(t.x==='vest')o+='<rect x="34" y="66" width="52" height="46" fill="#8e8a99"/>';
+  [[16,0],[88,1]].forEach(([x])=>{o+='<rect x="'+x+'" y="64" width="16" height="36" fill="'+t.c+'"/><rect x="'+(x+1)+'" y="100" width="14" height="20" fill="'+sk+'"/>';});
+  if(c.x==='scarf')o+='<rect x="34" y="58" width="52" height="9" rx="4" fill="#d42a2a"/><rect x="72" y="62" width="9" height="34" fill="#d42a2a"/>';
+  if(h.st==='long')o+='<rect x="34" y="24" width="52" height="60" rx="10" fill="'+h.c+'"/>';
+  if(t.x==='naruto')o+='<rect x="30" y="60" width="60" height="20" fill="#111318"/><circle cx="60" cy="70" r="6" fill="#d42a1a"/>';
+  if(t.x==='sasuke')o+='<rect x="30" y="60" width="60" height="46" fill="#232733"/>';
+  if(t.x==='spt')o+='<path d="M74 70 l3 6 l3 -6 l-1.6 -2 l-1.4 2 l-1.4 -2z" fill="#9a4dff"/>';
+  if(t.x==='ganteng')o+='<rect x="57" y="62" width="6" height="60" fill="#8a4dff"/><rect x="38" y="60" width="44" height="12" fill="#1c1c22"/>';
+  o+='<circle cx="60" cy="40" r="25" fill="'+sk+'"/>';
+  if(h.st==='spiky')o+='<polygon points="34,34 38,6 48,22 56,2 62,20 72,4 78,22 88,8 86,34" fill="'+h.c+'"/>';
+  else o+='<path d="M34 38 Q36 12 60 12 Q84 12 86 38 Q60 26 34 38Z" fill="'+h.c+'"/>';
+  if(h.x==='spk')o+='<path d="M40 24 L45 15 L51 23 L56 13 L61 22 L67 14 L71 23 L77 17 L81 26" fill="none" stroke="#8a4dff" stroke-width="2"/>';
+  if(f.x==='oni'){
+    o+='<polygon points="36,30 30,2 50,20" fill="#15151c" stroke="#9a4dff" stroke-width="1.6"/><polygon points="84,30 90,2 70,20" fill="#15151c" stroke="#9a4dff" stroke-width="1.6"/><ellipse cx="60" cy="46" rx="20" ry="20" fill="#15151c" stroke="#6a2fd0" stroke-width="1.6"/><path d="M43 38 L55 43 L45 46Z M77 38 L65 43 L75 46Z" fill="#c48bff"/><path d="M46 56 Q60 66 74 56" fill="#8a4dff" stroke="#c48bff" stroke-width="1"/><path d="M50 57 V61 M55 59 V63 M60 60 V64 M65 59 V63 M70 57 V61" stroke="#15151c" stroke-width="1.4"/>';
+  }else if(f.x==='mask'){
+    o+='<polygon points="38,22 40,4 52,18" fill="#f4f4f4"/><polygon points="82,22 80,4 68,18" fill="#f4f4f4"/><ellipse cx="60" cy="42" rx="22" ry="24" fill="#f4f4f4"/><path d="M42 40 L50 50 M78 40 L70 50" stroke="#d42a2a" stroke-width="3"/><path d="M52 52 Q60 58 68 52" stroke="#999" stroke-width="2" fill="none"/>';
+  }else{
+    const ec=f.x==='glow'?'#39f4ff':f.x==='red'?'#ff2020':'#111';
+    o+='<circle cx="51" cy="42" r="3.4" fill="'+ec+'"/><circle cx="69" cy="42" r="3.4" fill="'+ec+'"/>';
+    if(f.x==='whisk')o+='<path d="M34 46 H46 M34 51 H46 M74 46 H86 M74 51 H86 M35 41 H45 M75 41 H85" stroke="#2a1a10" stroke-width="1.6"/>';
+  }
+  if(c.x==='glass')o+='<rect x="42" y="37" width="16" height="11" fill="none" stroke="#111" stroke-width="2.2"/><rect x="62" y="37" width="16" height="11" fill="none" stroke="#111" stroke-width="2.2"/><path d="M58 41 H62" stroke="#111" stroke-width="2"/>';
+  if(c.x==='phone')o+='<path d="M36 40 Q36 8 60 8 Q84 8 84 40" fill="none" stroke="#222" stroke-width="4"/><circle cx="35" cy="42" r="7" fill="#39f4ff"/><circle cx="85" cy="42" r="7" fill="#39f4ff"/>';
+  if(c.x==='band')o+='<rect x="34" y="24" width="52" height="8" fill="#1a3a8a"/><rect x="50" y="22" width="20" height="12" rx="2" fill="#c8ccd4"/>';
+  if(c.x==='rope')o+='<rect x="32" y="112" width="56" height="10" fill="#7a4dcc"/>';
+  if(c.x==='spn')o+='<path d="M46 60 Q60 86 74 60" fill="none" stroke="#c8ccd4" stroke-width="1.4"/><rect x="57" y="78" width="6" height="10" rx="1" fill="#1a1a22" stroke="#c8ccd4" stroke-width="1"/><rect x="59" y="80" width="2" height="5" fill="#9a4dff"/>';
+  if(c.x==='crown')o+='<rect x="58" y="58" width="4" height="46" fill="#333"/><rect x="52" y="102" width="16" height="12" fill="#9a4dff"/>';
+  if(f.x==='sharingan')o+='<circle cx="51" cy="42" r="4.5" fill="#ff1a1a"/><circle cx="69" cy="42" r="4.5" fill="#ff1a1a"/><circle cx="51" cy="42" r="1.4" fill="#140006"/><circle cx="69" cy="42" r="1.4" fill="#140006"/>';
+  return o+'</svg>';
+}
+let avSel={sk:0,h:'a',f:'a',t:'a',c:'a',p:'a',s:'a',an:'a'},avTab='h';
+const ANIM_K=()=>'nx_anim_'+USER.toLowerCase();
+function getAnim(){let a='';try{a=localStorage.getItem(ANIM_K())||'';}catch(e){}return AVI.an[a]?a:'a';}
+function lookToSel(l){const P=l.split('.');avSel={sk:+P[0]||0,h:P[1],f:P[2],t:P[3],c:P[4],p:P[5],s:P[6],an:getAnim()};}
+const selToLook=()=>[avSel.sk,avSel.h,avSel.f,avSel.t,avSel.c,avSel.p,avSel.s].join('.');
+function openAvatar(){
+  if(!USER)return;lookToSel(getLook());avTab='h';
+  const m=document.createElement('div');m.id='avM';
+  m.innerHTML='<div class="av-card"><h3>🎨 Avatar · '+esc(USER)+'</h3><div class="av-top"><div class="av-prev" id="avPrev"></div><div class="av-side"><div class="av-tabs" id="avTabs"></div><div id="avOpts"></div></div></div>'
+   +'<div class="av-prog" id="avProg"></div>'
+   +'<div class="av-foot"><button class="btn" id="avSave">SIMPAN</button><button class="btn ghost" id="avClose">Tutup</button></div>'
+   +'</div>';
+  document.body.appendChild(m);
+  m.addEventListener('pointerdown',e=>{if(e.target===m)closeAvatar();});
+  $('avClose').onclick=closeAvatar;
+  $('avSave').onclick=saveAvatar;
+  renderAv();
+}
+/* pembelian umum: potong koin (transaksi) → simpan kepemilikan; koin dikembalikan jika gagal simpan */
+let buying=false;
+function buyOwned(key,price,label){
+  const d=getDB();if(!d||!USER){status('Belum terhubung ke server','err');return;}
+  if(OWN[key]||buying)return;
+  const nf=n=>Math.floor(n).toLocaleString('id-ID');
+  if(COINS<price){status('Koin kurang: kamu punya 💵 '+nf(COINS)+', butuh 💵 '+nf(price),'err');return;}
+  const K='nexoria/users/'+USER.toLowerCase(),cref=d.ref(K+'/coins');buying=true;
+  cref.transaction(cur=>{if(cur===null)return 0;cur=Math.floor(+cur||0);return cur>=price?cur-price:undefined;}).then(r=>{
+    if(!r.committed){status('Koin kurang: kamu punya 💵 '+nf(COINS)+', butuh 💵 '+nf(price),'err');return;}
+    return d.ref(K+'/owned/'+key).set(1).then(()=>{OWN[key]=1;if(key==='shadowpurple')SPON=true;status('✅ '+label+' terbeli!','ok');refreshUI();})
+      .catch(e=>{cref.set(firebase.database.ServerValue.increment(price)).catch(()=>{});status('Gagal menyimpan pembelian, koin dikembalikan'+(e&&e.code?' ('+e.code+')':''),'err');});
+  }).catch(e=>status('Pembelian gagal'+(e&&e.code?' ('+e.code+')':'')+', coba lagi','err')).then(()=>{buying=false;});
+}
+function refreshUI(){try{if($('avM'))renderAv();if(mdlRender)mdlRender();const c=document.querySelector('.coinchip');if(c)c.title='Koin: +'+fmtR(incRate(INC))+'/d saat bermain';}catch(e){}}
+function closeAvatar(){const m=$('avM');if(m)m.remove();}
+const isLocked=it=>(it.g==='N'&&!KON)||(it.g==='H'&&!heroOn)||(it.g==='S'&&!OWN.shadowpurple)||(it.g==='AN'&&!OWN.anim_ninja)||(it.g==='AF'&&!OWN.anim_fly);
+const lockKey=it=>it.g==='S'?['shadowpurple',SP_PRICE,'Bundle Shadow Purple']:it.g==='AN'?['anim_ninja',ANIM_PRICE,'Animasi Jalan Ninja Naruto']:it.g==='AF'?['anim_fly',ANIM_PRICE,'Animasi Gaya Terbang']:null;
+function dailyShown(){const t=todayUTC(0),y=todayUTC(1),n=DAILY.n||0,today=DAILY.last===t;if(!today&&DAILY.last!==y)return{n:0,today:false};if(!today&&n>=7)return{n:0,today:false};return{n,today};}
+function renderAv(){
+  if(!$('avM'))return;
+  $('avPrev').className='av-prev'+(avSel.an==='ninja'?' pv-ninja':avSel.an==='fly'?' pv-fly':'');
+  $('avPrev').innerHTML=svgAvatar(selToLook());
+  const ds=dailyShown(),dots=[1,2,3,4,5,6,7].map(i=>'<i class="'+(i<=ds.n?'on':'')+'"></i>').join('');
+  $('avProg').innerHTML='<div>📅 Progres login: <b>Hari '+ds.n+'/7</b></div><div class="dots">'+dots+'</div>'
+    +'<div style="margin-top:6px">🍥 Misi Naruto: <b>'+(heroOn?'Selesai ✅':Math.min(7,+(streakInfo&&streakInfo.n)||0)+'/7 hari')+'</b></div>';
+  $('avTabs').innerHTML=AV_CAT.map(([k,n])=>'<button data-k="'+k+'" class="'+(k===avTab?'on':'')+'">'+n+'</button>').join('');
+  $('avTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{avTab=b.dataset.k;renderAv();});
+  const o=$('avOpts');
+  if(avTab==='sk'){
+    o.innerHTML='<div class="av-sw">'+SKINS.map((c,i)=>'<button data-i="'+i+'" class="'+(avSel.sk===i?'on':'')+'" style="background:'+c+'" aria-label="Warna kulit '+(i+1)+'"></button>').join('')+'</div>';
+    o.querySelectorAll('button').forEach(b=>b.onclick=()=>{avSel.sk=+b.dataset.i;renderAv();});
+  }else{
+    const L=AVI[avTab];
+    o.innerHTML='<div class="av-opts">'+Object.keys(L).map(id=>{
+      const it=L[id],lock=isLocked(it),lk=lockKey(it),
+        tag=it.g==='S'?(lock?'🔒 💵 '+fmtC(SP_PRICE)+' (bundle)':'💜 Shadow Purple'):(it.g==='AN'||it.g==='AF')?(lock?'🔒 💵 '+fmtC(ANIM_PRICE):'✅ Dimiliki'):it.g==='H'?(lock?'🔒 Misi Login 7 Hari':'🍥 Naruto Limited'):it.g==='N'?(lock?'🔒 Eksklusif Naruto':'🍥 Naruto'):'';
+      return '<button data-id="'+id+'" class="'+(avSel[avTab]===id?'on':'')+(lock?' lk':'')+'"><span>'+esc(it.n)+'</span>'+(tag?'<i>'+tag+'</i>':'')+'</button>';
+    }).join('')+'</div>';
+    o.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      const it=L[b.dataset.id];
+      if(isLocked(it)){
+        const lk=lockKey(it);
+        if(lk){if(confirm('Beli '+lk[2]+' seharga 💵 '+fmtC(lk[1])+'?'))buyOwned(lk[0],lk[1],lk[2]);return;}
+        status(it.g==='H'?'Selesaikan misi login 7 hari saat Event Naruto aktif dulu':'Item Naruto masih terkunci','err');return;
+      }
+      avSel[avTab]=b.dataset.id;renderAv();
+    });
+  }
+}
+function saveAvatar(){
+  const l=selToLook();
+  for(const k of ['h','f','t','c','p','s','an']){const it=AVI[k][avSel[k]];if(it&&isLocked(it)){status('Ada item yang masih terkunci/belum dibeli','err');return;}}
+  try{localStorage.setItem(lookKey(),l);localStorage.setItem(ANIM_K(),avSel.an);}catch(e){}
+  const d=getDB();
+  if(d){const K='nexoria/users/'+USER.toLowerCase();Promise.all([d.ref(K+'/avatar').set(l),d.ref(K+'/anim').set(avSel.an==='a'?'':avSel.an)]).then(()=>status('Avatar tersimpan!','ok')).catch(()=>status('Tersimpan di perangkat (server menolak)','err'));}
+  else status('Avatar tersimpan di perangkat','ok');
+  closeAvatar();
+}
+/* ---------- modal umum (Shop & Hadiah Harian) ---------- */
+function closeMdl(){mdlRender=null;document.querySelectorAll('.mdl').forEach(x=>x.remove());}
+function openMdl(title,render){
+  closeMdl();const m=document.createElement('div');m.className='mdl';
+  m.innerHTML='<div class="mdl-card"><h3>'+title+'</h3><div id="mdlBody"></div><div class="av-foot"><button class="btn ghost" id="mdlClose">Tutup</button></div></div>';
+  document.body.appendChild(m);m.addEventListener('pointerdown',e=>{if(e.target===m)closeMdl();});
+  $('mdlClose').onclick=closeMdl;mdlRender=()=>{if($('mdlBody'))render($('mdlBody'));};mdlRender();
+}
+/* ---------- SHOP: upgrade penghasilan koin di game online (per detik) ---------- */
+function openShop(){
+  openMdl('🛒 Shop · Penghasilan Game Online',body=>{
+    const l=INC,max=l>=INC_MAX;
+    let rows='';
+    for(let i=l+1;i<=Math.min(INC_MAX,l+4);i++)rows+='<div class="up-row'+(i===l+1?' nx':'')+'"><span>'+fmtR(incRate(i))+'/d</span><b>💵 '+fmtC(incCost(i-1))+'</b></div>';
+    body.innerHTML='<div class="up-cur">Penghasilanmu sekarang<br><b>'+fmtR(incRate(l))+'/d</b> <small>(Lv '+l+')</small></div>'
+      +(max?'<p style="text-align:center">✅ Level maksimal!</p>':'<div class="up-list">'+rows+'</div><button class="btn" id="upBuy">⬆ Upgrade ke '+fmtR(incRate(l+1))+'/d · 💵 '+fmtC(incCost(l))+'</button>')
+      +'<p class="hint" style="text-align:center">Berlaku di semua game Nexoria. Koin kamu: 💵 '+fmtC(COINS)+'</p>';
+    const bt=$('upBuy');if(bt)bt.onclick=buyIncome;
+  });
+}
+function buyIncome(){
+  const d=getDB();if(!d||!USER){status('Belum terhubung ke server','err');return;}
+  if(buying||INC>=INC_MAX)return;
+  const lv=INC,cost=incCost(lv),nf=n=>Math.floor(n).toLocaleString('id-ID');
+  if(COINS<cost){status('Koin kurang: kamu punya 💵 '+nf(COINS)+', butuh 💵 '+nf(cost),'err');return;}
+  const K='nexoria/users/'+USER.toLowerCase(),cref=d.ref(K+'/coins');buying=true;
+  cref.transaction(cur=>{if(cur===null)return 0;cur=Math.floor(+cur||0);return cur>=cost?cur-cost:undefined;}).then(r=>{
+    if(!r.committed){status('Koin kurang','err');return;}
+    return d.ref(K+'/incomeLv').set(lv+1).then(()=>{INC=lv+1;status('⬆ Penghasilan naik jadi '+fmtR(incRate(INC))+'/d!','ok');refreshUI();})
+      .catch(e=>{cref.set(firebase.database.ServerValue.increment(cost)).catch(()=>{});status('Gagal menyimpan upgrade, koin dikembalikan'+(e&&e.code?' ('+e.code+')':''),'err');});
+  }).catch(e=>status('Upgrade gagal'+(e&&e.code?' ('+e.code+')':''),'err')).then(()=>{buying=false;});
+}
+/* ---------- HADIAH HARIAN: hari 1-7, hadiah uang acak ---------- */
+function openGift(){
+  openMdl('🎁 Hadiah Harian',body=>{
+    const ds=dailyShown(),next=ds.today?(ds.n%7)+1:(ds.n%7)+1;
+    let cells='';
+    for(let i=1;i<=7;i++){
+      const done=i<=ds.n,cur=!ds.today&&i===next;
+      cells+='<div class="gf'+(done?' done':'')+(cur?' cur':'')+(i===7?' big':'')+'"><small>Hari '+i+'</small><div>'+(i===7?'🎁':'💵')+'</div><b>'+fmtC(GIFT[i-1][0])+'–'+fmtC(GIFT[i-1][1])+'</b>'+(done?'<em>✔</em>':'')+'</div>';
+    }
+    body.innerHTML='<div class="gf-grid">'+cells+'</div>'
+      +(ds.today?'<button class="btn" disabled>Sudah diambil hari ini </button>':'<button class="btn" id="gfBtn">🎁 Ambil Hadiah Hari '+next+'</button>')
+      +'<p class="hint" style="text-align:center">Kalau terlewat sehari, hitungan kembali ke Hari 1.</p>';
+    const bt=$('gfBtn');if(bt)bt.onclick=claimGift;
+  });
+}
+function claimGift(){
+  const d=getDB();if(!d||!USER){status('Belum terhubung ke server','err');return;}
+  if(buying)return;buying=true;
+  const K='nexoria/users/'+USER.toLowerCase(),t=todayUTC(0),y=todayUTC(1);let prev=null,amt=0,day=0;
+  d.ref(K+'/daily').transaction(cur=>{
+    prev=cur;cur=cur||{n:0,last:''};
+    if(cur.last===t)return;
+    const base=cur.last===y?(cur.n||0):0;day=(base%7)+1;
+    const r=GIFT[day-1];amt=r[0]+Math.floor(Math.random()*(r[1]-r[0]+1));
+    return{n:day,last:t,amt};
+  }).then(r=>{
+    if(!r.committed){status('Hadiah hari ini sudah diambil','err');return;}
+    return d.ref(K+'/coins').set(firebase.database.ServerValue.increment(amt)).then(()=>{status('🎁 Hari '+day+': kamu dapat 💵 '+Math.floor(amt).toLocaleString('id-ID')+'!','ok');})
+      .catch(e=>{d.ref(K+'/daily').set(prev).catch(()=>{});status('Gagal memberi hadiah, coba lagi'+(e&&e.code?' ('+e.code+')':''),'err');});
+  }).catch(()=>status('Gagal mengambil hadiah','err')).then(()=>{buying=false;});
+}
+$('navShop').addEventListener('click',()=>{closeDrawer();openShop();});
+$('navGift').addEventListener('click',()=>{closeDrawer();openGift();});
+/* ---------- REDEEM CODE: tiap kode hanya 1× per akun ---------- */
+/* kode redeem sekarang disimpan di server (nexoria/codes), dikelola lewat Disguise.html */
+function openRedeem(){
+  openMdl('🎟️ Redeem Code',body=>{
+    body.innerHTML='<input id="rdIn" class="field-in" maxlength="24" placeholder="Masukkan kode" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:100%;height:46px;border-radius:12px;border:1px solid var(--line);background:#ffffff0a;color:var(--ink);padding:0 14px;font:700 16px var(--font-b);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">'
+      +'<button class="btn" id="rdGo">Klaim</button><p class="hint" style="text-align:center">Setiap kode hanya bisa dipakai 1× per akun.</p>';
+    $('rdGo').onclick=redeemCode;$('rdIn').addEventListener('keydown',e=>{if(e.key==='Enter')redeemCode();});
+  });
+}
+async function redeemCode(){
+  const d=getDB();if(!d||!USER){status('Belum terhubung ke server','err');return;}
+  const code=($('rdIn').value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(!code){status('Masukkan kode dulu','err');return;}
+  let amt=0;try{amt=+((await withTimeout(d.ref('nexoria/codes/'+code).once('value'),8000)).val())||0;}catch(e){}
+  if(!(amt>0)){status('Kode tidak valid','err');return;}
+  if(buying)return;buying=true;
+  const K='nexoria/users/'+USER.toLowerCase();
+  d.ref(K+'/redeemed/'+code).transaction(cur=>cur===null?1:undefined).then(r=>{
+    if(!r.committed){status('Kode ini sudah kamu pakai','err');return;}
+    return d.ref(K+'/coins').set(firebase.database.ServerValue.increment(amt)).then(()=>{status('🎟️ Kode berhasil! +💵 '+Math.floor(amt).toLocaleString('id-ID'),'ok');$('rdIn').value='';})
+      .catch(e=>{d.ref(K+'/redeemed/'+code).remove().catch(()=>{});status('Gagal menambah koin, coba lagi'+(e&&e.code?' ('+e.code+')':''),'err');});
+  }).catch(e=>status('Gagal memproses kode'+(e&&e.code?' ('+e.code+')':''),'err')).then(()=>{buying=false;});
+}
+$('navRedeem').addEventListener('click',()=>{closeDrawer();openRedeem();});
+$('navAvatar').addEventListener('click',()=>{closeDrawer();openAvatar();});
+
+/* ---------- FOTO PROFIL (dari galeri, dipotong persegi 192px, disimpan sebagai JPEG kecil) ---------- */
+let PHOTO='',phRef=null;const FPH={};
+const PH_K=()=>'nx_photo_'+USER.toLowerCase();
+const okPhoto=p=>typeof p==='string'&&p.length<70000&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(p);
+function setAva(el,url,name){if(!el)return;if(url){el.style.backgroundImage='url('+url+')';el.textContent='';el.classList.add('ph');}else{el.style.backgroundImage='';el.classList.remove('ph');el.textContent=(name[0]||'N').toUpperCase();}}
+function paintPhoto(){setAva($('avaTop'),PHOTO,USER);setAva($('avaSide'),PHOTO,USER);setAva($('pfAv'),PHOTO,USER);}
+function pickPhoto(){
+  const f=document.createElement('input');f.type='file';f.accept='image/*';
+  f.onchange=()=>{const file=f.files&&f.files[0];if(!file)return;const url=URL.createObjectURL(file),im=new Image();
+    im.onload=()=>{const S=192,c=document.createElement('canvas');c.width=c.height=S;const m=Math.min(im.width,im.height);
+      c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);URL.revokeObjectURL(url);savePhoto(c.toDataURL('image/jpeg',.82));};
+    im.onerror=()=>{URL.revokeObjectURL(url);status('File itu bukan gambar yang valid','err');};im.src=url;};
+  f.click();
+}
+function savePhoto(p){
+  PHOTO=p;try{if(p)localStorage.setItem(PH_K(),p);else localStorage.removeItem(PH_K());}catch(e){}paintPhoto();
+  const d=getDB();if(!d){status('Foto tersimpan di perangkat','ok');return;}
+  const r=d.ref('nexoria/users/'+USER.toLowerCase()+'/photo');
+  (p?r.set(p):r.remove()).then(()=>status(p?'Foto profil diperbarui':'Foto profil dihapus','ok')).catch(()=>status('Foto tersimpan di perangkat, server menolak','err'));
+}
+function watchPhoto(){
+  const d=getDB();if(!d||!USER)return;if(phRef){try{phRef.off();}catch(e){}}
+  phRef=d.ref('nexoria/users/'+USER.toLowerCase()+'/photo');
+  phRef.on('value',sn=>{const v=sn.val();if(okPhoto(v)){PHOTO=v;try{localStorage.setItem(PH_K(),v);}catch(e){}paintPhoto();}},()=>{});
+}
+function loadFPh(k){const d=getDB();if(!d||FPH[k]!==undefined)return;FPH[k]=null;d.ref('nexoria/users/'+k+'/photo').once('value').then(s=>{const p=s.val();if(okPhoto(p)){FPH[k]=p;renderFriends();}}).catch(()=>{});}
+$('chipMe').addEventListener('click',showProfile);
+
+/* ---------- SUKA & KOMENTAR per game (real-time, semua pemain) ---------- */
+const SOC='nexoria/social/';
+const HEART='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.2-9.3C1.7 8 3.6 4.8 6.9 4.8c2 0 3.7 1.2 5.1 3 1.4-1.8 3.1-3 5.1-3 3.3 0 5.2 3.2 4.1 6.4-1.7 4.7-9.2 9.3-9.2 9.3z"/></svg>';
+const CHAT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
+let LIKE={},COM={},socRefs=[],cmOpen='',lastCm=0;
+function actsHTML(id){
+  const l=LIKE[id]||{},n=Object.keys(l).length,on=!!(USER&&l[USER.toLowerCase()]),c=(COM[id]||[]).length;
+  return '<button class="lk'+(on?' on':'')+'" data-like="'+id+'" aria-pressed="'+on+'" aria-label="Suka, '+n+' suka">'+HEART+'<b>'+fmtC(n)+'</b></button>'
+    +'<button data-cm="'+id+'" aria-label="Komentar, '+c+'">'+CHAT+'<b>'+(c>=100?'99+':c)+'</b></button>';
+}
+function paintSocial(id,pop){
+  const box=document.querySelector('.card[data-id="'+id+'"] .acts-l');if(!box)return;
+  box.innerHTML=actsHTML(id);if(pop){const b=box.querySelector('.lk.on');if(b)b.classList.add('pop');}
+}
+function watchSocial(){
+  const d=getDB();if(!d||!USER)return;socRefs.forEach(r=>{try{r.off();}catch(e){}});socRefs=[];
+  GAMES.forEach(g=>{
+    const lr=d.ref(SOC+'likes/'+g.id),cr=d.ref(SOC+'comments/'+g.id).limitToLast(100);
+    lr.on('value',sn=>{LIKE[g.id]=sn.val()||{};paintSocial(g.id);},()=>{});
+    cr.on('value',sn=>{const a=[];sn.forEach(c=>{a.push(Object.assign({id:c.key},c.val()));});COM[g.id]=a;paintSocial(g.id);if(cmOpen===g.id)renderCm();},()=>{});
+    socRefs.push(lr,cr);
+  });
+}
+function toggleLike(id){
+  const d=getDB();if(!d||!USER){status('Belum terhubung ke server','err');return;}
+  const me=USER.toLowerCase(),was=!!(LIKE[id]&&LIKE[id][me]),r=d.ref(SOC+'likes/'+id+'/'+me);
+  (was?r.remove():r.set(1)).catch(()=>status('Suka gagal disimpan, coba lagi','err'));
+  const b=document.querySelector('.card[data-id="'+id+'"] .lk');if(b&&!was){setTimeout(()=>paintSocial(id,true),0);}
+}
+$('grid').addEventListener('click',e=>{
+  const t=e.target,lk=t.closest('[data-like]');if(lk){toggleLike(lk.dataset.like);return;}
+  const cm=t.closest('[data-cm]');if(cm){openCm(cm.dataset.cm);return;}
+  const c=t.closest('.card');if(c)launch(c.dataset.id);
+});
+$('grid').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('card')){e.preventDefault();launch(e.target.dataset.id);}});
+function ago(ts){const s=Math.max(0,(Date.now()+srvOff-(+ts||0))/1000);if(s<45)return 'baru saja';if(s<3600)return Math.round(s/60)+' mnt';if(s<86400)return Math.round(s/3600)+' jam';return Math.round(s/86400)+' hari';}
+function openCm(id){
+  const g=GAMES.find(x=>x.id===id);if(!g||!USER)return;closeMdl();cmOpen=id;
+  const m=document.createElement('div');m.className='mdl cm';
+  m.innerHTML='<div class="mdl-card"><div class="cm-h"><h3>Komentar · '+esc(g.name)+'</h3><button class="btn ghost small" id="cmX">Tutup</button></div><div class="cm-list" id="cmList"></div><div class="cm-form"><input id="cmIn" class="search" maxlength="200" placeholder="Tulis komentar…" autocomplete="off"><button class="btn small" id="cmSend" style="margin:0">Kirim</button></div></div>';
+  document.body.appendChild(m);
+  const close=()=>{cmOpen='';closeMdl();};
+  m.addEventListener('pointerdown',e=>{if(e.target===m)close();});
+  $('cmX').onclick=close;$('cmSend').onclick=sendCm;$('cmIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendCm();});
+  renderCm(true);
+}
+function renderCm(first){
+  const el=$('cmList');if(!el){cmOpen='';return;}
+  const list=COM[cmOpen]||[],me=USER.toLowerCase(),near=el.scrollHeight-el.scrollTop-el.clientHeight<80;
+  el.innerHTML=list.length?list.map(c=>'<div class="cmi"><div class="cmav" style="background:hsl('+fHue(c.u||'?')+' 80% 60%)">'+esc(((c.u||'?')[0]||'?').toUpperCase())+'</div><div style="min-width:0;flex:1"><div class="cmh"><b>'+esc(c.u||'?')+'</b><time>'+ago(c.ts)+'</time>'+(c.k===me?'<button data-del="'+esc(c.id)+'">Hapus</button>':'')+'</div><p>'+esc(c.t||'')+'</p></div></div>').join(''):'<div class="empty">Belum ada komentar. Tulis yang pertama.</div>';
+  el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const d=getDB();if(d)d.ref(SOC+'comments/'+cmOpen+'/'+b.dataset.del).remove().catch(()=>status('Gagal menghapus komentar','err'));});
+  if(first||near)el.scrollTop=el.scrollHeight;
+}
+function sendCm(){
+  const d=getDB(),inp=$('cmIn');if(!d||!inp||!cmOpen)return;
+  const t=inp.value.trim().slice(0,200);if(!t)return;
+  if(Date.now()-lastCm<3000){status('Tunggu sebentar sebelum berkomentar lagi','err');return;}
+  lastCm=Date.now();
+  d.ref(SOC+'comments/'+cmOpen).push({u:USER,k:USER.toLowerCase(),t:t,ts:firebase.database.ServerValue.TIMESTAMP}).then(()=>{inp.value='';}).catch(()=>status('Komentar gagal terkirim','err'));
+}
+
+/* ---------- TEMAN: online/offline + sedang main apa ---------- */
+let PRES_KEY='',presTimer=0,frTimer=0,visFn=null,FREF=null,heroRefs=[],srvWatch=false;
+const FR={},FP={},FRW={},FPL={};let srvOff=0,fReady=false,launching=false,FLOADED=false,rfQ=0,cacheT=0;
+/* cache lokal: uang + daftar teman langsung tampil saat halaman dibuka, data server menyusul */
+function saveCache(){clearTimeout(cacheT);cacheT=setTimeout(()=>{try{if(USER)localStorage.setItem('nexoria_cache_'+USER.toLowerCase(),JSON.stringify({c:COINRAW||0,f:FR}));}catch(e){}},400);}
+function paintCache(){let c=null;try{c=JSON.parse(localStorage.getItem('nexoria_cache_'+USER.toLowerCase()));}catch(e){}
+  if(c&&typeof c==='object'){if(c.c!=null&&!COINLOADED)$('coinV').textContent=fmtC(c.c);if(c.f&&typeof c.f==='object'&&!FLOADED){for(const k in c.f)if(!(k in FR))FR[k]=String(c.f[k]||k);}}
+  renderFriendsNow();}
+const PRES_TTL=75000,PRES_TTL_NOHB=600000;   /* game dengan heartbeat: 75 dtk; game tanpa heartbeat: 10 menit sejak diluncurkan */
+const gName=id=>{const g=GAMES.find(x=>x.id===id);return id==='curitelur'?'Mencuri telur':g?'Bermain '+g.name:'Online';};
+const fHue=n=>{let x=0;for(const c of String(n))x=(x*31+c.charCodeAt(0))%360;return x;};
+function fStat(k){
+  if(!FPL[k])return{s:0,t:'',ld:1};const p=FP[k];if(!p||!p.ts)return{s:0,t:'Offline'};
+  const age=Date.now()+srvOff-p.ts;
+  if(age>(p.hb?PRES_TTL:PRES_TTL_NOHB))return{s:0,t:'Offline'};
+  return p.g?{s:2,t:gName(p.g)}:{s:1,t:'Online'};
+}
+function renderFriends(){if(rfQ)return;rfQ=1;requestAnimationFrame(()=>{rfQ=0;renderFriendsNow();});}
+function renderFriendsNow(){
+  const box=$('fRow');if(!box)return;
+  const arr=Object.keys(FR).map(k=>({k,n:FR[k],st:fStat(k)})).sort((a,b)=>b.st.s-a.st.s||a.n.localeCompare(b.n));
+  box.innerHTML=arr.map(f=>{const x=fHue(f.n),cl=f.st.s===2?'pl':f.st.s===1?'on':'';
+    return '<button class="fr '+cl+'" data-k="'+esc(f.k)+'"><div class="fc" style="'+(FPH[f.k]?'background:url('+FPH[f.k]+') center/cover':'background:linear-gradient(135deg,hsl('+x+' 80% 62%),hsl('+((x+60)%360)+' 80% 52%))')+'">'+(FPH[f.k]?'':esc((f.n[0]||'?').toUpperCase()))+'<i></i></div><div class="fn">'+esc(f.n)+'</div><div class="fs">'+(f.st.ld?'<span class="spin"></span>':esc(f.st.t))+'</div></button>';}).join('')
+    +'<button class="fr" id="fAdd" aria-label="Tambah teman"><div class="fc add">+</div><div class="fn">Tambah</div><div class="fs">teman</div></button>'
+    +(arr.length?'':(FLOADED?'<div class="fEmpty">Belum ada teman. Ketuk + lalu masukkan username.</div>':'<div class="fEmpty"><span class="spin"></span> Memuat teman…</div>'));
+  box.querySelectorAll('.fr[data-k]').forEach(b=>b.onclick=()=>friendInfo(b.dataset.k));
+  $('fAdd').onclick=addFriendUI;
+}
+function setPres(g,hb){
+  const d=getDB();if(!d||!USER)return Promise.resolve();
+  return d.ref('nexoria/presence/'+USER.toLowerCase()).set({n:USER,g:g||'',hb:hb?1:0,ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+}
+/* bersihkan SEMUA sesi akun lama (presence, pantauan teman/koin/hero) — dipanggil saat logout / kick / ganti akun */
+function endSession(){stUnwatch();
+  const d=getDB();
+  try{socRefs.forEach(r=>r.off());}catch(e){}socRefs=[];LIKE={};COM={};cmOpen='';if(phRef){try{phRef.off();}catch(e){}phRef=null;}PHOTO='';
+
+  if(presTimer){clearInterval(presTimer);presTimer=0;}
+  if(frTimer){clearInterval(frTimer);frTimer=0;}
+  if(visFn){document.removeEventListener('visibilitychange',visFn);visFn=null;}
+  if(PRES_KEY&&d){const r=d.ref('nexoria/presence/'+PRES_KEY);try{r.onDisconnect().cancel();}catch(e){}r.remove().catch(()=>{});}
+  PRES_KEY='';
+  if(FREF){try{FREF.off();}catch(e){}FREF=null;}
+  for(const k in FRW){try{FRW[k].off();}catch(e){}delete FRW[k];}
+  for(const k in FR)delete FR[k];for(const k in FP)delete FP[k];for(const k in FPL)delete FPL[k];
+  fReady=false;FLOADED=false;
+  heroRefs.forEach(r=>{try{r&&r.off();}catch(e){}});heroRefs=[];heroWatch=false;heroOn=false;streakInfo={n:0,last:''};
+  if(coinRef){try{coinRef.off();}catch(e){}coinRef=null;}
+  if(window._nxRefs){window._nxRefs.forEach(r=>{try{r.off();}catch(e){}});window._nxRefs=null;}
+  if(banRef){try{banRef.off();}catch(e){}banRef=null;}
+  COINRAW=null;COINLOADED=false;COINS=0;OWN={};SPON=false;INC=0;DAILY={n:0,last:''};clearTimeout(cacheT);
+  try{const cv=$('coinV');if(cv)cv.innerHTML='<span class="spin"></span>';renderFriendsNow();}catch(e){}
+}
+function startPresence(){
+  const d=getDB();if(!d||!USER)return;
+  const r=d.ref('nexoria/presence/'+USER.toLowerCase());PRES_KEY=USER.toLowerCase();
+  const beat=()=>{if(document.hidden||launching||!USER||USER.toLowerCase()!==PRES_KEY)return;try{r.onDisconnect().remove();}catch(e){}setPres('',1);};
+  beat();presTimer=setInterval(beat,30000);
+  visFn=()=>{if(!document.hidden)beat();};document.addEventListener('visibilitychange',visFn);
+}
+function watchFriends(){stWatch();
+  const d=getDB();if(!d||!USER||fReady)return;fReady=true;
+  renderFriends();
+  if(!srvWatch){srvWatch=true;d.ref('.info/serverTimeOffset').on('value',s=>{srvOff=+s.val()||0;});}
+  const fref=d.ref('nexoria/users/'+USER.toLowerCase()+'/friends');FREF=fref;
+  fref.on('value',sn=>{const v=sn.val()||{};FLOADED=true;
+    for(const k of Object.keys(FR))if(!(k in v)){if(FRW[k]){FRW[k].off();delete FRW[k];}delete FR[k];delete FP[k];delete FPL[k];}
+    for(const k of Object.keys(v)){FR[k]=String(v[k]||k);loadFPh(k);if(!FRW[k]){const r=d.ref('nexoria/presence/'+k);FRW[k]=r;r.on('value',s=>{FP[k]=s.val();FPL[k]=1;renderFriends();},()=>{FPL[k]=1;renderFriends();});}}
+    renderFriends();saveCache();},()=>{FLOADED=true;renderFriends();});
+  frTimer=setInterval(renderFriends,20000);
+  startPresence();
+}
+function addFriendUI(){
+  modal('<h3>👥 Tambah Teman</h3><p>Masukkan username temanmu.</p><input id="fIn" class="search" style="width:100%;margin-bottom:12px" placeholder="Username" maxlength="16" autocomplete="off" autocapitalize="off"><div class="row"><button class="btn ghost" id="fNo">Batal</button><button class="btn" id="fOk">Tambah</button></div>',c=>{
+    c.querySelector('#fNo').onclick=closeModal;
+    const ok=c.querySelector('#fOk');
+    ok.onclick=()=>{
+      const v=c.querySelector('#fIn').value.trim(),k=v.toLowerCase(),d=getDB();
+      if(!valid(v)){status('Username tidak valid','err');return;}
+      if(k===USER.toLowerCase()){status('Itu akunmu sendiri','err');return;}
+      if(FR[k]){status('Sudah jadi temanmu','err');return;}
+      if(!d){status('Belum terhubung ke server','err');return;}
+      ok.disabled=true;
+      withTimeout(d.ref('nexoria/users/'+k+'/name').once('value'),8000).then(s=>{
+        if(!s.exists()){status('Username tidak ditemukan','err');ok.disabled=false;return;}
+        const nm=String(s.val()||v);
+        return d.ref('nexoria/users/'+USER.toLowerCase()+'/friends/'+k).set(nm).then(()=>{status('✅ '+nm+' ditambahkan','ok');closeModal();});
+      }).catch(()=>{status('Gagal menambah teman','err');ok.disabled=false;});
+    };
+    setTimeout(()=>{try{c.querySelector('#fIn').focus();}catch(e){}},60);
+  });
+}
+function friendInfo(k){
+  const n=FR[k];if(!n)return;const st=fStat(k);
+  modal('<h3>'+esc(n)+'</h3><p>'+(st.s?'🟢 ':'⚫ ')+esc(st.t)+'</p><div class="row"><button class="btn ghost" id="fDel">Hapus teman</button><button class="btn" id="fOk2">Tutup</button></div>',c=>{
+    c.querySelector('#fOk2').onclick=closeModal;
+    c.querySelector('#fDel').onclick=()=>{const d=getDB();if(d)d.ref('nexoria/users/'+USER.toLowerCase()+'/friends/'+k).remove().catch(()=>{});closeModal();};
+  });
+}
+
+/* ---------- ⌨️ KEYBOARD: 1/2/3 = game 1/2/3 · lainnya bebas · Backspace = tutup (bukan Esc) ---------- */
+/* ---------- 🛠️ STUDIO GAME: buat game 3D, uji coba, publikasi real-time ---------- */
+const ST={list:{},cur:null,tested:'',testHash:'',pubs:{},timer:0};let stRef=null;
+const stKey=()=>USER.toLowerCase(),stId=()=>'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const stHash=p=>{const s=p.js+'\u0001'+p.ui;let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h+':'+s.length;};
+const TPL_JS="// Variabel siap pakai: THREE, scene, camera, renderer, keys, joy, onUpdate, $\nscene.background=new THREE.Color(0x10131f);\nscene.add(new THREE.HemisphereLight(0xffffff,0x334455,1.1));\nconst ground=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:0x2b3a55}));ground.rotation.x=-Math.PI/2;scene.add(ground);\nconst me=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:0x39f4ff}));me.position.y=.5;scene.add(me);\nconst coins=[];for(let i=0;i<12;i++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.1,20),new THREE.MeshStandardMaterial({color:0xffcf6b}));c.rotation.x=Math.PI/2;c.position.set((Math.random()-.5)*40,.6,(Math.random()-.5)*40);scene.add(c);coins.push(c);}\nlet skor=0;\nonUpdate(dt=>{\n  const sx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joy.x,sz=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+joy.y;\n  me.position.x+=sx*8*dt;me.position.z+=sz*8*dt;\n  camera.position.set(me.position.x,9,me.position.z+10);camera.lookAt(me.position);\n  coins.forEach(c=>{c.rotation.z+=dt*3;if(c.visible&&c.position.distanceTo(me.position)<1.1){c.visible=false;skor++;$('skor').textContent='Skor: '+skor;}});\n});\n";
+const TPL_UI='<div id="skor" style="position:fixed;top:12px;left:12px;color:#fff;font:700 18px system-ui;text-shadow:0 2px 4px #000">Skor: 0</div>';
+/* SDK yang berjalan DI DALAM iframe terisolasi (sandbox + CSP) */
+function STSDK(){
+let bad=0,fr=0;const PM=(t,m)=>parent.postMessage({nx:1,t,m:String(m).slice(0,300)},'*');
+window.__err=e=>{bad=1;PM('err',(e&&e.message)||e)};window.onerror=m=>{bad=1;PM('err',m)};window.onunhandledrejection=e=>{bad=1;PM('err',e.reason)};
+console.log=(...a)=>PM('log',a.join(' '));const $=id=>document.getElementById(id);
+const scene=new THREE.Scene(),renderer=new THREE.WebGLRenderer({antialias:true}),camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,1000);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);document.body.prepend(renderer.domElement);
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
+const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0});
+const joy={x:0,y:0};let jo=null;addEventListener('pointerdown',e=>{if(e.clientX<innerWidth/2&&e.target===renderer.domElement)jo=[e.clientX,e.clientY];});
+addEventListener('pointermove',e=>{if(jo){joy.x=Math.max(-1,Math.min(1,(e.clientX-jo[0])/50));joy.y=Math.max(-1,Math.min(1,(e.clientY-jo[1])/50));}});
+addEventListener('pointerup',()=>{jo=null;joy.x=joy.y=0;});
+const U=[],onUpdate=f=>U.push(f),clock=new THREE.Clock();
+(function L(){requestAnimationFrame(L);const dt=Math.min(clock.getDelta(),.05);try{U.forEach(f=>f(dt))}catch(e){bad=1;PM('err',e.message);U.length=0}renderer.render(scene,camera);if(!bad&&fr<9&&++fr===9)PM('ok','');})();
+}
+function stDoc(js,ui){
+  const sdk=STSDK.toString().replace(/^[^{]*\{/,'').replace(/\}\s*$/,'');
+  return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\' https://cdnjs.cloudflare.com; style-src \'unsafe-inline\'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src \'none\'"><style>html,body{margin:0;height:100%;overflow:hidden;background:#000;touch-action:none}canvas{display:block}#ui{position:fixed;inset:0;pointer-events:none;font-family:system-ui,sans-serif}#ui *{pointer-events:auto}</style></head><body><div id="ui">'+ui+'</div><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script><script>'+sdk+'<\/script><script>try{\n'+String(js).replace(/<\/script/gi,'<\\/script')+'\n}catch(e){__err(e)}<\/script></body></html>';
+}
+const SNIP={
+ lompat:["Lompat (Spasi)","let vy=0;\nonUpdate(dt=>{if(keys[' ']&&me.position.y<=.51)vy=7;vy-=20*dt;me.position.y=Math.max(.5,me.position.y+vy*dt);});\n"],
+ musuh:["Musuh mengejar","const musuh=new THREE.Mesh(new THREE.SphereGeometry(.6),new THREE.MeshStandardMaterial({color:0xff2fa6}));musuh.position.set(10,.6,10);scene.add(musuh);\nonUpdate(dt=>{const d=me.position.clone().sub(musuh.position);if(d.length()>.1)musuh.position.add(d.normalize().multiplyScalar(3*dt));if(d.length()<1.1)console.log('Kena musuh!');});\n"],
+ suara:["Suara beep","function beep(f=440,t=.1){const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator();o.frequency.value=f;o.connect(a.destination);o.start();o.stop(a.currentTime+t);}\n"],
+ timer:["Hitung mundur","let sisa=60;onUpdate(dt=>{sisa-=dt;if(sisa<=0){sisa=0;console.log('Waktu habis!');}});\n"],
+ kamera:["Kamera orang pertama","onUpdate(()=>{camera.position.set(me.position.x,1.6,me.position.z);});\n"]
+};
+function stExplain(m){m=String(m);
+ let r=/(\w+) is not defined/.exec(m);if(r)return '"'+r[1]+'" belum dibuat atau salah ketik. Cek ejaan, atau buat dulu dengan const/let.';
+ if(/Cannot read prop/.test(m))return 'Kamu memakai objek yang belum ada (undefined). Pastikan variabelnya dibuat sebelum dipakai di onUpdate.';
+ if(/Unexpected token|Unexpected end|missing \)/.test(m))return 'Ada tanda kurung, kurawal, atau koma yang kurang/lebih di dekat baris yang dimaksud.';
+ if(/is not a constructor|is not a function/.test(m))return 'Nama fungsi/kelas salah untuk Three.js r128. Contoh benar: new THREE.BoxGeometry(1,1,1).';
+ if(/Assignment to constant/.test(m))return 'Variabel const tidak boleh diisi ulang. Ganti const dengan let.';
+ return 'Baca pesan error lalu periksa baris yang disebut. Uji lagi setelah diperbaiki.';}
+function stAsk(q){q=q.toLowerCase();
+ if(/lompat|jump/.test(q))return 'lompat';if(/musuh|enemy|kejar/.test(q))return 'musuh';if(/suara|bunyi|sound|audio/.test(q))return 'suara';
+ if(/timer|waktu|hitung/.test(q))return 'timer';if(/kamera|camera|fps/.test(q))return 'kamera';return '';}
+(function stBuild(){
+  document.head.insertAdjacentHTML('beforeend','<style>#st,#stp{position:fixed;inset:0;z-index:40;background:var(--bg);display:none;flex-direction:column;color:var(--ink)}body.stopen #st{display:flex}#stp.on{display:flex;z-index:45}.sth{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line2)}.sth b{flex:1;font-size:15px}.sth button,.stn button,.stb .sb{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}#stP{background:var(--gold);color:#241a00;border:0}#stP[disabled]{opacity:.4}#stS{font-size:12px;color:var(--mute)}.stn{display:flex;gap:6px;padding:8px 12px;overflow-x:auto}.stn button.on{background:var(--vi);border-color:var(--vi)}.stb{flex:1;min-height:0;position:relative}.stb section{display:none;position:absolute;inset:0;padding:12px;overflow:auto}.stb section.on{display:flex;flex-direction:column;gap:10px}.stb textarea,.stb input{width:100%;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace}.stb input{font-family:system-ui}.stb textarea{flex:1;resize:none;tab-size:2;white-space:pre}#stF,#stpF{flex:1;width:100%;border:1px solid var(--line);border-radius:10px;background:#000;min-height:200px}#stL{margin:0;max-height:90px;overflow:auto;background:var(--card);border-radius:10px;padding:8px;font:12px/1.4 ui-monospace,monospace;color:var(--mute);white-space:pre-wrap}.stl{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}.stl.on{border-color:var(--cy)}.stl i{font-style:normal;font-size:26px}.stl img{width:36px;height:36px;border-radius:8px;object-fit:cover}.sti{display:flex;gap:10px;align-items:center}.sti .pv{width:64px;height:64px;border-radius:14px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;border:1px solid var(--line)}.sti .pv img{width:100%;height:100%;object-fit:cover}.sai{display:flex;flex-wrap:wrap;gap:6px}#stA{font-size:14px;line-height:1.6;color:var(--ink);background:var(--card);border-radius:10px;padding:10px;white-space:pre-wrap}</style>');
+  document.body.insertAdjacentHTML('beforeend','<div id="st"><div class="sth"><button id="stX">✕</button><b>🛠️ Studio Game</b><span id="stS"></span><button id="stT">▶ Uji</button><button id="stP">🚀 Publikasi</button></div><div class="stn" id="stN"><button data-t="proyek" class="on">Proyek</button><button data-t="info">Info</button><button data-t="kode">Kode JS</button><button data-t="ui">UI</button><button data-t="uji">Uji</button><button data-t="ai">🤖 Pendamping</button></div><div class="stb"><section data-p="proyek" class="on"><button class="sb" id="stNew">＋ Proyek baru</button><div id="stList" style="display:grid;gap:8px"></div></section><section data-p="info"><input id="stNm" maxlength="30" placeholder="Nama game"><div class="sti"><div class="pv" id="stPv">🎮</div><input id="stEm" maxlength="4" placeholder="Emoji ikon" style="width:110px"><button class="sb" id="stPic">🖼️ Dari galeri</button><input type="file" id="stFi" accept="image/*" hidden></div><input id="stDs" maxlength="120" placeholder="Deskripsi singkat"><div class="sai"><button class="sb" id="stUn">Tarik dari publik</button><button class="sb" id="stDel">🗑️ Hapus draft</button></div></section><section data-p="kode"><textarea id="stJ" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></section><section data-p="ui"><textarea id="stU" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="HTML + CSS untuk tampilan (skor, tombol, menu)"></textarea></section><section data-p="uji"><iframe id="stF" sandbox="allow-scripts"></iframe><pre id="stL"></pre></section><section data-p="ai"><div id="stA">Hai! Aku pendamping Studio. Tulis yang kamu mau (lompat, musuh, suara, timer, kamera) atau tekan tombol di bawah untuk menyisipkan kode ke tab Kode JS. Kalau ada error saat uji, aku jelaskan di sini.</div><div class="sai" id="stSn"></div><input id="stQ" placeholder="Tanya pendamping…"></section></div></div><div id="stp"><div class="sth"><button id="stpX">✕</button><b id="stpN">Game</b></div><iframe id="stpF" sandbox="allow-scripts"></iframe></div>');
+  const g=id=>document.getElementById(id),say=t=>{g('stS').textContent=t;clearTimeout(ST.timer);ST.timer=setTimeout(()=>g('stS').textContent='',4000);};
+  const tab=t=>{document.querySelectorAll('#stN button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.stb section').forEach(s=>s.classList.toggle('on',s.dataset.p===t));};
+  const isPub=()=>ST.cur&&ST.pubs[ST.cur.id]&&ST.pubs[ST.cur.id].k===stKey();
+  const btn=()=>{const p=ST.cur;g('stP').disabled=!p||ST.tested!==stHash(p);g('stUn').style.display=isPub()?'':'none';};
+  const iconHTML=i=>i&&i.startsWith('data:')?'<img src="'+esc(i)+'" alt="">':esc(i||'🎮');
+  const list=()=>{const ids=Object.keys(ST.list).sort((a,b)=>(ST.list[b].ts||0)-(ST.list[a].ts||0));g('stList').innerHTML=ids.map(id=>{const p=ST.list[id];return '<div class="stl'+(ST.cur&&ST.cur.id===id?' on':'')+'" data-id="'+id+'"><i>'+iconHTML(p.i)+'</i><div style="flex:1"><b>'+esc(p.n)+'</b><div style="font-size:12px;color:var(--mute)">'+(ST.pubs[id]?'🟢 Dipublikasikan':'Draft')+'</div></div></div>';}).join('')||'<div style="color:var(--mute)">Belum ada proyek.</div>';};
+  const load=id=>{ST.cur=ST.list[id];const p=ST.cur;g('stNm').value=p.n;g('stEm').value=p.i&&!p.i.startsWith('data:')?p.i:'';g('stPv').innerHTML=iconHTML(p.i);g('stDs').value=p.d||'';g('stJ').value=p.js;g('stU').value=p.ui;g('stL').textContent='';g('stF').srcdoc='';ST.tested='';btn();list();};
+  const save=()=>{const p=ST.cur;if(!p)return;clearTimeout(save.t);save.t=setTimeout(()=>{const d=getDB();if(!d)return;p.ts=firebase.database.ServerValue.TIMESTAMP;d.ref('nexoria/studio/drafts/'+stKey()+'/'+p.id).set({n:p.n,i:p.i||'🎮',d:p.d||'',js:p.js,ui:p.ui,ts:p.ts}).then(()=>say('Tersimpan ☁️')).catch(()=>say('Gagal simpan (cek koneksi/aturan)'));},1200);};
+  const nw=()=>{const p={id:stId(),n:'Game baru',i:'🎮',d:'',js:TPL_JS,ui:TPL_UI,ts:Date.now()};ST.list[p.id]=p;load(p.id);save();tab('info');};
+  window.stClose=()=>{document.body.classList.remove('stopen');};
+  g('stX').onclick=window.stClose;
+  const open=async()=>{if(!USER)return;closeDrawer();document.body.classList.add('stopen');tab('proyek');const d=getDB();await authReady();if(!d)return;try{const sn=await d.ref('nexoria/studio/drafts/'+stKey()).once('value'),v=sn.val()||{};ST.list={};Object.keys(v).forEach(id=>{ST.list[id]=Object.assign({id},v[id]);});}catch(e){say('Gagal memuat proyek');}
+    if(!Object.keys(ST.list).length)nw();else if(!ST.cur||!ST.list[ST.cur.id])load(Object.keys(ST.list)[0]);else load(ST.cur.id);list();};
+  g('navStudio').addEventListener('click',open);g('lobStudio').addEventListener('click',open);window.stOpen=open;
+  g('stN').addEventListener('click',e=>{const t=e.target.dataset&&e.target.dataset.t;if(t)tab(t);});
+  g('stNew').onclick=nw;
+  g('stList').addEventListener('click',e=>{const el=e.target.closest('.stl');if(el){load(el.dataset.id);tab('info');}});
+  const upd=(k,v)=>{if(!ST.cur)return;ST.cur[k]=v;btn();save();};
+  g('stNm').oninput=e=>upd('n',e.target.value);g('stDs').oninput=e=>upd('d',e.target.value);
+  g('stEm').oninput=e=>{upd('i',e.target.value||'🎮');g('stPv').innerHTML=iconHTML(ST.cur.i);};
+  g('stJ').oninput=e=>upd('js',e.target.value);g('stU').oninput=e=>upd('ui',e.target.value);
+  [g('stJ'),g('stU')].forEach(t=>t.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const s=t.selectionStart;t.setRangeText('  ',s,t.selectionEnd,'end');t.dispatchEvent(new Event('input'));}}));
+  g('stPic').onclick=()=>g('stFi').click();
+  g('stFi').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f||!ST.cur)return;const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),s=Math.min(im.width,im.height);x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,128,128);URL.revokeObjectURL(u);upd('i',c.toDataURL('image/jpeg',.82));g('stPv').innerHTML=iconHTML(ST.cur.i);g('stEm').value='';};im.onerror=()=>say('Gambar tidak bisa dibaca');im.src=u;};
+  const log=t=>{const L=g('stL');L.textContent+=t+'\n';L.scrollTop=L.scrollHeight;};
+  g('stT').onclick=()=>{const p=ST.cur;if(!p)return;tab('uji');ST.tested='';ST.testHash=stHash(p);g('stL').textContent='';btn();g('stF').srcdoc=stDoc(p.js,p.ui);say('Menguji…');};
+  window.addEventListener('message',e=>{const d=e.data;if(!d||!d.nx)return;
+    if(e.source===g('stF').contentWindow){
+      if(d.t==='log')log('› '+d.m);
+      if(d.t==='err'){log('❌ '+d.m);ST.tested='';btn();g('stA').textContent='Error saat uji:\n'+d.m+'\n\n'+stExplain(d.m);say('Ada error — lihat 🤖');}
+      if(d.t==='ok'&&ST.cur&&ST.testHash===stHash(ST.cur)){ST.tested=ST.testHash;log('✅ Lolos uji');btn();say('Lolos uji ✅ siap dipublikasikan');}}});
+  g('stSn').innerHTML=Object.keys(SNIP).map(k=>'<button class="sb" data-k="'+k+'">'+SNIP[k][0]+'</button>').join('');
+  const ins=k=>{const t=g('stJ');t.setRangeText('\n// '+SNIP[k][0]+'\n'+SNIP[k][1],t.selectionStart,t.selectionStart,'end');t.dispatchEvent(new Event('input'));g('stA').textContent='Kode "'+SNIP[k][0]+'" sudah disisipkan di tab Kode JS (butuh variabel me dari template). Tekan ▶ Uji untuk mencoba.';};
+  g('stSn').addEventListener('click',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k)ins(k);});
+  g('stQ').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const k=stAsk(g('stQ').value);g('stQ').value='';if(k)ins(k);else g('stA').textContent='Aku bisa bantu: lompat, musuh, suara, timer, kamera. Untuk logika lain, tulis di tab Kode JS lalu uji — error akan kujelaskan.';});
+  g('stP').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d)return;if(ST.tested!==stHash(p)){say('Uji dulu sampai lolos ✅');return;}if(!p.n.trim()){say('Isi nama game dulu');tab('info');return;}
+    const ok=await askConfirm('Publikasikan "'+p.n+'"?','Game langsung tampil untuk semua pemain. Kamu bisa memperbarui atau menariknya kapan saja.','Publikasikan','Batal');if(!ok)return;
+    const TS=firebase.database.ServerValue.TIMESTAMP,k=stKey();
+    try{await d.ref('nexoria/studio').update({['code/'+p.id]:{k,js:p.js,ui:p.ui,ts:TS},['pub/'+p.id]:{k,n:p.n.trim(),i:p.i||'🎮',d:p.d||'',by:USER,ts:TS}});say('Terbit 🚀');}catch(e){say('Gagal publikasi (cek aturan Firebase)');}};
+  g('stUn').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d||!isPub())return;await d.ref('nexoria/studio').update({['code/'+p.id]:null,['pub/'+p.id]:null});say('Ditarik dari publik');};
+  g('stDel').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d)return;if(!await askConfirm('Hapus draft?','Draft "'+p.n+'" dihapus permanen'+(isPub()?' dan game ditarik dari publik':'')+'.','Hapus','Batal'))return;
+    const u={['drafts/'+stKey()+'/'+p.id]:null};if(isPub()){u['pub/'+p.id]=null;u['code/'+p.id]=null;}await d.ref('nexoria/studio').update(u);delete ST.list[p.id];ST.cur=null;const ids=Object.keys(ST.list);if(ids.length)load(ids[0]);else nw();list();tab('proyek');};
+  setInterval(()=>{if(document.body.classList.contains('stopen'))list();},3000);
+  g('stpX').onclick=()=>{g('stp').classList.remove('on');g('stpF').srcdoc='';};
+  window.stPlay=async g2=>{const d=getDB();if(!d)return;g('stpN').textContent=g2.name;g('stp').classList.add('on');g('stpF').srcdoc='<body style="background:#000;color:#9a93c2;font:15px system-ui;display:flex;align-items:center;justify-content:center">Memuat…';
+    try{await authReady();const v=(await d.ref('nexoria/studio/code/'+g2.cm).once('value')).val();if(!v)throw 0;g('stpF').srcdoc=stDoc(v.js,v.ui);}catch(e){g('stpF').srcdoc='<body style="background:#000;color:#ff9aa8;font:15px system-ui;display:flex;align-items:center;justify-content:center">Game tidak bisa dibuka';}};
+})();
+function stWatch(){const d=getDB();if(!d||stRef||!USER)return;authReady().then(u=>{if(!u||stRef)return;stRef=d.ref('nexoria/studio/pub');stRef.on('value',sn=>{const v=sn.val()||{};ST.pubs=v;for(let i=GAMES.length-1;i>=0;i--)if(GAMES[i].cm)GAMES.splice(i,1);
+  Object.keys(v).sort((a,b)=>(v[b].ts||0)-(v[a].ts||0)).forEach(id=>{const o=v[id],im=o.i&&o.i.startsWith('data:');GAMES.push({id:'cm_'+id,cm:id,name:String(o.n||'Game'),tag:'Komunitas · '+String(o.by||'?').slice(0,16),desc:String(o.d||'Game buatan pemain.'),img:im?o.i:'',art:{a:'#1c1640',b:'#8b5cf6',emoji:im?'🎮':(o.i||'🎮')}});});
+  try{renderGames($('search').value);}catch(e){}});});}
+function stUnwatch(){if(stRef){try{stRef.off();}catch(e){}stRef=null;}for(let i=GAMES.length-1;i>=0;i--)if(GAMES[i].cm)GAMES.splice(i,1);ST.pubs={};ST.cur=null;ST.list={};}
+
+const KEYHELP=[['1 · 2 · 3','Main game 1 · 2 · 3'],['← ↑ → ↓','Pilih kartu game'],['Enter','Main game terpilih / OK'],['M','Menu samping'],['A','Avatar'],['S','Shop'],['H','Hadiah harian'],['K','Redeem code'],['P','Profil'],['T','Tambah teman'],['B','Studio Game'],['F','Filter favorit'],['/','Cari game'],['L','Logout'],['Backspace','Tutup jendela / menu'],['?','Daftar pintasan ini']];
+function keyHelp(){modal('<h3>⌨️ Pintasan Keyboard</h3><div class="kh">'+KEYHELP.map(r=>'<div><kbd>'+esc(r[0])+'</kbd><span>'+esc(r[1])+'</span></div>').join('')+'</div><div class="row"><button class="btn" id="khOk">Tutup</button></div>',c=>{c.querySelector('#khOk').onclick=closeModal;});}
+$('navKeys').addEventListener('click',()=>{closeDrawer();keyHelp();});
+(function kbd(){
+  const typing=t=>!!t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable);
+  const anyWin=()=>document.body.classList.contains('stopen')||!$('modal').hidden||!!$('avM')||!!document.querySelector('.mdl');
+  function closeTop(){if(document.body.classList.contains('stopen')){stClose();return;}if(!$('modal').hidden){closeModal();return;}if(document.querySelector('.mdl')){closeMdl();return;}if($('avM')){closeAvatar();return;}if($('drawer').classList.contains('on'))closeDrawer();}
+  document.addEventListener('keydown',e=>{
+    if(e.ctrlKey||e.metaKey||e.altKey)return;
+    const k=e.key.toLowerCase(),t=e.target;
+    if(!$('modal').hidden&&k==='enter'&&!(t&&t.tagName==='BUTTON')){const b=$('mcard').querySelector('.btn:not(.ghost)');if(b&&!b.disabled){e.preventDefault();b.click();}return;}
+    if(typing(t))return;
+    if($('app').hidden||!USER)return;
+    if(k==='backspace'){e.preventDefault();closeTop();return;}
+    if(anyWin())return;
+    if(k.startsWith('arrow')){const cs=[...document.querySelectorAll('#grid .card')];if(!cs.length)return;e.preventDefault();let i=cs.indexOf(document.activeElement);if(i<0)i=0;else{const y0=cs[0].offsetTop,cols=cs.filter(c=>c.offsetTop===y0).length||1,dl=k==='arrowleft'?-1:k==='arrowright'?1:k==='arrowup'?-cols:cols;i=Math.max(0,Math.min(cs.length-1,i+dl));}cs[i].focus();cs[i].scrollIntoView({block:'nearest',behavior:'smooth'});return;}
+    if(e.repeat)return;
+    if(k.length===1&&k>='1'&&k<='9'){const g=GAMES[+k-1];if(g){e.preventDefault();launch(g.id);}return;}
+    const cl=id=>{const b=$(id);if(b){e.preventDefault();b.click();}};
+    switch(k){
+      case 'm':cl('menuBtn');break;
+      case 'a':cl('navAvatar');break;
+      case 's':cl('navShop');break;
+      case 'h':cl('navGift');break;
+      case 'k':cl('navRedeem');break;
+      case 'p':cl('navProfile');break;
+      case 't':cl('fAdd');break;
+      case 'b':cl('navStudio');break;
+      case 'f':e.preventDefault();(FILTER==='fav'?$('filAll'):$('filFav')).click();break;
+      case '/':e.preventDefault();$('search').focus();break;
+      case 'l':e.preventDefault();askConfirm('Keluar akun?','Kamu akan keluar dari '+USER+'.','Logout','Batal').then(ok=>{if(ok)$('navLogout').click();});break;
+      case '?':e.preventDefault();keyHelp();break;
+    }
+  });
+})();
+
+/* ---------- mulai: akun terdaftar langsung ke beranda ---------- */
+(function init(){
+  let saved='';
+  try{saved=(localStorage.getItem(LS_USER)||'').trim();}catch(e){}
+  if(valid(saved)){
+    USER=saved;showApp();
+    whenDB(()=>{const d=getDB();
+    if(d){
+      const key=USER.toLowerCase();
+      withTimeout((async()=>{
+        const u=await authReady();
+        const [sn,ow]=await Promise.all([d.ref('nexoria/users/'+key).once('value'),u?d.ref('nexoria/users/'+key+'/owners/'+u.uid).once('value'):Promise.resolve(null)]);
+        const own=!!(u&&sn.exists()&&ow&&ow.exists());
+        return {sn,own,u};
+      })(),15000).then(async({sn,own,u})=>{
+        const kick=msg=>{try{localStorage.removeItem(LS_USER);}catch(e){}USER='';showSplash();status(msg,'err');};
+        if(!sn.exists()){kick('Akun tidak ditemukan, silakan daftar ulang');return;}
+        const v=sn.val()||{};
+        if(!u){status('Gagal autentikasi, data tidak bisa disimpan','err');return;}
+        if(!own){
+          /* akun tanpa password: perangkat ini diklaim otomatis; akun berpassword: harus login ulang */
+          if(v.hasPw===true||!(await claimOwner(key,'1'))){kick('Silakan masuk lagi'+(v.hasPw===true?' dengan password':''));return;}
+        }
+        if(v.name&&v.name!==USER&&String(v.name).toLowerCase()===key){USER=v.name;try{localStorage.setItem(LS_USER,USER);}catch(e){}setUserUI();}
+        d.ref('nexoria/users/'+key+'/lastLogin').set(Date.now()).catch(()=>{});tickLoginStreak();
+      }).catch(()=>{});
+    }});
+  }else showSplash();
+})();
+})();
+</script>
+<script>
+/* ---------- 🖥️ FULLSCREEN OTOMATIS: cek tiap 0,2 detik, masuk lagi kalau lepas ---------- */
+(function fsKeeper(){
+  'use strict';
+  const de=document.documentElement;
+  const isFS=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+  let busy=false,moved=false,lastTouch=0,lastScroll=0;
+  /* geser/scroll bukan 'klik': jangan paksa fullscreen saat itu supaya scroll tidak terputus */
+  document.addEventListener('touchstart',()=>{moved=false;lastTouch=Date.now();},{capture:true,passive:true});
+  document.addEventListener('touchmove',()=>{moved=true;lastTouch=Date.now();},{capture:true,passive:true});
+  window.addEventListener('scroll',()=>{lastScroll=Date.now();},{passive:true});
+  function lockKeys(){
+    try{if(navigator.keyboard&&navigator.keyboard.lock)navigator.keyboard.lock(['Escape']).catch(()=>{});}catch(e){}
+  }
+  function enter(){
+    if(busy||isFS()||document.hidden)return;
+    if(Date.now()-lastScroll<500||(moved&&Date.now()-lastTouch<700))return;
+    const f=de.requestFullscreen||de.webkitRequestFullscreen||de.msRequestFullscreen;
+    if(!f)return;
+    busy=true;
+    try{
+      const p=f.call(de,{navigationUI:'hide'});
+      if(p&&p.then)p.then(lockKeys).catch(()=>{}).then(()=>{busy=false;});
+      else{busy=false;lockKeys();}
+    }catch(e){busy=false;}
+  }
+  /* 1) detektor: tiap 200 ms */
+  setInterval(enter,200);
+  /* 2) begitu fullscreen lepas (mis. tombol back), langsung masuk lagi */
+  ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{if(!isFS())enter();}));
+  /* 3) setiap sentuhan/klik/tombol = izin dari browser, jadi dipakai untuk masuk fullscreen */
+  ['pointerup','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,enter,true));
+  /* 4) kembali ke tab/aplikasi, keyboard HP muncul/hilang, rotasi layar */
+  ['visibilitychange','focus','pageshow','resize','orientationchange'].forEach(ev=>window.addEventListener(ev,enter));
+  document.addEventListener('visibilitychange',enter);
+  /* 5) tombol back tidak keluar dari halaman: ditahan lalu fullscreen lagi */
+  try{
+    history.replaceState({nx:0},'',location.href);
+    history.pushState({nx:1},'',location.href);
+    window.addEventListener('popstate',()=>{
+      try{history.pushState({nx:1},'',location.href);}catch(e){}
+      enter();
+    });
+  }catch(e){}
+  enter();
+})();
+</script>
+</body>
+</html>
