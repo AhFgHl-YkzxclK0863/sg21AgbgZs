@@ -322,8 +322,9 @@ main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env
       <button id="navRedeem">🎟️ Redeem Code</button>
       <button id="navProfile">👤 Profil</button>
       <button id="navKeys">⌨️ Pintasan Keyboard</button>
+      <button id="navPw">🔒 Ubah Password</button>
+      <button id="navLogout">⛔ Logout</button>
     </div>
-    <button id="navPw">🔒 Ubah Password</button><button id="navLogout">⛔ Logout</button></div></div>
   </aside>
 
   <main id="home">
@@ -366,7 +367,7 @@ const GAMES=[
   {id:'curitelur',name:'Curi Telur',file:'stealanegg.html',img:'stealanegg.jpg',tag:'Mabar 4 pemain',
    desc:'Curi telur dari penjaga, kabur ke zona aman, tetaskan di kandangmu.',
    art:{a:'#062a3a',b:'#39f4ff',emoji:'🥚'}},
-  {id:'balap',name:'Nexo City Drive',file:'balap.html',img:'balap.png',tag:'versi 3.2',
+  {id:'balap',name:'Naik Dan Jelajahi',file:'balap.html',img:'balap.png',tag:'versi 3.2',
    desc:'Menjelajahi kota tanpa batas dan mencari sensasi kehidupan yang damai dan tenang.',
    art:{a:'#2a0f05',b:'#ff7a1a',emoji:'🏍️'}}
 ];
@@ -1297,13 +1298,13 @@ function friendInfo(k){
 const ST={list:{},cur:null,tested:'',testHash:'',pubs:{},timer:0};let stRef=null;
 const stKey=()=>USER.toLowerCase(),stId=()=>'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const stHash=p=>{const s=p.js+'\u0001'+p.ui;let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h+':'+s.length;};
-const TPL_JS="// Variabel siap pakai: THREE, scene, camera, renderer, keys, joy, onUpdate, $\nscene.background=new THREE.Color(0x10131f);\nscene.add(new THREE.HemisphereLight(0xffffff,0x334455,1.1));\nconst ground=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:0x2b3a55}));ground.rotation.x=-Math.PI/2;scene.add(ground);\nconst me=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:0x39f4ff}));me.position.y=.5;scene.add(me);\nconst coins=[];for(let i=0;i<12;i++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.1,20),new THREE.MeshStandardMaterial({color:0xffcf6b}));c.rotation.x=Math.PI/2;c.position.set((Math.random()-.5)*40,.6,(Math.random()-.5)*40);scene.add(c);coins.push(c);}\nlet skor=0;\nonUpdate(dt=>{\n  const sx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joy.x,sz=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+joy.y;\n  me.position.x+=sx*8*dt;me.position.z+=sz*8*dt;\n  camera.position.set(me.position.x,9,me.position.z+10);camera.lookAt(me.position);\n  coins.forEach(c=>{c.rotation.z+=dt*3;if(c.visible&&c.position.distanceTo(me.position)<1.1){c.visible=false;skor++;$('skor').textContent='Skor: '+skor;}});\n});\n";
-const TPL_UI='<div id="skor" style="position:fixed;top:12px;left:12px;color:#fff;font:700 18px system-ui;text-shadow:0 2px 4px #000">Skor: 0</div>';
+const TPL_JS="// Mulai dari nol 👋\n// Variabel siap pakai: THREE, scene, camera, renderer, keys, joy, onUpdate, UI, $\n",TPL_UI="";
 /* SDK yang berjalan DI DALAM iframe terisolasi (sandbox + CSP) */
 function STSDK(){
 let bad=0,fr=0;const PM=(t,m)=>parent.postMessage({nx:1,t,m:String(m).slice(0,300)},'*');
 window.__err=e=>{bad=1;PM('err',(e&&e.message)||e)};window.onerror=m=>{bad=1;PM('err',m)};window.onunhandledrejection=e=>{bad=1;PM('err',e.reason)};
 console.log=(...a)=>PM('log',a.join(' '));const $=id=>document.getElementById(id);
+const UI={text:(i,t)=>{const e=$(i);if(e)e.textContent=t},bar:(i,v)=>{const e=$(i);if(e)e.style.width=Math.max(0,Math.min(1,v))*100+'%'},show:(i,on)=>{const e=$(i);if(e)e.style.display=on===false?'none':''},on:(i,f)=>{const e=$(i);if(e)e.addEventListener('click',f)}};
 const scene=new THREE.Scene(),renderer=new THREE.WebGLRenderer({antialias:true}),camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,1000);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);document.body.prepend(renderer.domElement);
 addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
@@ -1319,12 +1320,45 @@ function stDoc(js,ui){
   return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\' https://cdnjs.cloudflare.com; style-src \'unsafe-inline\'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src \'none\'"><style>html,body{margin:0;height:100%;overflow:hidden;background:#000;touch-action:none}canvas{display:block}#ui{position:fixed;inset:0;pointer-events:none;font-family:system-ui,sans-serif}#ui *{pointer-events:auto}</style></head><body><div id="ui">'+ui+'</div><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script><script>'+sdk+'<\/script><script>try{\n'+String(js).replace(/<\/script/gi,'<\\/script')+'\n}catch(e){__err(e)}<\/script></body></html>';
 }
 const SNIP={
- lompat:["Lompat (Spasi)","let vy=0;\nonUpdate(dt=>{if(keys[' ']&&me.position.y<=.51)vy=7;vy-=20*dt;me.position.y=Math.max(.5,me.position.y+vy*dt);});\n"],
- musuh:["Musuh mengejar","const musuh=new THREE.Mesh(new THREE.SphereGeometry(.6),new THREE.MeshStandardMaterial({color:0xff2fa6}));musuh.position.set(10,.6,10);scene.add(musuh);\nonUpdate(dt=>{const d=me.position.clone().sub(musuh.position);if(d.length()>.1)musuh.position.add(d.normalize().multiplyScalar(3*dt));if(d.length()<1.1)console.log('Kena musuh!');});\n"],
- suara:["Suara beep","function beep(f=440,t=.1){const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator();o.frequency.value=f;o.connect(a.destination);o.start();o.stop(a.currentTime+t);}\n"],
- timer:["Hitung mundur","let sisa=60;onUpdate(dt=>{sisa-=dt;if(sisa<=0){sisa=0;console.log('Waktu habis!');}});\n"],
- kamera:["Kamera orang pertama","onUpdate(()=>{camera.position.set(me.position.x,1.6,me.position.z);});\n"]
+ dasar:["Lampu + lantai","scene.background=new THREE.Color(0x10131f);\nscene.add(new THREE.HemisphereLight(0xffffff,0x334455,1.1));\nconst lantai=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:0x2b3a55}));lantai.rotation.x=-Math.PI/2;scene.add(lantai);\n",""],
+ pemain:["Pemain kotak (WASD/joystick)","const pemain=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0x39f4ff}));pemain.position.y=.5;scene.add(pemain);\nonUpdate(dt=>{const sx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joy.x,sz=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+joy.y;pemain.position.x+=sx*8*dt;pemain.position.z+=sz*8*dt;});\n",""],
+ kamera:["Kamera mengikuti pemain","onUpdate(()=>{camera.position.set(pemain.position.x,9,pemain.position.z+10);camera.lookAt(pemain.position);});\n","pemain"],
+ lompat:["Lompat (Spasi)","let vy=0;\nonUpdate(dt=>{if(keys[' ']&&pemain.position.y<=.51)vy=7;vy-=20*dt;pemain.position.y=Math.max(.5,pemain.position.y+vy*dt);});\n","pemain"],
+ musuh:["Musuh mengejar","const musuh=new THREE.Mesh(new THREE.SphereGeometry(.6),new THREE.MeshBasicMaterial({color:0xff2fa6}));musuh.position.set(10,.6,10);scene.add(musuh);\nonUpdate(dt=>{const d=pemain.position.clone().sub(musuh.position);if(d.length()>.1)musuh.position.add(d.normalize().multiplyScalar(3*dt));if(d.length()<1.1)console.log('Kena musuh!');});\n","pemain"],
+ suara:["Suara beep","function beep(f=440,t=.1){const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator();o.frequency.value=f;o.connect(a.destination);o.start();o.stop(a.currentTime+t);}\n",""],
+ timer:["Hitung mundur 60 dtk","let sisa=60;onUpdate(dt=>{sisa-=dt;if(sisa<=0){sisa=0;console.log('Waktu habis!');}});\n",""]
 };
+/* UI siap pakai: [label, html, cara pakai di Kode JS] */
+const UIKIT={
+ skor:["Skor",'<div id="skor" style="position:fixed;top:12px;left:12px;color:#fff;font:700 18px system-ui;text-shadow:0 2px 4px #000">Skor: 0</div>','UI.text("skor","Skor: 5")'],
+ nyawa:["Bar nyawa",'<div style="position:fixed;top:14px;right:12px;width:140px;height:14px;background:#0008;border-radius:8px;overflow:hidden"><div id="nyawa" style="height:100%;width:100%;background:#ff4d6d"></div></div>','UI.bar("nyawa",0.6)  // 0 sampai 1'],
+ timer:["Timer",'<div id="timer" style="position:fixed;top:12px;left:50%;transform:translateX(-50%);color:#fff;font:800 24px system-ui;text-shadow:0 2px 4px #000">60</div>','UI.text("timer",Math.ceil(sisa))'],
+ tombol:["Tombol aksi",'<button id="btnA" style="position:fixed;right:20px;bottom:24px;width:72px;height:72px;border-radius:50%;border:0;background:#ffffffd9;font:800 18px system-ui">A</button>','UI.on("btnA",()=>{ /* aksi */ })'],
+ menu:["Menu mulai",'<div id="menu" style="position:fixed;inset:0;background:#000c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font-family:system-ui"><h1 style="margin:0">Nama Game</h1><button id="btnMulai" style="padding:14px 36px;border:0;border-radius:12px;font:800 18px system-ui">Mulai</button></div>','UI.on("btnMulai",()=>UI.show("menu",false))'],
+ over:["Game over",'<div id="over" style="display:none;position:fixed;inset:0;background:#000d;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font-family:system-ui"><h1 style="margin:0">Game Over</h1><button id="btnUlang" style="padding:14px 36px;border:0;border-radius:12px;font:800 18px system-ui" onclick="location.reload()">Main lagi</button></div>','UI.show("over")  // tampilkan saat kalah']
+};
+function stAutoFix(code,err){
+  let c=String(code),notes=[];const lev=(a,b)=>{const m=[...Array(a.length+1)].map((_,i)=>[i]);for(let j=1;j<=b.length;j++)m[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length];};
+  /* 1) const yang diisi ulang -> let */
+  [...c.matchAll(/\bconst\s+([A-Za-z_$][\w$]*)\s*=/g)].map(m=>m[1]).forEach(n=>{const re=new RegExp('(^|[^\\w$.])'+n.replace(/\$/g,'\\$')+'\\s*(\\+\\+|--|[-+*/%]?=(?!=))','g');if((c.match(re)||[]).length>1){c=c.replace(new RegExp('\\bconst(\\s+'+n.replace(/\$/g,'\\$')+'\\s*=)'),'let$1');notes.push('"'+n+'" diisi ulang → const diganti let');}});
+  /* 2) nama belum ada: kelas THREE tanpa prefix / salah ketik */
+  const m=/([\w$]+) is not defined/.exec(err||'');
+  if(m){const x=m[1],known=['scene','camera','renderer','keys','joy','onUpdate','UI','THREE'];[...c.matchAll(/\b(?:const|let|var|function)\s+([A-Za-z_$][\w$]*)/g)].forEach(k=>known.push(k[1]));
+    const wb=new RegExp('(^|[^\\w$.])'+x.replace(/\$/g,'\\$')+'(?![\\w$])','g');
+    if(/^(Box|Sphere|Plane|Cylinder|Cone|Torus|Circle)Geometry$|^Mesh(Basic|Standard|Lambert|Phong)?(Material)?$|^(Color|Vector[23]|Clock|Group|Raycaster|Euler|Quaternion|Fog|Object3D|AmbientLight|DirectionalLight|PointLight|HemisphereLight)$/.test(x)){c=c.replace(wb,'$1THREE.'+x);notes.push('"'+x+'" → THREE.'+x);}
+    else{let best=null,bd=3;known.forEach(k=>{const d=lev(x.toLowerCase(),k.toLowerCase());if(k!==x&&d<bd){bd=d;best=k;}});if(best){c=c.replace(wb,'$1'+best);notes.push('"'+x+'" salah ketik → "'+best+'"');}}}
+  /* 3) kurung kurang */
+  const st=[],pr={'(':')','{':'}','[':']'};let q=null,ex=0;
+  for(let i=0;i<c.length;i++){const ch=c[i],nx=c[i+1];
+    if(q){if(ch==='\\'){i++;continue;}if(ch===q)q=null;continue;}
+    if(ch==='/'&&nx==='/'){while(i<c.length&&c[i]!=='\n')i++;continue;}
+    if(ch==='/'&&nx==='*'){i=c.indexOf('*/',i+2);if(i<0)break;i++;continue;}
+    if(ch==='"'||ch==="'"||ch==='`'){q=ch;continue;}
+    if(pr[ch])st.push(pr[ch]);else if(ch===')'||ch==='}'||ch===']'){if(st.length&&st[st.length-1]===ch)st.pop();else ex++;}}
+  if(st.length){c=c.replace(/\s*$/,'')+'\n'+st.reverse().join('')+'\n';notes.push('Menambah '+st.length+' kurung penutup yang kurang di akhir kode');}
+  if(ex)notes.push('Ada '+ex+' kurung penutup berlebih — periksa manual');
+  return {code:c,notes,changed:c!==String(code)};}
+function stBlank(js){return String(js).replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm,'').trim().length<30;}
 function stExplain(m){m=String(m);
  let r=/(\w+) is not defined/.exec(m);if(r)return '"'+r[1]+'" belum dibuat atau salah ketik. Cek ejaan, atau buat dulu dengan const/let.';
  if(/Cannot read prop/.test(m))return 'Kamu memakai objek yang belum ada (undefined). Pastikan variabelnya dibuat sebelum dipakai di onUpdate.';
@@ -1333,11 +1367,12 @@ function stExplain(m){m=String(m);
  if(/Assignment to constant/.test(m))return 'Variabel const tidak boleh diisi ulang. Ganti const dengan let.';
  return 'Baca pesan error lalu periksa baris yang disebut. Uji lagi setelah diperbaiki.';}
 function stAsk(q){q=q.toLowerCase();
- if(/lompat|jump/.test(q))return 'lompat';if(/musuh|enemy|kejar/.test(q))return 'musuh';if(/suara|bunyi|sound|audio/.test(q))return 'suara';
+ if(/fix|perbaiki|benerin|betulin|error|bug|rusak/.test(q))return 'fix';if(/dasar|lampu|lantai/.test(q))return 'dasar';if(/pemain|player|gerak/.test(q))return 'pemain';if(/lompat|jump/.test(q))return 'lompat';if(/musuh|enemy|kejar/.test(q))return 'musuh';if(/suara|bunyi|sound|audio/.test(q))return 'suara';
  if(/timer|waktu|hitung/.test(q))return 'timer';if(/kamera|camera|fps/.test(q))return 'kamera';return '';}
+
 (function stBuild(){
   document.head.insertAdjacentHTML('beforeend','<style>#st,#stp{position:fixed;inset:0;z-index:40;background:var(--bg);display:none;flex-direction:column;color:var(--ink)}body.stopen #st{display:flex}#stp.on{display:flex;z-index:45}.sth{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line2)}.sth b{flex:1;font-size:15px}.sth button,.stn button,.stb .sb{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}#stP{background:var(--gold);color:#241a00;border:0}#stP[disabled]{opacity:.4}#stS{font-size:12px;color:var(--mute)}.stn{display:flex;gap:6px;padding:8px 12px;overflow-x:auto}.stn button.on{background:var(--vi);border-color:var(--vi)}.stb{flex:1;min-height:0;position:relative}.stb section{display:none;position:absolute;inset:0;padding:12px;overflow:auto}.stb section.on{display:flex;flex-direction:column;gap:10px}.stb textarea,.stb input{width:100%;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace}.stb input{font-family:system-ui}.stb textarea{flex:1;resize:none;tab-size:2;white-space:pre}#stF,#stpF{flex:1;width:100%;border:1px solid var(--line);border-radius:10px;background:#000;min-height:200px}#stL{margin:0;max-height:90px;overflow:auto;background:var(--card);border-radius:10px;padding:8px;font:12px/1.4 ui-monospace,monospace;color:var(--mute);white-space:pre-wrap}.stl{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}.stl.on{border-color:var(--cy)}.stl i{font-style:normal;font-size:26px}.stl img{width:36px;height:36px;border-radius:8px;object-fit:cover}.sti{display:flex;gap:10px;align-items:center}.sti .pv{width:64px;height:64px;border-radius:14px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;border:1px solid var(--line)}.sti .pv img{width:100%;height:100%;object-fit:cover}.sai{display:flex;flex-wrap:wrap;gap:6px}#stA{font-size:14px;line-height:1.6;color:var(--ink);background:var(--card);border-radius:10px;padding:10px;white-space:pre-wrap}</style>');
-  document.body.insertAdjacentHTML('beforeend','<div id="st"><div class="sth"><button id="stX">✕</button><b>🛠️ Studio Game</b><span id="stS"></span><button id="stT">▶ Uji</button><button id="stP">🚀 Publikasi</button></div><div class="stn" id="stN"><button data-t="proyek" class="on">Proyek</button><button data-t="info">Info</button><button data-t="kode">Kode JS</button><button data-t="ui">UI</button><button data-t="uji">Uji</button><button data-t="ai">🤖 Pendamping</button></div><div class="stb"><section data-p="proyek" class="on"><button class="sb" id="stNew">＋ Proyek baru</button><div id="stList" style="display:grid;gap:8px"></div></section><section data-p="info"><input id="stNm" maxlength="30" placeholder="Nama game"><div class="sti"><div class="pv" id="stPv">🎮</div><input id="stEm" maxlength="4" placeholder="Emoji ikon" style="width:110px"><button class="sb" id="stPic">🖼️ Dari galeri</button><input type="file" id="stFi" accept="image/*" hidden></div><input id="stDs" maxlength="120" placeholder="Deskripsi singkat"><div class="sai"><button class="sb" id="stUn">Tarik dari publik</button><button class="sb" id="stDel">🗑️ Hapus draft</button></div></section><section data-p="kode"><textarea id="stJ" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></section><section data-p="ui"><textarea id="stU" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="HTML + CSS untuk tampilan (skor, tombol, menu)"></textarea></section><section data-p="uji"><iframe id="stF" sandbox="allow-scripts"></iframe><pre id="stL"></pre></section><section data-p="ai"><div id="stA">Hai! Aku pendamping Studio. Tulis yang kamu mau (lompat, musuh, suara, timer, kamera) atau tekan tombol di bawah untuk menyisipkan kode ke tab Kode JS. Kalau ada error saat uji, aku jelaskan di sini.</div><div class="sai" id="stSn"></div><input id="stQ" placeholder="Tanya pendamping…"></section></div></div><div id="stp"><div class="sth"><button id="stpX">✕</button><b id="stpN">Game</b></div><iframe id="stpF" sandbox="allow-scripts"></iframe></div>');
+  document.body.insertAdjacentHTML('beforeend','<div id="st"><div class="sth"><button id="stX">✕</button><b>🛠️ Studio Game</b><span id="stS"></span><button id="stT">▶ Uji</button><button id="stP">🚀 Publikasi</button></div><div class="stn" id="stN"><button data-t="proyek" class="on">Proyek</button><button data-t="info">Info</button><button data-t="kode">Kode JS</button><button data-t="ui">UI</button><button data-t="uji">Uji</button><button data-t="ai">🤖 Pendamping</button></div><div class="stb"><section data-p="proyek" class="on"><button class="sb" id="stNew">＋ Proyek baru</button><div id="stList" style="display:grid;gap:8px"></div></section><section data-p="info"><input id="stNm" maxlength="30" placeholder="Nama game"><div class="sti"><div class="pv" id="stPv">🎮</div><input id="stEm" maxlength="4" placeholder="Emoji ikon" style="width:110px"><button class="sb" id="stPic">🖼️ Dari galeri</button><input type="file" id="stFi" accept="image/*" hidden></div><input id="stDs" maxlength="120" placeholder="Deskripsi singkat"><div class="sai"><button class="sb" id="stUn">Tarik dari publik</button><button class="sb" id="stDel">🗑️ Hapus draft</button></div></section><section data-p="kode"><textarea id="stJ" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></section><section data-p="ui"><div class="sai" id="stKit"></div><div class="sai"><input id="stCn" maxlength="24" placeholder="Nama komponen buatanmu" style="flex:1;min-width:140px"><button class="sb" id="stCs">＋ Simpan sebagai komponen</button></div><textarea id="stU" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="HTML + CSS untuk tampilan. Tambah komponen dari tombol di atas atau tulis sendiri."></textarea></section><section data-p="uji"><iframe id="stF" sandbox="allow-scripts"></iframe><pre id="stL"></pre></section><section data-p="ai"><div id="stA">Hai! Proyekmu mulai dari nol — aku tidak membuatkan game. Aku bisa menyisipkan blok kode dasar (lampu, pemain, kamera, lompat, musuh, suara, timer), menjelaskan error, dan memperbaikinya otomatis lewat tombol 🔧.</div><button class="sb" id="stFx">🔧 Perbaiki otomatis lalu uji</button><div class="sai" id="stSn"></div><input id="stQ" placeholder="Tanya pendamping… (mis. perbaiki error, tambah lompat)"></section></div></div><div id="stp"><div class="sth"><button id="stpX">✕</button><b id="stpN">Game</b></div><iframe id="stpF" sandbox="allow-scripts"></iframe></div>');
   const g=id=>document.getElementById(id),say=t=>{g('stS').textContent=t;clearTimeout(ST.timer);ST.timer=setTimeout(()=>g('stS').textContent='',4000);};
   const tab=t=>{document.querySelectorAll('#stN button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.stb section').forEach(s=>s.classList.toggle('on',s.dataset.p===t));};
   const isPub=()=>ST.cur&&ST.pubs[ST.cur.id]&&ST.pubs[ST.cur.id].k===stKey();
@@ -1350,6 +1385,7 @@ function stAsk(q){q=q.toLowerCase();
   window.stClose=()=>{document.body.classList.remove('stopen');};
   g('stX').onclick=window.stClose;
   const open=async()=>{if(!USER)return;closeDrawer();document.body.classList.add('stopen');tab('proyek');const d=getDB();await authReady();if(!d)return;try{const sn=await d.ref('nexoria/studio/drafts/'+stKey()).once('value'),v=sn.val()||{};ST.list={};Object.keys(v).forEach(id=>{ST.list[id]=Object.assign({id},v[id]);});}catch(e){say('Gagal memuat proyek');}
+    try{const kv=(await d.ref('nexoria/studio/uikit/'+stKey()).once('value')).val()||{};ST.kit={};Object.keys(kv).forEach(id=>{ST.kit[id]=kv[id];});kit();}catch(e){}
     if(!Object.keys(ST.list).length)nw();else if(!ST.cur||!ST.list[ST.cur.id])load(Object.keys(ST.list)[0]);else load(ST.cur.id);list();};
   g('navStudio').addEventListener('click',open);g('lobStudio').addEventListener('click',open);window.stOpen=open;
   g('stN').addEventListener('click',e=>{const t=e.target.dataset&&e.target.dataset.t;if(t)tab(t);});
@@ -1363,17 +1399,34 @@ function stAsk(q){q=q.toLowerCase();
   g('stPic').onclick=()=>g('stFi').click();
   g('stFi').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f||!ST.cur)return;const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),s=Math.min(im.width,im.height);x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,128,128);URL.revokeObjectURL(u);upd('i',c.toDataURL('image/jpeg',.82));g('stPv').innerHTML=iconHTML(ST.cur.i);g('stEm').value='';};im.onerror=()=>say('Gambar tidak bisa dibaca');im.src=u;};
   const log=t=>{const L=g('stL');L.textContent+=t+'\n';L.scrollTop=L.scrollHeight;};
-  g('stT').onclick=()=>{const p=ST.cur;if(!p)return;tab('uji');ST.tested='';ST.testHash=stHash(p);g('stL').textContent='';btn();g('stF').srcdoc=stDoc(p.js,p.ui);say('Menguji…');};
+  g('stT').onclick=()=>{const p=ST.cur;if(!p)return;if(stBlank(p.js)){say('Kode masih kosong — mulai tulis game-mu');tab('kode');return;}ST.err='';tab('uji');ST.tested='';ST.testHash=stHash(p);g('stL').textContent='';btn();g('stF').srcdoc=stDoc(p.js,p.ui);say('Menguji…');};
   window.addEventListener('message',e=>{const d=e.data;if(!d||!d.nx)return;
     if(e.source===g('stF').contentWindow){
       if(d.t==='log')log('› '+d.m);
-      if(d.t==='err'){log('❌ '+d.m);ST.tested='';btn();g('stA').textContent='Error saat uji:\n'+d.m+'\n\n'+stExplain(d.m);say('Ada error — lihat 🤖');}
+      if(d.t==='err'){ST.err=d.m;log('❌ '+d.m);ST.tested='';btn();g('stA').textContent='Error saat uji:\n'+d.m+'\n\n'+stExplain(d.m);say('Ada error — lihat 🤖');}
       if(d.t==='ok'&&ST.cur&&ST.testHash===stHash(ST.cur)){ST.tested=ST.testHash;log('✅ Lolos uji');btn();say('Lolos uji ✅ siap dipublikasikan');}}});
+
+  /* komponen UI: siap pakai + buatan sendiri (tersimpan di akunmu) */
+  ST.kit={};
+  const kit=()=>{g('stKit').innerHTML=Object.keys(UIKIT).map(k=>'<button class="sb" data-k="p:'+k+'">'+UIKIT[k][0]+'</button>').join('')+Object.keys(ST.kit).map(id=>'<button class="sb" data-k="c:'+id+'">⭐ '+esc(ST.kit[id].n)+'</button><button class="sb" data-x="'+id+'" aria-label="Hapus komponen">✕</button>').join('');};
+  const insUI=(h,hint)=>{const t=g('stU');const at=t.selectionStart!=null?t.selectionStart:t.value.length;t.setRangeText((t.value&&!/\n$/.test(t.value.slice(0,at))?'\n':'')+h+'\n',at,at,'end');t.dispatchEvent(new Event('input'));say('Komponen ditambahkan');if(hint){g('stA').textContent='Komponen UI ditambahkan. Pakai di tab Kode JS:\n'+hint;}};
+  g('stKit').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.x){const d=getDB();if(d)await d.ref('nexoria/studio/uikit/'+stKey()+'/'+b.dataset.x).remove().catch(()=>{});delete ST.kit[b.dataset.x];kit();return;}
+    const k=b.dataset.k||'';if(k.startsWith('p:'))insUI(UIKIT[k.slice(2)][1],UIKIT[k.slice(2)][2]);else if(k.startsWith('c:')&&ST.kit[k.slice(2)])insUI(ST.kit[k.slice(2)].h);});
+  g('stCs').onclick=async()=>{const t=g('stU'),h=(t.selectionEnd>t.selectionStart?t.value.slice(t.selectionStart,t.selectionEnd):t.value).trim(),n=g('stCn').value.trim(),d=getDB();
+    if(!h){say('Tulis atau pilih kode UI dulu');return;}if(!n){say('Beri nama komponen');return;}if(h.length>5000){say('Maksimal 5000 karakter per komponen');return;}if(!d)return;
+    const id=stId();try{await d.ref('nexoria/studio/uikit/'+stKey()+'/'+id).set({n,h,ts:firebase.database.ServerValue.TIMESTAMP});ST.kit[id]={n,h};g('stCn').value='';kit();say('Komponen tersimpan ⭐');}catch(e){say('Gagal simpan komponen');}};
+  kit();
+  /* AI: perbaiki otomatis lalu uji */
+  const fix=()=>{const p=ST.cur;if(!p)return;const r=stAutoFix(p.js,ST.err);
+    if(!r.changed){g('stA').textContent='Tidak ada yang bisa kuperbaiki otomatis.\n'+(ST.err?'\nError terakhir:\n'+ST.err+'\n\n'+stExplain(ST.err):'\nJalankan ▶ Uji dulu agar aku tahu errornya.');return;}
+    g('stJ').value=r.code;upd('js',r.code);g('stA').textContent='Sudah kuperbaiki:\n• '+r.notes.join('\n• ')+'\n\nMenguji ulang…';ST.err='';g('stT').click();};
+  g('stFx').onclick=fix;
   g('stSn').innerHTML=Object.keys(SNIP).map(k=>'<button class="sb" data-k="'+k+'">'+SNIP[k][0]+'</button>').join('');
-  const ins=k=>{const t=g('stJ');t.setRangeText('\n// '+SNIP[k][0]+'\n'+SNIP[k][1],t.selectionStart,t.selectionStart,'end');t.dispatchEvent(new Event('input'));g('stA').textContent='Kode "'+SNIP[k][0]+'" sudah disisipkan di tab Kode JS (butuh variabel me dari template). Tekan ▶ Uji untuk mencoba.';};
+  const ins=k=>{if(k==='fix'){fix();return;}const t=g('stJ');t.setRangeText('\n// '+SNIP[k][0]+'\n'+SNIP[k][1],t.selectionStart,t.selectionStart,'end');t.dispatchEvent(new Event('input'));g('stA').textContent='Kode "'+SNIP[k][0]+'" sudah disisipkan di tab Kode JS.'+(SNIP[k][2]?'\nButuh blok "'+SNIP[k][2]+'" — tambahkan dulu kalau belum ada.':'')+'\nTekan ▶ Uji untuk mencoba.';};
   g('stSn').addEventListener('click',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k)ins(k);});
-  g('stQ').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const k=stAsk(g('stQ').value);g('stQ').value='';if(k)ins(k);else g('stA').textContent='Aku bisa bantu: lompat, musuh, suara, timer, kamera. Untuk logika lain, tulis di tab Kode JS lalu uji — error akan kujelaskan.';});
-  g('stP').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d)return;if(ST.tested!==stHash(p)){say('Uji dulu sampai lolos ✅');return;}if(!p.n.trim()){say('Isi nama game dulu');tab('info');return;}
+  g('stQ').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const k=stAsk(g('stQ').value);g('stQ').value='';if(k)ins(k);else g('stA').textContent='Aku bisa bantu: perbaiki error, dasar, pemain, kamera, lompat, musuh, suara, timer. Untuk logika lain, tulis di tab Kode JS lalu uji — errornya kujelaskan dan bisa kuperbaiki.';});
+  g('stP').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d)return;if(ST.tested!==stHash(p)){say('Uji dulu sampai lolos ✅');return;}if(!p.n.trim()){say('Isi nama game dulu');tab('info');return;}if(stBlank(p.js)){say('Kode masih kosong');return;}
     const ok=await askConfirm('Publikasikan "'+p.n+'"?','Game langsung tampil untuk semua pemain. Kamu bisa memperbarui atau menariknya kapan saja.','Publikasikan','Batal');if(!ok)return;
     const TS=firebase.database.ServerValue.TIMESTAMP,k=stKey();
     try{await d.ref('nexoria/studio').update({['code/'+p.id]:{k,js:p.js,ui:p.ui,ts:TS},['pub/'+p.id]:{k,n:p.n.trim(),i:p.i||'🎮',d:p.d||'',by:USER,ts:TS}});say('Terbit 🚀');}catch(e){say('Gagal publikasi (cek aturan Firebase)');}};
