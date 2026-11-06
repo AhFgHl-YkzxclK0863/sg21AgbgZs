@@ -266,6 +266,7 @@ body.hudEdit #acts .act,body.hudEdit #bTread,body.hudEdit #bSteal,body.hudEdit #
   <div class="gfxRow"><b>👁️ Jarak pandang <span id="dpV">100</span></b><input type="range" id="dpR" min="1" max="100" step="1" value="100"></div>
   <div class="gfxRow"><b>🎯 Sensitivitas <span id="snV">100</span>%</b><input type="range" id="snR" min="20" max="300" step="5" value="100"></div>
   <label class="swRow"><b>🎵 Musik zona aman</b><input type="checkbox" id="swMusic"><span class="sw"></span></label>
+  <label class="swRow"><b>🔔 Efek suara kelangkaan</b><input type="checkbox" id="swSfx"><span class="sw"></span></label>
   <div class="gfxRow"><b>🔊 Volume <span id="mvV">60</span>%</b><input type="range" id="mvR" min="0" max="100" step="5" value="60"></div>
   <button id="hudEditBtn" style="width:100%;height:40px;margin:10px 0 2px;border:0;border-radius:10px;background:linear-gradient(#b190ff,#6a3fd9);color:#fff;font-weight:900;font-family:inherit;font-size:14px">🎛️ Sesuaikan Kontrol / Custom HUD</button>
   <label class="swRow"><b>Sembunyikan pet saya</b><input type="checkbox" id="swMyPets"><span class="sw"></span></label>
@@ -405,10 +406,10 @@ const saveAdm=()=>{try{localStorage.setItem(ADM_KEY,JSON.stringify({ht:hideTitle
 const guardOff=()=>IS_CREATOR&&!guardOn;
 /* pengaturan pemain: sembunyikan pet (hewan di kandang) supaya tidak lag */
 let hideMyPets=false,hideOtherPets=false;
-let smoothG=false,gfxQ=1,renderPct=100,fpsCap=60,distPct=100,sensPct=100,musOn=true,musVol=60,hudCfg={};   /* hudCfg: posisi/ukuran tiap elemen HUD {id:{x,y,s}} */   /* fpsCap 20/30/60/120; distPct 1-100 jarak pandang */   /* grafik: 0 Rendah, 1 Sedang (standar), 2 Tinggi; render 1-100 (% resolusi) */
+let smoothG=false,gfxQ=1,renderPct=100,fpsCap=60,distPct=100,sensPct=100,musOn=true,sfxOn=true,musVol=60,hudCfg={};   /* hudCfg: posisi/ukuran tiap elemen HUD {id:{x,y,s}} */   /* fpsCap 20/30/60/120; distPct 1-100 jarak pandang */   /* grafik: 0 Rendah, 1 Sedang (standar), 2 Tinggi; render 1-100 (% resolusi) */
 const SET_KEY='curitelur_set_'+KEY;
-try{const a=JSON.parse(localStorage.getItem(SET_KEY)||'{}');hideMyPets=a.hm===1;hideOtherPets=a.ho===1;smoothG=a.sm===1;if(a.gq===0||a.gq===1||a.gq===2||a.gq===3)gfxQ=a.gq;if(+a.rs>=1&&+a.rs<=100)renderPct=Math.round(+a.rs);if([20,30,60,120,200].indexOf(+a.fp)>=0)fpsCap=+a.fp;if(+a.dp>=1&&+a.dp<=100)distPct=Math.round(+a.dp);if(+a.sn>=20&&+a.sn<=300)sensPct=Math.round(+a.sn);if(a.mu===0)musOn=false;if(+a.mv>=0&&+a.mv<=100&&a.mv!==undefined)musVol=Math.round(+a.mv);if(a.hud&&typeof a.hud==='object')for(const k in a.hud){const c=a.hud[k];if(c&&isFinite(+c.x)&&isFinite(+c.y))hudCfg[k]={x:Math.round(+c.x),y:Math.round(+c.y),s:Math.min(2,Math.max(.5,+c.s||1))};}}catch(e){}
-const saveSet=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify({hm:hideMyPets?1:0,ho:hideOtherPets?1:0,sm:smoothG?1:0,gq:gfxQ,rs:renderPct,fp:fpsCap,dp:distPct,sn:sensPct,mu:musOn?1:0,mv:musVol,hud:hudCfg}));}catch(e){}};
+try{const a=JSON.parse(localStorage.getItem(SET_KEY)||'{}');hideMyPets=a.hm===1;hideOtherPets=a.ho===1;smoothG=a.sm===1;if(a.gq===0||a.gq===1||a.gq===2||a.gq===3)gfxQ=a.gq;if(+a.rs>=1&&+a.rs<=100)renderPct=Math.round(+a.rs);if([20,30,60,120,200].indexOf(+a.fp)>=0)fpsCap=+a.fp;if(+a.dp>=1&&+a.dp<=100)distPct=Math.round(+a.dp);if(+a.sn>=20&&+a.sn<=300)sensPct=Math.round(+a.sn);if(a.mu===0)musOn=false;if(a.sx===0)sfxOn=false;if(+a.mv>=0&&+a.mv<=100&&a.mv!==undefined)musVol=Math.round(+a.mv);if(a.hud&&typeof a.hud==='object')for(const k in a.hud){const c=a.hud[k];if(c&&isFinite(+c.x)&&isFinite(+c.y))hudCfg[k]={x:Math.round(+c.x),y:Math.round(+c.y),s:Math.min(2,Math.max(.5,+c.s||1))};}}catch(e){}
+const saveSet=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify({hm:hideMyPets?1:0,ho:hideOtherPets?1:0,sm:smoothG?1:0,gq:gfxQ,rs:renderPct,fp:fpsCap,dp:distPct,sn:sensPct,mu:musOn?1:0,sx:sfxOn?1:0,mv:musVol,hud:hudCfg}));}catch(e){}};
 const distK=()=>.1+.9*(distPct-1)/99;   /* 100 = jarak standar; 1 = 10% */
 const gfxBase=()=>{const d=window.devicePixelRatio||1;return gfxQ===0?Math.min(d,1):gfxQ===3?Math.min(Math.max(d*1.8,2),3):gfxQ===2?Math.min(Math.max(d*1.4,1.6),2.6):Math.min(d,1.6);};
 
@@ -589,7 +590,7 @@ const REGB=[GATEZ];
 REG.forEach(R=>{R.bnd0=REGB[REGB.length-1];R.bnd1=R.bnd0-R.depth;R.cz=R.bnd0-R.depth/2;REGB.push(R.bnd1);});
 /* tata letak: penjaga terbagi jadi 3 (1 penjaga per telur), tersebar di wilayah; telur ada di sisi (arah tengah) penjaganya */
 REG.forEach((R,i)=>{R.gd=GUARDS[i];
-  const kx=1+R.ext,gps=R.nests.length?R.nests.map(p=>[+(p[0]*KW).toFixed(2),+(R.bnd0-(R.ob0-p[1])*kx).toFixed(2)]):[[-8*KW,R.bnd0-8.5*kx],[7*KW,R.bnd0-18.7*kx],[-3*KW,R.bnd0-28.9*kx]];
+  const kx=1+R.ext,gps=R.nests.length?R.nests.map(p=>[+(p[0]*KW).toFixed(2),+(R.bnd0-(R.ob0-p[1])*kx).toFixed(2)]):(R.n==='Nirwana'?[[-10.8*KW,R.bnd0-8.5*kx],[10.8*KW,R.bnd0-18.7*kx],[-10.8*KW,R.bnd0-28.9*kx]]:[[-8*KW,R.bnd0-8.5*kx],[7*KW,R.bnd0-18.7*kx],[-3*KW,R.bnd0-28.9*kx]]);
   R.gps=gps;R.egs=gps.map(p=>[p[0]+(p[0]>0?-3.6:3.6),p[1]]);R.nests=R.gps.concat(R.egs);});
 const WORLD_END=REGB[REGB.length-1];   // ujung dunia (setelah Konoha)
 const KON_I=REG.findIndex(r=>r.n==='Konoha');
@@ -1037,38 +1038,46 @@ function stageWorld(){
   {seed=37;   /* NIRWANA — Taman Langit: kolam teratai, pilar cahaya, cakra halo, pilar marmer, mandala emas, kelopak melayang, gerbang halo */
     const NW=REG[10],cx=0,cz=NW.cz,TAU2=Math.PI*2;
     const glass=(c,o)=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,depthWrite:false});
-    /* mandala emas di tengah wilayah */
-    [[1.6,0xffd96a],[2.6,0xff9bd8],[3.8,0xffe9a8],[5.0,0xc9a8ff]].forEach((q,i)=>{const r=mk(scene,G.rng,glass(q[1],.9),cx,.06+i*.004,cz,q[0],q[0],1);r.rotation.x=-Math.PI/2;});
-    for(let k=0;k<8;k++){const a=k*TAU2/8,pet=mk(scene,G.cone4,glass(k%2?0xffb3e6:0xffe08a,.75),cx+Math.cos(a)*3.2,.07,cz+Math.sin(a)*3.2,.55,1.5,.55);pet.rotation.x=-Math.PI/2;pet.rotation.z=a+Math.PI/2;}
-    disc(cx,cz,.9,glass(0xfff7d0,.9),.08);
+    /* titik hias hanya di sisi kiri/kanan (jalur tengah dibiarkan lega); hindari induk & telur */
+    const taken=[];NW.gps.forEach(g=>taken.push([g[0],g[1],4.5]));NW.egs.forEach(e=>taken.push([e[0],e[1],3.2]));
+    const sidePos=rad=>{for(let k=0;k<60;k++){const sd=sr()<.5?-1:1,x=sd*(9.4+sr()*5.6),z=NW.bnd0-6-sr()*(NW.depth-12);
+      if(taken.every(t=>Math.hypot(t[0]-x,t[1]-z)>t[2]+rad)){taken.push([x,z,rad]);return[x,z];}}return[13.5,NW.bnd0-NW.depth/2];};
+    /* mandala emas: tiga buah di sisi seberang tiap induk */
+    const mandala=(mx,mz,sc)=>{taken.push([mx,mz,3.4]);
+      [[1.6,0xffd96a],[2.6,0xff9bd8],[3.8,0xffe9a8],[5.0,0xc9a8ff]].forEach((q,i)=>{const r=mk(scene,G.rng,glass(q[1],.9),mx,.06+i*.004,mz,q[0]*sc,q[0]*sc,1);r.rotation.x=-Math.PI/2;});
+      for(let k=0;k<8;k++){const a=k*TAU2/8,pet=mk(scene,G.cone4,glass(k%2?0xffb3e6:0xffe08a,.75),mx+Math.cos(a)*3.2*sc,.07,mz+Math.sin(a)*3.2*sc,.55*sc,1.5*sc,.55*sc);pet.rotation.x=-Math.PI/2;pet.rotation.z=a+Math.PI/2;}
+      disc(mx,mz,.9*sc,glass(0xfff7d0,.9),.08);};
+    NW.gps.forEach(g=>mandala(-Math.sign(g[0])*11.5,g[1],.6));
+    /* teratai bercahaya */
     /* teratai bercahaya */
     const lotus=(x,z,s,c1,c2)=>{const gp=new THREE.Group();gp.position.set(x,0,z);scene.add(gp);
       for(let ring=0;ring<2;ring++)for(let k=0;k<8;k++){const pv=new THREE.Group();pv.rotation.y=k*TAU2/8+ring*.4;gp.add(pv);
         const pt=mk(pv,G.cone,M(ring?c2:c1,{emissive:(ring?c2:c1)&0x553355}),(.34-ring*.12)*s,(.42+ring*.22)*s,0,(.2-ring*.04)*s,(.85+ring*.3)*s,.1*s);pt.rotation.z=-.5+ring*.35;}
       mk(gp,G.sph,BM(0xfff2a8),0,.5*s,0,.17*s);return gp;};
     /* kolam cahaya + teratai */
-    [[-8,-7.5],[8.5,8],[-6.5,12.5]].forEach((q,i)=>{const px=q[0],pz=cz+q[1];
+    const GZ=NW.gps.map(g=>g[1]);
+    [[-11.2,(GZ[0]+GZ[1])/2],[11.2,(GZ[1]+GZ[2])/2],[-11.2,(GZ[1]+GZ[2])/2]].forEach((q,i)=>{const px=q[0],pz=q[1];taken.push([px,pz,3.4]);
       disc(px,pz,2.6+i*.2,glass(i===1?0xbfe9ff:0xd9c8ff,.55),.045);
       const rg=mk(scene,G.rng,BM(0xffd96a),px,.07,pz,2.7+i*.2,2.7+i*.2,1);rg.rotation.x=-Math.PI/2;
       for(let k=0;k<3;k++){const a=k*2.1+i,rr=1.1+k*.35;const l=lotus(px+Math.cos(a)*rr,pz+Math.sin(a)*rr,.55+sr()*.25,k%2?0xff9bd0:0xffffff,0xffd0f0);nwAnim.push([l,0,sr()*6]);}});
     /* pilar cahaya dari langit */
-    for(let k=0;k<5;k++){const p=freePos(10,4.5),m=glass(k%2?0xffe9a0:0xffc8f0,.16);const b=mk(scene,G.cyl,m,p[0],8,p[1],.9,16,.9);nwAnim.push([b,1,sr()*6,m]);
+    for(let k=0;k<5;k++){const p=sidePos(1.8),m=glass(k%2?0xffe9a0:0xffc8f0,.16);const b=mk(scene,G.cyl,m,p[0],8,p[1],.9,16,.9);nwAnim.push([b,1,sr()*6,m]);
       const r=mk(scene,G.rng,BM(k%2?0xffd96a:0xff9bd8),p[0],.07,p[1],1.5,1.5,1);r.rotation.x=-Math.PI/2;}
     /* cakra halo melayang (cincin emas berputar + manik mengorbit) */
-    for(let k=0;k<4;k++){const p=freePos(10,4.5),g=new THREE.Group(),by=3.2+sr()*1.2;g.position.set(p[0],by,p[1]);scene.add(g);
+    for(let k=0;k<4;k++){const p=sidePos(1.8),g=new THREE.Group(),by=3.2+sr()*1.2;g.position.set(p[0],by,p[1]);scene.add(g);
       mk(g,G.tor,BM(0xffd96a),0,0,0,1.5,1.5,1.5);const r2=mk(g,G.tor,BM(0xff9bd8),0,0,0,1.1,1.1,1.1);r2.rotation.x=Math.PI/2;
       mk(g,G.sph,BM(0xffffff),0,0,0,.26);
       for(let b=0;b<4;b++){const a=b*Math.PI/2;mk(g,G.sph,BM(b%2?0xffb3ff:0xfff2a8),Math.cos(a)*1.5,Math.sin(a)*1.5,0,.12);}
       nwAnim.push([g,2,sr()*6,null,by]);}
     /* pilar marmer + orb melayang */
-    for(let k=0;k<5;k++){const p=freePos(10,4.5),h=2.6+sr()*1.4;
+    for(let k=0;k<5;k++){const p=sidePos(1.8),h=2.6+sr()*1.4;
       mk(scene,G.box,M(0xd8b86a),p[0],.15,p[1],1.0,.3,1.0);
       mk(scene,G.cyl,M(0xfaf3ff),p[0],.3+h/2,p[1],.34,h,.34);
       mk(scene,G.box,M(0xd8b86a),p[0],.3+h+.1,p[1],.9,.2,.9);
       const o=mk(scene,G.sph,BM(k%2?0xffd6ff:0xfff2b0),p[0],.3+h+1,p[1],.34);nwAnim.push([o,3,sr()*6,null,.3+h+1]);}
     /* kelopak & debu cahaya melayang naik */
     {const N=110,pos=new Float32Array(N*3),col=new Float32Array(N*3),cc=[[1,.9,.98],[1,.88,.55],[.9,.8,1]];nwPts={N,pos,base:new Float32Array(N*3),sp:new Float32Array(N)};
-      for(let i=0;i<N;i++){const x=(sr()-.5)*28,z=NW.bnd0-sr()*NW.depth,y=sr()*9;pos[i*3]=x;pos[i*3+1]=y;pos[i*3+2]=z;nwPts.base[i*3]=x;nwPts.sp[i]=.25+sr()*.5;const c=cc[i%3];col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2];}
+      for(let i=0;i<N;i++){const x=(sr()<.5?-1:1)*(5+sr()*10),z=NW.bnd0-sr()*NW.depth,y=sr()*9;pos[i*3]=x;pos[i*3+1]=y;pos[i*3+2]=z;nwPts.base[i*3]=x;nwPts.sp[i]=.25+sr()*.5;const c=cc[i%3];col[i*3]=c[0];col[i*3+1]=c[1];col[i*3+2]=c[2];}
       const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pos,3));gg.setAttribute('color',new THREE.BufferAttribute(col,3));
       nwPts.pts=new THREE.Points(gg,new THREE.PointsMaterial({size:.32,vertexColors:true,transparent:true,opacity:.9,depthWrite:false,fog:false}));nwPts.pts.frustumCulled=false;scene.add(nwPts.pts);}
     /* gerbang halo Nirwana */
@@ -1231,6 +1240,87 @@ function audioTick(){
   const safe=!!loaded&&player.root.position.z>=GATEZ&&!document.hidden;
   const tg=(musOn&&safe)?(musVol/100)*.55:0;
   if(Math.abs(tg-musTgt)>.002){musTgt=tg;musMaster.gain.setTargetAtTime(tg,AC.currentTime,.9);}
+}
+/* ---- Efek suara kelangkaan (WebAudio, tanpa file): makin langka makin meriah & bahagia ----
+   0 Biasa … 6 Kosmik: denting makin panjang · 7 Rahasia: dentuman misterius lalu arpeggio kemenangan · 8 Abadi: koor surgawi + lonceng
+   9 Ilahi: harpa emas · 10 Prismatic: pelangi nada · 11 OG: fanfare epik · 12 GOOD: petir + melodi riang · 13 Transenden: puncak segalanya */
+let sfxMaster=null,sfxBus=null,sfxLast=0;
+const SFX_MAJ=[523.25,659.25,783.99,1046.5,1318.5,1568,2093],SFX_PEN=[523.25,587.33,659.25,783.99,880,1046.5,1174.7,1318.5,1568,1760,2093,2349.3];
+function sfxInit(){
+  if(!AC)return false;if(sfxMaster)return true;
+  try{
+    sfxMaster=AC.createGain();sfxMaster.gain.value=.6;sfxMaster.connect(AC.destination);
+    sfxBus=AC.createGain();sfxBus.connect(sfxMaster);
+    const dl=AC.createDelay(1),fb=AC.createGain(),wet=AC.createGain();dl.delayTime.value=.2;fb.gain.value=.36;wet.gain.value=.42;
+    sfxBus.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(sfxMaster);
+    return true;
+  }catch(e){sfxMaster=null;sfxBus=null;return false;}
+}
+function sfxTone(f,t0,dur,type,vol,att,det,slide){
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t0);
+  if(slide)o.frequency.exponentialRampToValueAtTime(slide,t0+dur);
+  if(det)o.detune.value=det;
+  att=Math.min(att||.008,dur*.8);
+  g.gain.setValueAtTime(.0001,t0);g.gain.linearRampToValueAtTime(Math.max(.0002,vol),t0+att);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  o.connect(g);g.connect(sfxBus);o.start(t0);o.stop(t0+dur+.05);
+}
+function sfxNoise(t0,dur,vol,f0,f1){
+  const n=Math.max(64,Math.floor(AC.sampleRate*dur)),b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+  const s=AC.createBufferSource();s.buffer=b;
+  const bp=AC.createBiquadFilter();bp.type='bandpass';bp.Q.value=3;bp.frequency.setValueAtTime(f0,t0);bp.frequency.exponentialRampToValueAtTime(f1,t0+dur);
+  const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.linearRampToValueAtTime(Math.max(.0002,vol),t0+dur*.25);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  s.connect(bp);bp.connect(g);g.connect(sfxBus);s.start(t0);s.stop(t0+dur+.05);
+}
+function sfxBell(f,t0,dur,v){sfxTone(f,t0,dur,'sine',v,.004);sfxTone(f*2.01,t0,dur*.6,'sine',v*.35,.004);sfxTone(f*3.99,t0,dur*.3,'sine',v*.15,.003);}
+function sfxChord(fs,t0,dur,v,type){fs.forEach(f=>{sfxTone(f,t0,dur,type||'triangle',v,dur*.35);sfxTone(f,t0,dur,type||'triangle',v*.6,dur*.35,7);});}
+function sfxBoom(t0,v){sfxTone(95,t0,.7,'sine',v,.005,0,36);sfxNoise(t0,.35,v*.6,500,70);}
+function sfxTier(t,sc){
+  if(!sfxOn||!AC||!sfxInit())return;
+  if(AC.state==='suspended')AC.resume();
+  t=Math.max(0,Math.min(13,t|0));sc=sc||1;
+  const T0=AC.currentTime+.02;
+  if(t<7&&T0-sfxLast<.2)return;sfxLast=T0;   /* denting kecil tidak bertumpuk saat banyak telur menetas bersamaan */
+  const V=sc,N=(f,dt,d,v,ty)=>sfxTone(f,T0+dt,d,ty||'sine',v*V,.006);
+  switch(t){
+    case 0:N(440,0,.14,.2);break;
+    case 1:N(523.25,0,.12,.2);N(659.25,.09,.16,.2);break;
+    case 2:for(let i=0;i<3;i++)N(SFX_MAJ[i],i*.08,.22,.2,'triangle');break;
+    case 3:for(let i=0;i<4;i++)N(SFX_MAJ[i],i*.075,.26,.2,'triangle');sfxBell(SFX_MAJ[3],T0+.3,.5,.1*V);break;
+    case 4:for(let i=0;i<5;i++){N(SFX_MAJ[i],i*.07,.32,.18,'triangle');N(SFX_MAJ[i]/2,i*.07,.32,.1);}
+      sfxChord([523.25,659.25,783.99,1046.5],T0+.38,.8,.09*V);sfxNoise(T0+.35,.5,.05*V,3000,9000);break;
+    case 5:for(let i=0;i<7;i++)sfxBell(SFX_PEN[i+1],T0+i*.07,.6,.11*V);sfxNoise(T0,.6,.045*V,2500,8000);break;
+    case 6:sfxTone(200,T0,.75,'triangle',.07*V,.3,0,1600);
+      sfxChord([392,493.88,587.33,783.99,987.77],T0+.45,1.2,.07*V,'sine');
+      [0,1,2].forEach(i=>sfxBell(1568+i*392,T0+.55+i*.12,.9,.09*V));sfxNoise(T0+.4,.9,.05*V,2000,9000);break;
+    case 7:   /* RAHASIA: dun… dun… lalu TA-DAA */
+      sfxBoom(T0,.5*V);sfxTone(220,T0+.05,.5,'sawtooth',.035*V,.2,0,110);
+      sfxBoom(T0+.24,.55*V);
+      for(let i=0;i<7;i++){N(SFX_MAJ[i],.55+i*.065,.34,.17,'triangle');sfxBell(SFX_MAJ[i]*(i%2?1:2),T0+.55+i*.065,.8,.08*V);}
+      sfxChord([523.25,659.25,783.99,1046.5,1318.5],T0+1.05,1.3,.09*V);sfxNoise(T0+1.0,1.1,.07*V,3000,10000);break;
+    case 8:   /* ABADI: koor surgawi + lonceng turun pelan */
+      sfxChord([261.63,329.63,392,493.88,587.33],T0,2.6,.06*V);sfxChord([523.25,659.25,783.99,987.77,1174.7],T0+.2,2.4,.04*V,'sine');
+      [2093,1568,1318.5,1046.5].forEach((f,i)=>sfxBell(f,T0+.5+i*.4,1.5,.1*V));sfxNoise(T0+.3,1.8,.05*V,4000,11000);break;
+    case 9:   /* ILAHI: harpa emas */
+      for(let i=0;i<12;i++){N(SFX_PEN[i],i*.05,.5,.14,'triangle');sfxBell(SFX_PEN[i],T0+i*.05,.7,.06*V);}
+      sfxChord([392,523.25,659.25,783.99,1046.5],T0+.62,1.8,.08*V);sfxBell(2637,T0+1.0,1.6,.12*V);sfxNoise(T0+.6,1.4,.05*V,3500,11000);break;
+    case 10:  /* PRISMATIC: pelangi nada */
+      for(let i=0;i<14;i++){const f=i<7?SFX_MAJ[i]:SFX_PEN[Math.min(11,i-2)]*(i%2?1:1.005);N(f,i*.05,.3,.15,i%2?'sine':'triangle');}
+      sfxChord([523.25,659.25,783.99,1046.5,1318.5,1568],T0+.8,1.5,.08*V);sfxNoise(T0,.7,.05*V,1500,10000);sfxNoise(T0+.8,.9,.05*V,10000,2500);break;
+    case 11:  /* OG: fanfare epik */
+      sfxBoom(T0,.6*V);sfxChord([130.81,196,261.63,392],T0,1.1,.05*V,'square');
+      [[SFX_MAJ[0],.1],[SFX_MAJ[2],.22],[SFX_MAJ[3],.34],[SFX_MAJ[4],.5]].forEach(q=>{N(q[0],q[1],.55,.17,'triangle');N(q[0],q[1],.55,.05,'sawtooth');});
+      sfxNoise(T0+.5,1.0,.08*V,9000,4000);sfxChord([523.25,659.25,783.99,1046.5],T0+.5,1.2,.07*V);break;
+    case 12:  /* GOOD ⚡: petir lalu melodi riang */
+      [0,.07,.15].forEach(dt=>sfxNoise(T0+dt,.12,.12*V,1000,8000));sfxTone(2000,T0,.2,'sawtooth',.07*V,.01,0,200);
+      [783.99,987.77,1174.7,1568,1318.5,1568,2093].forEach((f,i)=>{N(f,.22+i*.09,.3,.12,'square');N(f,.22+i*.09,.3,.12,'triangle');});
+      sfxChord([523.25,659.25,783.99,1046.5],T0+.95,1.3,.08*V);sfxNoise(T0+.9,.9,.06*V,3000,10000);break;
+    default:  /* TRANSENDEN: puncak segalanya */
+      sfxBoom(T0,.6*V);
+      for(let i=0;i<14;i++){N(SFX_PEN[Math.min(11,i)],.25+i*.045,.5,.13,'triangle');sfxBell(SFX_PEN[Math.min(11,i)]*(i>11?2:1),T0+.25+i*.045,.8,.05*V);}
+      sfxChord([261.63,392,523.25,659.25,783.99,1046.5],T0+.5,3,.06*V);
+      [2093,2637,3136,2093,3136].forEach((f,i)=>sfxBell(f,T0+1.0+i*.25,1.6,.1*V));sfxNoise(T0+.4,2.6,.06*V,3000,12000);
+  }
 }
 ['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,audioStart,{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(AC&&!document.hidden&&AC.state==='suspended')AC.resume();});
@@ -3429,9 +3519,11 @@ function setupNest(N,sp,mut){
   N.active=true;N.ring.visible=true;N.pad.visible=true;
   N.sp=sp;N.mut=+mut||0;N.big=N.mut>0;
   const s=SP[N.reg][N.sp];let gd=gdAt(REG[N.reg],N.k);
-  if(N.reg<=4){   /* Danau–Neraka: induk = spesies telurnya, jadi tingkat induk sama dengan telur (Mistik→induk Mistik, Rahasia→Rahasia) */
-    const kf=[1.35,1.1,1.25,1.2,1][N.reg];gd={n:s.n,kind:s.kind,S:s.S*kf,col:s.col,opt:s.opt};
-    if(N.mSp!==N.sp||!N.c){if(N.c&&N.c.root.parent)N.c.root.parent.remove(N.c.root);N.c=buildCreature(gd.kind,gd.S,gd.col,gd.opt);N.holder.add(N.c.root);N.c.root.rotation.y=N.sy;N.top=N.c.top*gd.S;N.mSp=N.sp;}
+  if(N.reg<=4||REG[N.reg].n==='Nirwana'){   /* Danau–Neraka & Nirwana: induk = spesies telurnya, jadi tingkat induk sama dengan telur (Mistik→induk Mistik, Rahasia→Rahasia) */
+    const kf=[1.35,1.1,1.25,1.2,1][N.reg]||1.15;gd={n:s.n,kind:s.kind,S:s.S*kf,col:s.col,opt:s.opt};
+    if(N.mSp!==N.sp||!N.c){if(N.c&&N.c.root.parent)N.c.root.parent.remove(N.c.root);N.c=buildCreature(gd.kind,gd.S,gd.col,gd.opt);N.holder.add(N.c.root);N.c.root.rotation.y=N.sy;N.top=N.c.top*gd.S;N.mSp=N.sp;
+      if(REG[N.reg].n==='Nirwana'){if(N.gfx){try{N.gfx.dispose();}catch(e){}N.gfx=null;}if(s.fx)N.gfx=makeFx(N.holder,s.fx,gd.S*.9);}   /* aura induk ikut spesies telur */
+    }
   }
   if(!N.c){N.c=buildCreature(gd.kind,gd.S,gd.col,gd.opt);N.holder.add(N.c.root);N.top=N.c.top*gd.S;}
   N.c.monsterEyes=N.mut>=3||!!(gd.opt&&gd.opt.red);N.c.sleep=1;N.c.sleepT=1;
@@ -3721,7 +3813,7 @@ function runBanner(){
   if(!(SP[r.reg]&&SP[r.reg][r.sp])){bannerBusy=false;runBanner();return;}
   const spN=SP[r.reg][r.sp].n;
   b.innerHTML='<div class="bn cm"><span class="t'+r.t+'">'+esc(TIERS[r.t].n.toUpperCase())+'</span> '+esc(spN.toUpperCase())+(r.n>1?' ×'+r.n:'')+' MUNCUL DI '+regHTML(REG[r.reg],true)+'!</div>';
-  b.classList.add('on');
+  b.classList.add('on');try{sfxTier(r.t,.9);}catch(e){}
   setTimeout(()=>{b.classList.remove('on');setTimeout(()=>{bannerBusy=false;runBanner();},350+extra);},3400);
 }
 
@@ -4069,7 +4161,7 @@ $('snR').addEventListener('change',saveSet);
 $('mvR').addEventListener('input',e=>{musVol=Math.max(0,Math.min(100,Math.round(+e.target.value)));$('mvV').textContent=musVol;});
 $('mvR').addEventListener('change',saveSet);
 syncGfxUI();
-[['swSmooth',()=>smoothG,v=>{smoothG=v;applySmooth();toast(v?'🧊 Grafik Smooth AKTIF — objek hilang, tanah tetap bertekstur ringan':'Grafik Smooth mati',2500);}],['swMusic',()=>musOn,v=>{musOn=v;}],['swMyPets',()=>hideMyPets,v=>{hideMyPets=v;}],['swAllPets',()=>hideOtherPets,v=>{hideOtherPets=v;}]].forEach(([id,get,set])=>{
+[['swSmooth',()=>smoothG,v=>{smoothG=v;applySmooth();toast(v?'🧊 Grafik Smooth AKTIF — objek hilang, tanah tetap bertekstur ringan':'Grafik Smooth mati',2500);}],['swMusic',()=>musOn,v=>{musOn=v;}],['swSfx',()=>sfxOn,v=>{sfxOn=v;if(v){try{audioStart();setTimeout(()=>sfxTier(5,.7),80);}catch(e){}}}],['swMyPets',()=>hideMyPets,v=>{hideMyPets=v;}],['swAllPets',()=>hideOtherPets,v=>{hideOtherPets=v;}]].forEach(([id,get,set])=>{
   const el=$(id);if(!el)return;el.checked=get();
   el.addEventListener('change',()=>{set(el.checked);saveSet();});
 });
@@ -4358,6 +4450,7 @@ function hatch(e){
   const an=makeAnimal(it),s=spOf(an),mu=mutOf(an);
   popFx('🐣',x,2.6,z,'#ffe066');
   discover(an.reg,an.sp);
+  try{sfxTier(s.t,.85);}catch(e){}
   const tag=mu?' · '+MUTN[mu]+' '+fmtKg(an.kg):'';
   if(addItem(an))toast('🐣 Menetas! '+s.n+' ('+TIERS[s.t].n+')'+tag+' · 💵 '+fmt(incOf(an))+'/s',mu===2?4200:2600);
   else{addPen(an,ox,oz);toast('🐣 '+s.n+' menetas & langsung dikandangkan');}
@@ -4429,6 +4522,7 @@ function takeEgg(N){
   N.mine=true;N.gT=0;N.fast=false;try{db.ref(RP()+'g/'+N.id).onDisconnect().remove();}catch(e){}
   N.st='wake';N.tm=.9;
   popFx('🥚',N.ex,2.2,N.ez,'#fff2a0');
+  try{sfxTier(tierOf(it),1);}catch(e){}
   toast('🥚 Telur '+TIERS[tierOf(it)].n+' diambil! Kabur ke zona aman sebelum penjaga menangkapmu!');
 }
 function restoreEgg(N){
