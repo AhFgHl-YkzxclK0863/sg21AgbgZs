@@ -1194,7 +1194,7 @@ function sendCm(){
 }
 
 /* ---------- TEMAN: online/offline + sedang main apa ---------- */
-let PRES_KEY='',presTimer=0,frTimer=0,visFn=null,FREF=null,heroRefs=[],srvWatch=false;
+let PRES_KEY='',presTimer=0,frTimer=0,visFn=null,FREF=null,heroRefs=[],srvWatch=false,fBack=false;
 const FR={},FP={},FRW={},FPL={};let srvOff=0,fReady=false,launching=false,FLOADED=false,rfQ=0,cacheT=0;
 /* cache lokal: uang + daftar teman langsung tampil saat halaman dibuka, data server menyusul */
 function saveCache(){clearTimeout(cacheT);cacheT=setTimeout(()=>{try{if(USER)localStorage.setItem('nexoria_cache_'+USER.toLowerCase(),JSON.stringify({c:COINRAW||0,f:FR}));}catch(e){}},400);}
@@ -1238,7 +1238,7 @@ function endSession(){stUnwatch();
   if(FREF){try{FREF.off();}catch(e){}FREF=null;}
   for(const k in FRW){try{FRW[k].off();}catch(e){}delete FRW[k];}
   for(const k in FR)delete FR[k];for(const k in FP)delete FP[k];for(const k in FPL)delete FPL[k];
-  fReady=false;FLOADED=false;
+  fReady=false;FLOADED=false;fBack=false;
   heroRefs.forEach(r=>{try{r&&r.off();}catch(e){}});heroRefs=[];heroWatch=false;heroOn=false;streakInfo={n:0,last:''};
   if(coinRef){try{coinRef.off();}catch(e){}coinRef=null;}
   if(window._nxRefs){window._nxRefs.forEach(r=>{try{r.off();}catch(e){}});window._nxRefs=null;}
@@ -1261,6 +1261,7 @@ function watchFriends(){stWatch();
   fref.on('value',sn=>{const v=sn.val()||{};FLOADED=true;
     for(const k of Object.keys(FR))if(!(k in v)){if(FRW[k]){FRW[k].off();delete FRW[k];}delete FR[k];delete FP[k];delete FPL[k];}
     for(const k of Object.keys(v)){FR[k]=String(v[k]||k);loadFPh(k);if(!FRW[k]){const r=d.ref('nexoria/presence/'+k);FRW[k]=r;r.on('value',s=>{FP[k]=s.val();FPL[k]=1;renderFriends();},()=>{FPL[k]=1;renderFriends();});}}
+    if(!fBack){fBack=true;const me=USER.toLowerCase();Object.keys(v).slice(0,40).forEach(k=>{d.ref('nexoria/users/'+k+'/friends/'+me).once('value').then(x=>{if(!x.exists())d.ref('nexoria/users/'+k+'/friends/'+me).set(USER).catch(()=>{});}).catch(()=>{});});}
     renderFriends();saveCache();},()=>{FLOADED=true;renderFriends();});
   frTimer=setInterval(renderFriends,20000);
   startPresence();
@@ -1279,7 +1280,7 @@ function addFriendUI(){
       withTimeout(d.ref('nexoria/users/'+k+'/name').once('value'),8000).then(s=>{
         if(!s.exists()){status('Username tidak ditemukan','err');ok.disabled=false;return;}
         const nm=String(s.val()||v);
-        return d.ref('nexoria/users/'+USER.toLowerCase()+'/friends/'+k).set(nm).then(()=>{status('✅ '+nm+' ditambahkan','ok');closeModal();});
+        const me=USER.toLowerCase();return Promise.all([d.ref('nexoria/users/'+me+'/friends/'+k).set(nm),d.ref('nexoria/users/'+k+'/friends/'+me).set(USER).catch(()=>{})]).then(()=>{status('✅ '+nm+' ditambahkan','ok');closeModal();});
       }).catch(()=>{status('Gagal menambah teman','err');ok.disabled=false;});
     };
     setTimeout(()=>{try{c.querySelector('#fIn').focus();}catch(e){}},60);
@@ -1289,7 +1290,7 @@ function friendInfo(k){
   const n=FR[k];if(!n)return;const st=fStat(k);
   modal('<h3>'+esc(n)+'</h3><p>'+(st.s?'🟢 ':'⚫ ')+esc(st.t)+'</p><div class="row"><button class="btn ghost" id="fDel">Hapus teman</button><button class="btn" id="fOk2">Tutup</button></div>',c=>{
     c.querySelector('#fOk2').onclick=closeModal;
-    c.querySelector('#fDel').onclick=()=>{const d=getDB();if(d)d.ref('nexoria/users/'+USER.toLowerCase()+'/friends/'+k).remove().catch(()=>{});closeModal();};
+    c.querySelector('#fDel').onclick=()=>{const d=getDB();if(d){const me=USER.toLowerCase();d.ref('nexoria/users/'+me+'/friends/'+k).remove().catch(()=>{});d.ref('nexoria/users/'+k+'/friends/'+me).remove().catch(()=>{});}closeModal();};
   });
 }
 
@@ -1297,7 +1298,7 @@ function friendInfo(k){
 /* ---------- 🛠️ STUDIO GAME: buat game 3D, uji coba, publikasi real-time ---------- */
 const ST={list:{},cur:null,tested:'',testHash:'',pubs:{},timer:0};let stRef=null;
 const stKey=()=>USER.toLowerCase(),stId=()=>'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const stHash=p=>{const s=p.js+'\u0001'+p.ui;let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h+':'+s.length;};
+const stHash=p=>{const s=p.js+'\u0001'+p.ui+'\u0001'+(p.h||'');let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h+':'+s.length;};
 const TPL_JS="// Mulai dari nol 👋\n// Variabel siap pakai: THREE, scene, camera, renderer, keys, joy, onUpdate, UI, $\n",TPL_UI="";
 /* SDK yang berjalan DI DALAM iframe terisolasi (sandbox + CSP) */
 function STSDK(){
@@ -1358,6 +1359,21 @@ function stAutoFix(code,err){
   if(st.length){c=c.replace(/\s*$/,'')+'\n'+st.reverse().join('')+'\n';notes.push('Menambah '+st.length+' kurung penutup yang kurang di akhir kode');}
   if(ex)notes.push('Ada '+ex+' kurung penutup berlebih — periksa manual');
   return {code:c,notes,changed:c!==String(code)};}
+const stEmpty=p=>!(p.h&&p.h.trim().length>=50)&&stBlank(p.js);
+function stHtmlDoc(h){h=String(h);
+  const csp="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src data: https://fonts.gstatic.com; img-src data: blob: https:; media-src data: blob: https:; connect-src 'none'; form-action 'none'";
+  const rt=function(){const PM=(t,m)=>parent.postMessage({nx:1,t,m:String(m).slice(0,300)},'*');window.__bad=0;
+    try{localStorage.length}catch(e){const mk=()=>{const m={};return{getItem:k=>k in m?m[k]:null,setItem:(k,v)=>{m[k]=String(v)},removeItem:k=>{delete m[k]},clear:()=>{for(const k in m)delete m[k]},key:i=>Object.keys(m)[i]||null,get length(){return Object.keys(m).length}}};try{Object.defineProperty(window,'localStorage',{value:mk(),configurable:true});Object.defineProperty(window,'sessionStorage',{value:mk(),configurable:true});}catch(x){}}
+    window.addEventListener('error',e=>{window.__bad=1;PM('err',e.message)});window.addEventListener('unhandledrejection',e=>{window.__bad=1;PM('err',e.reason)});
+    document.addEventListener('securitypolicyviolation',e=>{window.__bad=1;PM('err','Diblokir keamanan: '+e.blockedURI+' (hanya cdnjs, jsdelivr, unpkg yang boleh)')});
+    console.log=(...a)=>PM('log',a.join(' '));
+    addEventListener('load',()=>setTimeout(()=>{if(!window.__bad)PM('ok','')},1800));};
+  let inj='<meta http-equiv="Content-Security-Policy" content="'+csp+'">'+(/name\s*=\s*["']viewport/i.test(h)?'':'<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">')+'<style>html,body{margin:0;width:100%;height:100%'+(/<canvas/i.test(h)?';overflow:hidden':'')+'}</style><script>('+rt.toString()+')()<\/script>';
+  let m=/<head[^>]*>/i.exec(h);
+  if(m)return h.slice(0,m.index+m[0].length)+inj+h.slice(m.index+m[0].length);
+  m=/<html[^>]*>/i.exec(h);
+  if(m)return h.slice(0,m.index+m[0].length)+'<head>'+inj+'</head>'+h.slice(m.index+m[0].length);
+  return '<!doctype html><html><head>'+inj+'</head><body>'+h+'</body></html>';}
 function stBlank(js){return String(js).replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm,'').trim().length<30;}
 function stExplain(m){m=String(m);
  let r=/(\w+) is not defined/.exec(m);if(r)return '"'+r[1]+'" belum dibuat atau salah ketik. Cek ejaan, atau buat dulu dengan const/let.';
@@ -1372,16 +1388,17 @@ function stAsk(q){q=q.toLowerCase();
 
 (function stBuild(){
   document.head.insertAdjacentHTML('beforeend','<style>#st,#stp{position:fixed;inset:0;z-index:40;background:var(--bg);display:none;flex-direction:column;color:var(--ink)}body.stopen #st{display:flex}#stp.on{display:flex;z-index:45}.sth{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line2)}.sth b{flex:1;font-size:15px}.sth button,.stn button,.stb .sb{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}#stP{background:var(--gold);color:#241a00;border:0}#stP[disabled]{opacity:.4}#stS{font-size:12px;color:var(--mute)}.stn{display:flex;gap:6px;padding:8px 12px;overflow-x:auto}.stn button.on{background:var(--vi);border-color:var(--vi)}.stb{flex:1;min-height:0;position:relative}.stb section{display:none;position:absolute;inset:0;padding:12px;overflow:auto}.stb section.on{display:flex;flex-direction:column;gap:10px}.stb textarea,.stb input{width:100%;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace}.stb input{font-family:system-ui}.stb textarea{flex:1;resize:none;tab-size:2;white-space:pre}#stF,#stpF{flex:1;width:100%;border:1px solid var(--line);border-radius:10px;background:#000;min-height:200px}#stL{margin:0;max-height:90px;overflow:auto;background:var(--card);border-radius:10px;padding:8px;font:12px/1.4 ui-monospace,monospace;color:var(--mute);white-space:pre-wrap}.stl{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}.stl.on{border-color:var(--cy)}.stl i{font-style:normal;font-size:26px}.stl img{width:36px;height:36px;border-radius:8px;object-fit:cover}.sti{display:flex;gap:10px;align-items:center}.sti .pv{width:64px;height:64px;border-radius:14px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;border:1px solid var(--line)}.sti .pv img{width:100%;height:100%;object-fit:cover}.sai{display:flex;flex-wrap:wrap;gap:6px}#stA{font-size:14px;line-height:1.6;color:var(--ink);background:var(--card);border-radius:10px;padding:10px;white-space:pre-wrap}</style>');
-  document.body.insertAdjacentHTML('beforeend','<div id="st"><div class="sth"><button id="stX">✕</button><b>🛠️ Studio Game</b><span id="stS"></span><button id="stT">▶ Uji</button><button id="stP">🚀 Publikasi</button></div><div class="stn" id="stN"><button data-t="proyek" class="on">Proyek</button><button data-t="info">Info</button><button data-t="kode">Kode JS</button><button data-t="ui">UI</button><button data-t="uji">Uji</button><button data-t="ai">🤖 Pendamping</button></div><div class="stb"><section data-p="proyek" class="on"><button class="sb" id="stNew">＋ Proyek baru</button><div id="stList" style="display:grid;gap:8px"></div></section><section data-p="info"><input id="stNm" maxlength="30" placeholder="Nama game"><div class="sti"><div class="pv" id="stPv">🎮</div><input id="stEm" maxlength="4" placeholder="Emoji ikon" style="width:110px"><button class="sb" id="stPic">🖼️ Dari galeri</button><input type="file" id="stFi" accept="image/*" hidden></div><input id="stDs" maxlength="120" placeholder="Deskripsi singkat"><div class="sai"><button class="sb" id="stUn">Tarik dari publik</button><button class="sb" id="stDel">🗑️ Hapus draft</button></div></section><section data-p="kode"><textarea id="stJ" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></section><section data-p="ui"><div class="sai" id="stKit"></div><div class="sai"><input id="stCn" maxlength="24" placeholder="Nama komponen buatanmu" style="flex:1;min-width:140px"><button class="sb" id="stCs">＋ Simpan sebagai komponen</button></div><textarea id="stU" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="HTML + CSS untuk tampilan. Tambah komponen dari tombol di atas atau tulis sendiri."></textarea></section><section data-p="uji"><iframe id="stF" sandbox="allow-scripts"></iframe><pre id="stL"></pre></section><section data-p="ai"><div id="stA">Hai! Proyekmu mulai dari nol — aku tidak membuatkan game. Aku bisa menyisipkan blok kode dasar (lampu, pemain, kamera, lompat, musuh, suara, timer), menjelaskan error, dan memperbaikinya otomatis lewat tombol 🔧.</div><button class="sb" id="stFx">🔧 Perbaiki otomatis lalu uji</button><div class="sai" id="stSn"></div><input id="stQ" placeholder="Tanya pendamping… (mis. perbaiki error, tambah lompat)"></section></div></div><div id="stp"><div class="sth"><button id="stpX">✕</button><b id="stpN">Game</b></div><iframe id="stpF" sandbox="allow-scripts"></iframe></div>');
+  document.head.insertAdjacentHTML('beforeend','<style>#stp .sth{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:8px;left:auto;z-index:3;padding:0;border:0;background:none;gap:8px}#stp .sth b{display:none}#stp .sth button{background:#000a;color:#fff;border:0;width:42px;height:42px;border-radius:50%;padding:0;font-size:18px}#stpF{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0;min-height:0}</style>');
+  document.body.insertAdjacentHTML('beforeend','<div id="st"><div class="sth"><button id="stX">✕</button><b>🛠️ Studio Game</b><span id="stS"></span><button id="stT">▶ Uji</button><button id="stP">🚀 Publikasi</button></div><div class="stn" id="stN"><button data-t="proyek" class="on">Proyek</button><button data-t="info">Info</button><button data-t="kode">Kode JS</button><button data-t="ui">UI</button><button data-t="html">HTML Penuh</button><button data-t="uji">Uji</button><button data-t="ai">🤖 Pendamping</button></div><div class="stb"><section data-p="proyek" class="on"><button class="sb" id="stNew">＋ Proyek baru</button><div id="stList" style="display:grid;gap:8px"></div></section><section data-p="info"><input id="stNm" maxlength="30" placeholder="Nama game"><div class="sti"><div class="pv" id="stPv">🎮</div><input id="stEm" maxlength="4" placeholder="Emoji ikon" style="width:110px"><button class="sb" id="stPic">🖼️ Dari galeri</button><input type="file" id="stFi" accept="image/*" hidden></div><input id="stDs" maxlength="120" placeholder="Deskripsi singkat"><div class="sai"><button class="sb" id="stUn">Tarik dari publik</button><button class="sb" id="stDel">🗑️ Hapus draft</button></div></section><section data-p="kode"><textarea id="stJ" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></section><section data-p="ui"><div class="sai" id="stKit"></div><div class="sai"><input id="stCn" maxlength="24" placeholder="Nama komponen buatanmu" style="flex:1;min-width:140px"><button class="sb" id="stCs">＋ Simpan sebagai komponen</button></div><textarea id="stU" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="HTML + CSS untuk tampilan. Tambah komponen dari tombol di atas atau tulis sendiri."></textarea></section><section data-p="html"><div class="sai"><button class="sb" id="stHp">📋 Tempel dari clipboard</button><button class="sb" id="stHc">Kosongkan</button></div><div style="font-size:12px;color:var(--mute)">Tempel HTML lengkap (HTML+CSS+JS jadi satu). Jika terisi, game memakai mode ini dan mengabaikan tab Kode JS &amp; UI. Library boleh dari cdnjs / jsdelivr / unpkg.</div><textarea id="stH" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="&lt;!DOCTYPE html&gt; … tempel di sini"></textarea></section><section data-p="uji"><iframe id="stF" sandbox="allow-scripts allow-pointer-lock allow-orientation-lock" allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"></iframe><pre id="stL"></pre></section><section data-p="ai"><div id="stA">Hai! Proyekmu mulai dari nol — aku tidak membuatkan game. Aku bisa menyisipkan blok kode dasar (lampu, pemain, kamera, lompat, musuh, suara, timer), menjelaskan error, dan memperbaikinya otomatis lewat tombol 🔧.</div><div class="sai"><input id="stKy" type="password" placeholder="API key OpenRouter ATAU alamat proxy https://… (disimpan di perangkat ini saja)" style="flex:1;min-width:200px" autocomplete="off"><input id="stMd" placeholder="model" style="width:160px"></div><button class="sb" id="stFx">🔧 Perbaiki (AI) lalu uji</button><div class="sai" id="stCode"></div><div class="sai" id="stSn"></div><input id="stQ" placeholder="Tanya pendamping… (mis. perbaiki error, tambah lompat)"></section></div></div><div id="stp"><div class="sth"><button id="stpFs" aria-label="Layar penuh">⛶</button><button id="stpX" aria-label="Tutup">✕</button><b id="stpN">Game</b></div><iframe id="stpF" sandbox="allow-scripts allow-pointer-lock allow-orientation-lock" allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"></iframe></div>');
   const g=id=>document.getElementById(id),say=t=>{g('stS').textContent=t;clearTimeout(ST.timer);ST.timer=setTimeout(()=>g('stS').textContent='',4000);};
   const tab=t=>{document.querySelectorAll('#stN button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.querySelectorAll('.stb section').forEach(s=>s.classList.toggle('on',s.dataset.p===t));};
   const isPub=()=>ST.cur&&ST.pubs[ST.cur.id]&&ST.pubs[ST.cur.id].k===stKey();
   const btn=()=>{const p=ST.cur;g('stP').disabled=!p||ST.tested!==stHash(p);g('stUn').style.display=isPub()?'':'none';};
   const iconHTML=i=>i&&i.startsWith('data:')?'<img src="'+esc(i)+'" alt="">':esc(i||'🎮');
   const list=()=>{const ids=Object.keys(ST.list).sort((a,b)=>(ST.list[b].ts||0)-(ST.list[a].ts||0));g('stList').innerHTML=ids.map(id=>{const p=ST.list[id];return '<div class="stl'+(ST.cur&&ST.cur.id===id?' on':'')+'" data-id="'+id+'"><i>'+iconHTML(p.i)+'</i><div style="flex:1"><b>'+esc(p.n)+'</b><div style="font-size:12px;color:var(--mute)">'+(ST.pubs[id]?'🟢 Dipublikasikan':'Draft')+'</div></div></div>';}).join('')||'<div style="color:var(--mute)">Belum ada proyek.</div>';};
-  const load=id=>{ST.cur=ST.list[id];const p=ST.cur;g('stNm').value=p.n;g('stEm').value=p.i&&!p.i.startsWith('data:')?p.i:'';g('stPv').innerHTML=iconHTML(p.i);g('stDs').value=p.d||'';g('stJ').value=p.js;g('stU').value=p.ui;g('stL').textContent='';g('stF').srcdoc='';ST.tested='';btn();list();};
-  const save=()=>{const p=ST.cur;if(!p)return;clearTimeout(save.t);save.t=setTimeout(()=>{const d=getDB();if(!d)return;p.ts=firebase.database.ServerValue.TIMESTAMP;d.ref('nexoria/studio/drafts/'+stKey()+'/'+p.id).set({n:p.n,i:p.i||'🎮',d:p.d||'',js:p.js,ui:p.ui,ts:p.ts}).then(()=>say('Tersimpan ☁️')).catch(()=>say('Gagal simpan (cek koneksi/aturan)'));},1200);};
-  const nw=()=>{const p={id:stId(),n:'Game baru',i:'🎮',d:'',js:TPL_JS,ui:TPL_UI,ts:Date.now()};ST.list[p.id]=p;load(p.id);save();tab('info');};
+  const load=id=>{ST.cur=ST.list[id];const p=ST.cur;g('stNm').value=p.n;g('stEm').value=p.i&&!p.i.startsWith('data:')?p.i:'';g('stPv').innerHTML=iconHTML(p.i);g('stDs').value=p.d||'';g('stJ').value=p.js;g('stU').value=p.ui;g('stH').value=p.h||'';g('stL').textContent='';g('stF').srcdoc='';ST.tested='';btn();list();};
+  const save=()=>{const p=ST.cur;if(!p)return;clearTimeout(save.t);save.t=setTimeout(()=>{const d=getDB();if(!d)return;p.ts=firebase.database.ServerValue.TIMESTAMP;d.ref('nexoria/studio/drafts/'+stKey()+'/'+p.id).set(Object.assign({n:p.n,i:p.i||'🎮',d:p.d||'',js:p.js,ui:p.ui,ts:p.ts},p.h?{h:p.h}:{})).then(()=>say('Tersimpan ☁️')).catch(()=>say('Gagal simpan (cek koneksi/aturan)'));},1200);};
+  const nw=()=>{const p={id:stId(),n:'Game baru',i:'🎮',d:'',js:TPL_JS,ui:TPL_UI,h:'',ts:Date.now()};ST.list[p.id]=p;load(p.id);save();tab('info');};
   window.stClose=()=>{document.body.classList.remove('stopen');};
   g('stX').onclick=window.stClose;
   const open=async()=>{if(!USER)return;closeDrawer();document.body.classList.add('stopen');tab('proyek');const d=getDB();await authReady();if(!d)return;try{const sn=await d.ref('nexoria/studio/drafts/'+stKey()).once('value'),v=sn.val()||{};ST.list={};Object.keys(v).forEach(id=>{ST.list[id]=Object.assign({id},v[id]);});}catch(e){say('Gagal memuat proyek');}
@@ -1399,7 +1416,7 @@ function stAsk(q){q=q.toLowerCase();
   g('stPic').onclick=()=>g('stFi').click();
   g('stFi').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f||!ST.cur)return;const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),s=Math.min(im.width,im.height);x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,128,128);URL.revokeObjectURL(u);upd('i',c.toDataURL('image/jpeg',.82));g('stPv').innerHTML=iconHTML(ST.cur.i);g('stEm').value='';};im.onerror=()=>say('Gambar tidak bisa dibaca');im.src=u;};
   const log=t=>{const L=g('stL');L.textContent+=t+'\n';L.scrollTop=L.scrollHeight;};
-  g('stT').onclick=()=>{const p=ST.cur;if(!p)return;if(stBlank(p.js)){say('Kode masih kosong — mulai tulis game-mu');tab('kode');return;}ST.err='';tab('uji');ST.tested='';ST.testHash=stHash(p);g('stL').textContent='';btn();g('stF').srcdoc=stDoc(p.js,p.ui);say('Menguji…');};
+  g('stT').onclick=()=>{const p=ST.cur;if(!p)return;if(stEmpty(p)){say('Kode masih kosong — mulai tulis game-mu');tab('kode');return;}ST.err='';tab('uji');ST.tested='';ST.testHash=stHash(p);g('stL').textContent='';btn();g('stF').srcdoc=(p.h&&p.h.trim().length>=50)?stHtmlDoc(p.h):stDoc(p.js,p.ui);say('Menguji…');};
   window.addEventListener('message',e=>{const d=e.data;if(!d||!d.nx)return;
     if(e.source===g('stF').contentWindow){
       if(d.t==='log')log('› '+d.m);
@@ -1417,26 +1434,55 @@ function stAsk(q){q=q.toLowerCase();
     if(!h){say('Tulis atau pilih kode UI dulu');return;}if(!n){say('Beri nama komponen');return;}if(h.length>5000){say('Maksimal 5000 karakter per komponen');return;}if(!d)return;
     const id=stId();try{await d.ref('nexoria/studio/uikit/'+stKey()+'/'+id).set({n,h,ts:firebase.database.ServerValue.TIMESTAMP});ST.kit[id]={n,h};g('stCn').value='';kit();say('Komponen tersimpan ⭐');}catch(e){say('Gagal simpan komponen');}};
   kit();
-  /* AI: perbaiki otomatis lalu uji */
-  const fix=()=>{const p=ST.cur;if(!p)return;const r=stAutoFix(p.js,ST.err);
+  /* HTML penuh */
+  g('stH').oninput=e=>upd('h',e.target.value);g('stHc').onclick=()=>{g('stH').value='';upd('h','');say('HTML dikosongkan');};
+  g('stHp').onclick=async()=>{try{const t=await navigator.clipboard.readText();if(!t.trim()){say('Clipboard kosong');return;}g('stH').value=t;upd('h',t);say('HTML ditempel ('+t.length+' karakter)');}catch(e){say('Izin clipboard ditolak — tempel manual di kotak');g('stH').focus();}};
+  /* AI pendamping: OpenRouter langsung (key lokal) atau lewat proxy; tanpa key → pendamping offline */
+  const LK='nx_or_key',LM='nx_or_model';g('stKy').value=localStorage.getItem(LK)||'';g('stMd').value=localStorage.getItem(LM)||'openai/gpt-4o-mini';
+  g('stKy').onchange=e=>{try{localStorage.setItem(LK,e.target.value.trim());}catch(x){}say(e.target.value.trim()?'Tersimpan di perangkat ini':'AI dimatikan');};
+  g('stMd').onchange=e=>{try{localStorage.setItem(LM,e.target.value.trim());}catch(x){}};
+  ST.ai=[];ST.prev=null;
+  const SYS='Kamu pendamping di Nexoria Studio, membantu pemain membuat game 3D web (Three.js r128) DARI NOL. Aturan: jangan membuat game lengkap atau memberi rekomendasi game kecuali diminta eksplisit; bimbing langkah demi langkah. Lingkungan: game jalan di iframe sandbox tanpa jaringan dan tanpa storage permanen. Mode Blok: variabel siap pakai THREE, scene, camera, renderer, keys, joy{x,y}, onUpdate(dt=>..), $(id), UI.text(id,t), UI.bar(id,0..1), UI.show(id,bool), UI.on(id,fn). Mode HTML penuh: satu file HTML lengkap; library hanya dari cdnjs/jsdelivr/unpkg. Saat memperbaiki, kembalikan SELURUH kode yang sudah benar dalam satu blok (```js, ```ui, atau ```html). Jawab singkat, bahasa Indonesia. Jangan pernah meminta atau menampilkan API key.';
+  const htmlMode=p=>!!(p.h&&p.h.trim().length>=50);
+  async function aiCall(q){const raw=(localStorage.getItem(LK)||'').trim();if(!raw)return null;const p=ST.cur;
+    const ctx=htmlMode(p)?'MODE: HTML penuh\n```html\n'+p.h.slice(0,14000)+'\n```':'MODE: Blok JS+UI\n```js\n'+p.js.slice(0,9000)+'\n```\n```ui\n'+p.ui.slice(0,4000)+'\n```';
+    const model=(localStorage.getItem(LM)||'openai/gpt-4o-mini').trim(),proxy=/^https:\/\//.test(raw);
+    const body={model,max_tokens:2000,temperature:.3,messages:[{role:'system',content:SYS}].concat(ST.ai.slice(-6),[{role:'user',content:q+'\n\n[KONTEKS PROYEK]\n'+ctx+(ST.err?'\n[ERROR TERAKHIR] '+ST.err:'')}])};
+    const r=await fetch(proxy?raw:'https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},proxy?{}:{'Authorization':'Bearer '+raw,'HTTP-Referer':location.origin,'X-Title':'Nexoria Studio'}),body:JSON.stringify(body)});
+    if(!r.ok)throw new Error(r.status===401?'API key ditolak (401)':r.status===429?'Terlalu banyak permintaan (429)':'Server AI error '+r.status);
+    const j=await r.json(),a=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||'';
+    ST.ai.push({role:'user',content:q},{role:'assistant',content:a.slice(0,3000)});if(ST.ai.length>12)ST.ai.splice(0,2);return a;}
+  const blocks=t=>[...String(t).matchAll(/```(js|javascript|ui|html)\s*\n([\s\S]*?)```/gi)].map(m=>({t:/^(js|javascript)$/i.test(m[1])?'js':m[1].toLowerCase(),c:m[2].replace(/\s+$/,'')+'\n'}));
+  const apply=(b,mode)=>{const p=ST.cur;ST.prev={js:p.js,ui:p.ui,h:p.h||''};const f={js:['stJ','js'],ui:['stU','ui'],html:['stH','h']}[b.t],el=g(f[0]);
+    el.value=mode==='add'?el.value.replace(/\s*$/,'\n')+b.c:b.c;upd(f[1],el.value);tab(b.t==='js'?'kode':b.t);say('Kode AI diterapkan');showCode([]);};
+  const showCode=bl=>{g('stCode').innerHTML=bl.map((b,i)=>'<button class="sb" data-i="'+i+'" data-m="rep">Ganti '+b.t.toUpperCase()+'</button><button class="sb" data-i="'+i+'" data-m="add">Tambah ke '+b.t.toUpperCase()+'</button>').join('')+(ST.prev?'<button class="sb" data-u="1">↩ Kembalikan</button>':'');g('stCode')._b=bl;};
+  g('stCode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.u){const p=ST.cur,v=ST.prev;if(!v)return;p.js=v.js;p.ui=v.ui;p.h=v.h;g('stJ').value=v.js;g('stU').value=v.ui;g('stH').value=v.h;upd('js',v.js);ST.prev=null;showCode([]);say('Dikembalikan');return;}const bl=g('stCode')._b||[];if(bl[+b.dataset.i])apply(bl[+b.dataset.i],b.dataset.m);});
+  const aiAsk=async(q,auto)=>{g('stA').textContent='AI berpikir…';try{const a=await aiCall(q);if(a===null)return false;g('stA').textContent=a.replace(/```[\s\S]*?```/g,'[kode ada di tombol di bawah]');const bl=blocks(a);showCode(bl);
+      if(auto){const want=htmlMode(ST.cur)?'html':'js',b=bl.find(x=>x.t===want);if(b){apply(b,'rep');g('stA').textContent='AI sudah memperbaiki kode — menguji ulang…\n\n'+g('stA').textContent;ST.err='';g('stT').click();}}
+      return true;}catch(e){g('stA').textContent='AI gagal: '+e.message+'\nMemakai pendamping offline.';return false;}};
+  const fix=async()=>{const p=ST.cur;if(!p)return;
+    if((localStorage.getItem(LK)||'').trim()&&await aiAsk('Perbaiki kode proyek ini sampai tidak ada error. Kembalikan kode lengkap yang sudah benar dalam satu blok.',true))return;
+    if(htmlMode(p)){g('stA').textContent='Perbaikan otomatis offline hanya untuk mode Blok. Isi API key/proxy AI untuk memperbaiki HTML penuh.'+(ST.err?'\n\nError terakhir:\n'+ST.err+'\n\n'+stExplain(ST.err):'');return;}
+    const r=stAutoFix(p.js,ST.err);
     if(!r.changed){g('stA').textContent='Tidak ada yang bisa kuperbaiki otomatis.\n'+(ST.err?'\nError terakhir:\n'+ST.err+'\n\n'+stExplain(ST.err):'\nJalankan ▶ Uji dulu agar aku tahu errornya.');return;}
-    g('stJ').value=r.code;upd('js',r.code);g('stA').textContent='Sudah kuperbaiki:\n• '+r.notes.join('\n• ')+'\n\nMenguji ulang…';ST.err='';g('stT').click();};
+    ST.prev={js:p.js,ui:p.ui,h:p.h||''};g('stJ').value=r.code;upd('js',r.code);showCode([]);g('stA').textContent='Sudah kuperbaiki:\n• '+r.notes.join('\n• ')+'\n\nMenguji ulang…';ST.err='';g('stT').click();};
   g('stFx').onclick=fix;
   g('stSn').innerHTML=Object.keys(SNIP).map(k=>'<button class="sb" data-k="'+k+'">'+SNIP[k][0]+'</button>').join('');
   const ins=k=>{if(k==='fix'){fix();return;}const t=g('stJ');t.setRangeText('\n// '+SNIP[k][0]+'\n'+SNIP[k][1],t.selectionStart,t.selectionStart,'end');t.dispatchEvent(new Event('input'));g('stA').textContent='Kode "'+SNIP[k][0]+'" sudah disisipkan di tab Kode JS.'+(SNIP[k][2]?'\nButuh blok "'+SNIP[k][2]+'" — tambahkan dulu kalau belum ada.':'')+'\nTekan ▶ Uji untuk mencoba.';};
   g('stSn').addEventListener('click',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k)ins(k);});
-  g('stQ').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const k=stAsk(g('stQ').value);g('stQ').value='';if(k)ins(k);else g('stA').textContent='Aku bisa bantu: perbaiki error, dasar, pemain, kamera, lompat, musuh, suara, timer. Untuk logika lain, tulis di tab Kode JS lalu uji — errornya kujelaskan dan bisa kuperbaiki.';});
-  g('stP').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d)return;if(ST.tested!==stHash(p)){say('Uji dulu sampai lolos ✅');return;}if(!p.n.trim()){say('Isi nama game dulu');tab('info');return;}if(stBlank(p.js)){say('Kode masih kosong');return;}
+  g('stQ').addEventListener('keydown',async e=>{if(e.key!=='Enter')return;const q=g('stQ').value.trim();if(!q)return;g('stQ').value='';if((localStorage.getItem('nx_or_key')||'').trim()&&await aiAsk(q,false))return;const k=stAsk(q);if(k)ins(k);else g('stA').textContent='Aku bisa bantu: perbaiki error, dasar, pemain, kamera, lompat, musuh, suara, timer. Untuk logika lain, tulis di tab Kode JS lalu uji — errornya kujelaskan dan bisa kuperbaiki.';});
+  g('stP').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d)return;if(ST.tested!==stHash(p)){say('Uji dulu sampai lolos ✅');return;}if(!p.n.trim()){say('Isi nama game dulu');tab('info');return;}if(stEmpty(p)){say('Kode masih kosong');return;}
     const ok=await askConfirm('Publikasikan "'+p.n+'"?','Game langsung tampil untuk semua pemain. Kamu bisa memperbarui atau menariknya kapan saja.','Publikasikan','Batal');if(!ok)return;
     const TS=firebase.database.ServerValue.TIMESTAMP,k=stKey();
-    try{await d.ref('nexoria/studio').update({['code/'+p.id]:{k,js:p.js,ui:p.ui,ts:TS},['pub/'+p.id]:{k,n:p.n.trim(),i:p.i||'🎮',d:p.d||'',by:USER,ts:TS}});say('Terbit 🚀');}catch(e){say('Gagal publikasi (cek aturan Firebase)');}};
+    try{await d.ref('nexoria/studio').update({['code/'+p.id]:Object.assign({k,js:p.js,ui:p.ui,ts:TS},p.h&&p.h.trim().length>=50?{h:p.h}:{}),['pub/'+p.id]:{k,n:p.n.trim(),i:p.i||'🎮',d:p.d||'',by:USER,ts:TS}});say('Terbit 🚀');}catch(e){say('Gagal publikasi (cek aturan Firebase)');}};
   g('stUn').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d||!isPub())return;await d.ref('nexoria/studio').update({['code/'+p.id]:null,['pub/'+p.id]:null});say('Ditarik dari publik');};
   g('stDel').onclick=async()=>{const p=ST.cur,d=getDB();if(!p||!d)return;if(!await askConfirm('Hapus draft?','Draft "'+p.n+'" dihapus permanen'+(isPub()?' dan game ditarik dari publik':'')+'.','Hapus','Batal'))return;
     const u={['drafts/'+stKey()+'/'+p.id]:null};if(isPub()){u['pub/'+p.id]=null;u['code/'+p.id]=null;}await d.ref('nexoria/studio').update(u);delete ST.list[p.id];ST.cur=null;const ids=Object.keys(ST.list);if(ids.length)load(ids[0]);else nw();list();tab('proyek');};
   setInterval(()=>{if(document.body.classList.contains('stopen'))list();},3000);
-  g('stpX').onclick=()=>{g('stp').classList.remove('on');g('stpF').srcdoc='';};
-  window.stPlay=async g2=>{const d=getDB();if(!d)return;g('stpN').textContent=g2.name;g('stp').classList.add('on');g('stpF').srcdoc='<body style="background:#000;color:#9a93c2;font:15px system-ui;display:flex;align-items:center;justify-content:center">Memuat…';
-    try{await authReady();const v=(await d.ref('nexoria/studio/code/'+g2.cm).once('value')).val();if(!v)throw 0;g('stpF').srcdoc=stDoc(v.js,v.ui);}catch(e){g('stpF').srcdoc='<body style="background:#000;color:#ff9aa8;font:15px system-ui;display:flex;align-items:center;justify-content:center">Game tidak bisa dibuka';}};
+  g('stpX').onclick=()=>{g('stp').classList.remove('on');g('stpF').srcdoc='';try{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}};
+  g('stpFs').onclick=()=>{try{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);else{const el=g('stp');(el.requestFullscreen||el.webkitRequestFullscreen).call(el);}}catch(e){}};
+  window.stPlay=async g2=>{const d=getDB();if(!d)return;g('stpN').textContent=g2.name;g('stp').classList.add('on');try{const el=g('stp');Promise.resolve((el.requestFullscreen||el.webkitRequestFullscreen).call(el)).catch(()=>{});}catch(e){}g('stpF').srcdoc='<body style="background:#000;color:#9a93c2;font:15px system-ui;display:flex;align-items:center;justify-content:center">Memuat…';
+    try{await authReady();const v=(await d.ref('nexoria/studio/code/'+g2.cm).once('value')).val();if(!v)throw 0;g('stpF').srcdoc=v.h?stHtmlDoc(v.h):stDoc(v.js,v.ui);}catch(e){g('stpF').srcdoc='<body style="background:#000;color:#ff9aa8;font:15px system-ui;display:flex;align-items:center;justify-content:center">Game tidak bisa dibuka';}};
 })();
 function stWatch(){const d=getDB();if(!d||stRef||!USER)return;authReady().then(u=>{if(!u||stRef)return;stRef=d.ref('nexoria/studio/pub');stRef.on('value',sn=>{const v=sn.val()||{};ST.pubs=v;for(let i=GAMES.length-1;i>=0;i--)if(GAMES[i].cm)GAMES.splice(i,1);
   Object.keys(v).sort((a,b)=>(v[b].ts||0)-(v[a].ts||0)).forEach(id=>{const o=v[id],im=o.i&&o.i.startsWith('data:');GAMES.push({id:'cm_'+id,cm:id,name:String(o.n||'Game'),tag:'Komunitas · '+String(o.by||'?').slice(0,16),desc:String(o.d||'Game buatan pemain.'),img:im?o.i:'',art:{a:'#1c1640',b:'#8b5cf6',emoji:im?'🎮':(o.i||'🎮')}});});
