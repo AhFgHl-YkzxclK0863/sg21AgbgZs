@@ -590,7 +590,8 @@ const REGB=[GATEZ];
 REG.forEach(R=>{R.bnd0=REGB[REGB.length-1];R.bnd1=R.bnd0-R.depth;R.cz=R.bnd0-R.depth/2;REGB.push(R.bnd1);});
 /* tata letak: penjaga terbagi jadi 3 (1 penjaga per telur), tersebar di wilayah; telur ada di sisi (arah tengah) penjaganya */
 REG.forEach((R,i)=>{R.gd=GUARDS[i];
-  const kx=1+R.ext,gps=R.nests.length?R.nests.map(p=>[+(p[0]*KW).toFixed(2),+(R.bnd0-(R.ob0-p[1])*kx).toFixed(2)]):(R.n==='Nirwana'?[[-10.8*KW,R.bnd0-8.5*kx],[10.8*KW,R.bnd0-18.7*kx],[-10.8*KW,R.bnd0-28.9*kx]]:[[-8*KW,R.bnd0-8.5*kx],[7*KW,R.bnd0-18.7*kx],[-3*KW,R.bnd0-28.9*kx]]);
+  /* tata letak ala Nirwana untuk SEMUA wilayah: induk di sisi kiri/kanan & dimundurkan jauh ke belakang (ekor hampir menyentuh tembok) */
+  const gps=[[-10.8*KW,R.bnd0-R.depth*.25],[10.8*KW,R.bnd0-R.depth*.55],[-10.8*KW,R.bnd0-R.depth*.85]].map(p=>[+p[0].toFixed(2),+p[1].toFixed(2)]);
   R.gps=gps;R.egs=gps.map(p=>[p[0]+(p[0]>0?-3.6:3.6),p[1]]);R.nests=R.gps.concat(R.egs);});
 const WORLD_END=REGB[REGB.length-1];   // ujung dunia (setelah Konoha)
 const KON_I=REG.findIndex(r=>r.n==='Konoha');
@@ -971,7 +972,7 @@ function disc(x,z,r,mat,y){const m=new THREE.Mesh(G.circ,mat);m.rotation.x=-Math
 
 /* ===== dekorasi wilayah (sedikit & kecil) ===== */
 let seed=7;const sr=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
-function freePos(ri,minD){const R=REG[ri];for(let k=0;k<40;k++){const x=(sr()-.5)*24*KW,z=R.cz+(sr()-.5)*16;if(R.nests.every(n=>Math.hypot(n[0]-x,n[1]-z)>minD)&&Math.hypot(x,z-R.cz)>5.5)return[x,z];}return[13*KW,R.cz];}
+function freePos(ri,minD){const R=REG[ri];for(let k=0;k<80;k++){const sd=sr()<.5?-1:1,x=sd*(13.4+sr()*2.8),z=R.bnd0-3-sr()*(R.depth-6);if(R.nests.every(n=>Math.hypot(n[0]-x,n[1]-z)>minD))return[x,z];}return[(sr()<.5?-1:1)*15.2,R.bnd0-3-sr()*(R.depth-6)];}   /* pohon & dekorasi minggir ke sisi ujung biome, jalur tengah lega */
 const treeRound=(x,z,s)=>{mk(scene,G.cyl,M(0x7a5230),x,s,z,.22*s,2*s,.22*s);mk(scene,G.sph,M(0x2f9d3f),x,2.5*s,z,1.1*s,1*s,1.1*s);};
 const pine=(x,z,s)=>{mk(scene,G.cyl,M(0x6a4a2a),x,.7*s,z,.18*s,1.4*s,.18*s);mk(scene,G.cone,M(0x1f7a4a),x,2.2*s,z,1*s,2*s,1*s);mk(scene,G.cone,M(0xffffff),x,3.1*s,z,.7*s,1.3*s,.7*s);};
 const palm=(x,z,s)=>{mk(scene,G.cyl,M(0x9a7040),x,1.5*s,z,.14*s,3*s,.14*s);mk(scene,G.cone,M(0x2fa84a),x,3.1*s,z,1.3*s,.5*s,1.3*s);};
@@ -1321,6 +1322,23 @@ function sfxTier(t,sc){
       sfxChord([261.63,392,523.25,659.25,783.99,1046.5],T0+.5,3,.06*V);
       [2093,2637,3136,2093,3136].forEach((f,i)=>sfxBell(f,T0+1.0+i*.25,1.6,.1*V));sfxNoise(T0+.4,2.6,.06*V,3000,12000);
   }
+}
+
+/* ---- suara MENCURI telur: adrenalin & tegang (detak jantung, riser naik, sirine pendek, dentum) ---- */
+let sfxBeatT=0;
+function sfxSteal(){
+  if(!sfxOn||!AC||!sfxInit())return;
+  if(AC.state==='suspended')AC.resume();
+  const T0=AC.currentTime+.02;
+  for(let i=0;i<5;i++){const d=i*.34-i*i*.012;sfxTone(70,T0+d,.16,'sine',.5,.004,0,38);sfxTone(62,T0+d+.13,.14,'sine',.38,.004,0,34);}   /* lub-dub makin cepat */
+  sfxTone(180,T0,1.5,'sawtooth',.06,1.1,0,1500);sfxTone(182,T0,1.5,'square',.03,1.1,0,1560);   /* riser menegangkan */
+  sfxNoise(T0,1.5,.1,400,7000);
+  [0,.18,.36].forEach((dt,i)=>sfxTone(i%2?880:660,T0+1.1+dt,.2,'square',.09,.005,0,i%2?820:620));   /* sirine alarm pendek */
+  sfxBoom(T0+1.45,.7);sfxTone(1200,T0+1.45,.35,'sawtooth',.08,.004,0,300);sfxNoise(T0+1.45,.5,.12,6000,900);   /* hantaman */
+}
+function sfxBeat(t){   /* detak jantung kecil selama membawa telur */
+  if(!sfxOn||!AC||!sfxMaster||t-sfxBeatT<.62)return;sfxBeatT=t;
+  const T0=AC.currentTime+.01;sfxTone(68,T0,.14,'sine',.3,.004,0,38);sfxTone(60,T0+.12,.12,'sine',.22,.004,0,34);
 }
 ['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,audioStart,{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(AC&&!document.hidden&&AC.state==='suspended')AC.resume();});
@@ -3508,7 +3526,7 @@ function setupNest(N,sp,mut){
   if(N.tag){N.eh.remove(N.tag);N.tag=null;}if(N.tag2){N.eh.remove(N.tag2);N.tag2=null;}   /* status telur di atas telur */
   if(N.fx){N.fx.dispose();N.fx=null;}
   if(N.egg&&N.egg.parent)N.egg.parent.remove(N.egg);
-  N.mine=false;N.rgRaw=null;N.rmode=false;N.angry=false;N.gT=0;N.carried=false;N.stolenId=0;N.claiming=false;N.remoteTaken=false;
+  N.mine=false;N.common=false;N.noGive=false;N.rgRaw=null;N.rmode=false;N.angry=false;N.gT=0;N.carried=false;N.stolenId=0;N.claiming=false;N.remoteTaken=false;
   N.wildDrop=null;N.fast=false;N.skipGrab=false;try{db&&db.ref(RP()+'wild/'+N.id).remove();}catch(e){}
   N.st='sleep';N.px=N.x;N.pz=N.z;N.holder.position.set(N.px,0,N.pz);
   {const g0=gdAt(REG[N.reg],N.k);N.c.monsterEyes=!!(g0.opt&&g0.opt.red);N.c.sleep=1;N.c.sleepT=1;N.yaw=N.sy;}   /* penjaga tidur di tempatnya sendiri */
@@ -3623,7 +3641,7 @@ function zzUpdate(N,on,t){   /* satu "z": kecil → membesar & melayang naik →
 function faceTo(N,tx,tz,dt){N.yaw+=wrap(Math.atan2(tx-N.px,tz-N.pz)-N.yaw)*Math.min(1,dt*10);}
 /* ===== telur liar: telur wilayah panas (Gurun/Neraka/Surga) yang jatuh di wilayah dingin (Danau/Laut/Salju) jadi rebutan bebas ===== */
 function dropWild(N,x,z){
-  N.wildDrop={x,z};N.carried=false;N.skipGrab=true;N.present=false;   /* telur jatuh jadi rebutan bebas: bukan lagi "present" di sarang, jadi tak bisa direbut balik induk walau induk sudah pulang */
+  N.wildDrop={x,z};N.carried=false;N.skipGrab=true;N.common=false;N.noGive=false;N.present=false;   /* telur jatuh jadi rebutan bebas: bukan lagi "present" di sarang, jadi tak bisa direbut balik induk walau induk sudah pulang */
   if(N.egg.parent&&N.egg.parent!==scene){N.egg.parent.remove(N.egg);scene.add(N.egg);}
   N.egg.scale.setScalar(eggScale(N.mut));N.egg.visible=true;N.egg.position.set(x,.05,z);
   try{const r=db.ref(RP()+'wild/'+N.id);r.set({x:+x.toFixed(2),z:+z.toFixed(2),sp:N.sp,mut:N.mut,ts:sNow()});r.onDisconnect().remove();}catch(e){}
@@ -3651,9 +3669,12 @@ function takeWild(N,wx,wz){
   N.wildDrop=null;
   const it=nestEgg(N);addStolen(it);N.stolenId=it.id;
   N.mine=true;N.gT=0;try{db.ref(RP()+'g/'+N.id).onDisconnect().remove();}catch(e){}
-  N.active=true;N.holder.visible=true;N.px=wx;N.pz=wz;N.holder.position.set(N.px,0,N.pz);
+  N.active=true;N.holder.visible=true;N.rmode=false;N.common=false;N.noGive=true;N.carried=false;N.c.atk=0;
+  /* induk TIDAK teleport: mengejar dari posisi terakhirnya (mis. sedang jalan pulang di wilayah lain) */
+  N.holder.position.set(N.px,0,N.pz);
   N.st='chase';N.fast=true;N.hit=false;
   popFx('🥚',wx,2.2,wz,'#fff2a0');
+  try{sfxSteal();}catch(e){}
   toast('⚡ Induk '+SP[N.reg][N.sp].n+' langsung mengejar cepat ke tempatmu!',3200);
 }
 function onGuardHit(N){
@@ -3662,7 +3683,7 @@ function onGuardHit(N){
   const hx=pp.x,hz=Math.min(pp.z,-21);
   hitPlayer(N.px,N.pz);
   popFx('💥',pp.x,2.4,pp.z,'#ffdd55');
-  if(N.reg>=3&&isColdZone(hz)){dropWild(N,hx,hz);}
+  if(N.common||commonZ(N,hz)){dropWild(N,hx,hz);}
   else{
     N.dx=hx;N.dz=hz;N.egg.visible=true;N.egg.position.set(N.dx,0.05,N.dz);
     toast('💥 Kamu terpental! Induk merebut telurnya kembali.');
@@ -3703,19 +3724,21 @@ function localGuard(N,dt,t){
   const effSpd=pl.speedStat*regPen;
   const ok=effSpd>=R.req,gs=pw(effSpd)*laneMult()*(ok?R.gf:1.3)*(isMutG?2:1);   /* jalur ×N → induk ikut ×N (Admin Abuse tidak lagi melipatkan kecepatan induk) */
   c.runT=0;c.bow=lerp(c.bow,0,Math.min(1,dt*8));
+  const csp=gs*(N.fast?1.7:1);   /* kecepatan membawa telur pulang & kembali ke sarang = kecepatan mengejar */
   let tgt=null,sp=0;
   switch(N.st){
     case 'sleep':c.sleepT=1;c.madT=0;c.atk=0;break;
     case 'wake':N.tm-=dt;c.sleepT=0;c.madT=1;faceTo(N,pp.x,pp.z,dt);if(N.tm<=0)N.st=isNight?'return':'chase';break;
     case 'chase':{
       c.sleepT=0;c.madT=1;
-      if(pp.z>GATEZ+.3){if(N.stolenId){N.stolenId=0;keepClaim(N);hwDelivered();}N.st='return';break;}   /* sampai zona aman: telur jadi milikmu */
+      if(pp.z>GATEZ+.3){if(N.stolenId){N.stolenId=0;N.common=false;N.noGive=false;keepClaim(N);hwDelivered();}N.st='return';break;}   /* sampai zona aman: telur jadi milikmu */
       if(isNight){N.st='return';break;}
+      if(!N.noGive&&N.stolenId&&commonZ(N,pp.z)){N.common=true;N.fast=false;N.st='return';toast('🌐 Telur sudah jadi UMUM — induk berhenti mengejar & pulang!',3200);break;}
       if(guardOff()){c.sleepT=1;c.madT=0;break;}   /* Guard nonaktif (Creator): penjaga diam */
       const d=Math.hypot(pp.x-N.px,pp.z-N.pz),canHit=(pl.state==='normal'||pl.state==='steal')&&pl.inv<=0&&!(IS_CREATOR&&antiGuard);
       const ds=(pl.ox===undefined)?d:Math.min(d,segDist(N.px,N.pz,pl.ox,pl.oz,pp.x,pp.z));
       if(ds<2.4&&canHit){N.st='attack';N.tm=.75;N.hit=false;break;}
-      if(d>1.8){tgt=[pp.x,pp.z];sp=gs*(N.fast?1.7:1);c.runT=1;}else faceTo(N,pp.x,pp.z,dt);
+      if(d>1.8){tgt=[pp.x,pp.z];sp=csp;c.runT=1;}else faceTo(N,pp.x,pp.z,dt);
       break;}
     case 'attack':
       N.tm-=dt;c.atk=Math.sin(clamp(1-N.tm/.75,0,1)*Math.PI);faceTo(N,pp.x,pp.z,dt);
@@ -3723,7 +3746,7 @@ function localGuard(N,dt,t){
       if(N.tm<=0){c.atk=0;N.fast=false;N.st=N.skipGrab?'return':'grab';N.skipGrab=false;}
       break;
     case 'grab':
-      c.madT=.6;tgt=[N.dx,N.dz];sp=5.5;c.runT=1;
+      c.madT=.6;tgt=[N.dx,N.dz];sp=csp;c.runT=1;
       if(Math.hypot(N.dx-N.px,N.dz-N.pz)<1.1){N.st='pick';N.tm=1;}
       break;
     case 'pick':
@@ -3735,7 +3758,7 @@ function localGuard(N,dt,t){
       if(N.tm<=0)N.st='carry';
       break;
     case 'carry':
-      c.madT=0;tgt=[N.cx,N.cz];sp=4.6;c.runT=1;
+      c.madT=0;tgt=[N.cx,N.cz];sp=csp;c.runT=1;
       if(Math.hypot(N.cx-N.px,N.cz-N.pz)<.5){N.st='place';N.tm=1.1;N.placed=false;}
       break;
     case 'place':
@@ -3747,7 +3770,7 @@ function localGuard(N,dt,t){
       if(N.tm<=0)N.st='return';
       break;
     case 'return':
-      c.sleepT=0;c.madT=0;tgt=[N.x,N.z];sp=6;c.runT=1;
+      c.sleepT=0;c.madT=0;tgt=[N.x,N.z];sp=csp;c.runT=1;
       if(Math.hypot(N.x-N.px,N.z-N.pz)<.4)guardSleep(N);
       break;
   }
@@ -3762,10 +3785,11 @@ function updateNest(N,dt,t,cp){
     if(v){N.holder.position.set(N.x,0,N.z);N.c.root.rotation.y=N.sy;poseCreature(N.c,t,dt);zzUpdate(N,N.c.sleep>.7,t);N.exS.visible=false;if(N.gfx)N.gfx.update(dt,t);}
     return;
   }
-  if(N.stolenId&&N.mine){   /* jaga-jaga: telur curian tidak boleh nyangkut tanpa induk yang mengejar */
+  if(N.stolenId&&(N.mine||N.common)){   /* jaga-jaga: telur curian tidak boleh nyangkut tanpa induk yang mengejar */
     const pz=player.root.position.z;
-    if(pz>GATEZ+.3&&N.st!=='attack'){N.stolenId=0;keepClaim(N);hwDelivered();if(N.st==='wake'||N.st==='chase')N.st='return';}
-    else if(!isNight&&pz<=GATEZ+.3&&!(N.st==='wake'||N.st==='chase'||N.st==='attack')){N.st='chase';N.fast=false;}
+    if(pz>GATEZ+.3&&N.st!=='attack'){N.stolenId=0;N.common=false;N.noGive=false;keepClaim(N);hwDelivered();if(N.st==='wake'||N.st==='chase')N.st='return';}
+    else if(!N.noGive&&commonZ(N,pz)){if(!N.common){N.common=true;toast('🌐 Telur sudah jadi UMUM — induk berhenti mengejar & pulang!',3200);}N.fast=false;if(N.st==='wake'||N.st==='chase')N.st='return';}
+    else if(!isNight&&pz<=GATEZ+.3&&N.mine&&!N.common&&!(N.st==='wake'||N.st==='chase'||N.st==='attack')){N.st='chase';N.fast=false;}
   }
   const c=N.c;
   const rg=(!N.mine&&N.rgRaw&&sNow()-(+N.rgRaw.hb||0)<4000)?N.rgRaw:null;
@@ -4522,8 +4546,9 @@ function takeEgg(N){
   N.mine=true;N.gT=0;N.fast=false;try{db.ref(RP()+'g/'+N.id).onDisconnect().remove();}catch(e){}
   N.st='wake';N.tm=.9;
   popFx('🥚',N.ex,2.2,N.ez,'#fff2a0');
-  try{sfxTier(tierOf(it),1);}catch(e){}
+  try{sfxSteal();}catch(e){}   /* suara adrenalin & tegang saat mencuri (bukan suara spawn telur langka) */
   toast('🥚 Telur '+TIERS[tierOf(it)].n+' diambil! Kabur ke zona aman sebelum penjaga menangkapmu!');
+  N.common=false;N.noGive=false;
 }
 function restoreEgg(N){
   if(N.egg.parent&&N.egg.parent!==scene){N.egg.parent.remove(N.egg);scene.add(N.egg);}
@@ -4558,7 +4583,7 @@ function releaseStolen(){
   nests.forEach(N=>{
     if(!N.stolenId)return;
     any=true;
-    removeItemById(N.stolenId);N.stolenId=0;
+    removeItemById(N.stolenId);N.stolenId=0;N.common=false;N.noGive=false;
     restoreEgg(N);N.st='return';releaseClaim(N);
   });
   return any;
@@ -4972,6 +4997,8 @@ function startMorning(){
 }
 const regionAt=z=>{if(z>GATEZ)return -1;for(let i=0;i<REG.length;i++)if(z>REG[i].bnd1||i===REG.length-1)return i;return REG.length-1;};
 const isColdZone=z=>{const r=regionAt(z);return r>=0&&r<=2;};
+/* telur UMUM: bila pembawa sudah melewati 2 biome dari wilayah asal telur (mis. Nirwana → lewat Kristal & Konoha → Galaxy dst), induk berhenti mengejar */
+const commonZ=(N,z)=>{const r=regionAt(z);return r>=0&&r<=N.reg-3;};
 
 /* ===== NEXORIA online: akun, server (mabar 4 pemain), penyimpanan ===== */
 const FB_CFG={
@@ -5244,11 +5271,11 @@ function onEggs(sn){lastEggs=sn.val()||{};applyEggClaims();}
 function dropStolenEggs(){
   const pp=player.root.position;let any=false,wild=false;
   nests.forEach(N=>{
-    if(!N.active||!N.stolenId||!N.mine)return;
+    if(!N.active||!N.stolenId||!(N.mine||N.common))return;
     any=true;
     removeItemById(N.stolenId);N.stolenId=0;
     const dx=pp.x+rnd(-1.2,1.2),dz=Math.min(pp.z+rnd(-1.2,1.2),-21);
-    if(N.reg>=3&&isColdZone(dz)){wild=true;dropWild(N,dx,dz);N.st='return';N.skipGrab=false;return;}
+    if(N.common||commonZ(N,dz)){wild=true;dropWild(N,dx,dz);N.st='return';N.skipGrab=false;return;}
     N.dx=dx;N.dz=dz;
     if(N.egg.parent&&N.egg.parent!==scene){N.egg.parent.remove(N.egg);scene.add(N.egg);N.carried=false;}
     N.egg.scale.setScalar(eggScale(N.mut));N.egg.visible=true;N.egg.position.set(N.dx,.05,N.dz);
@@ -5794,7 +5821,7 @@ function updateHUD(dt){
   $('bBoard').style.display=(pl.state==='normal'&&nearBoard())?'block':'none';
   $('bBoost').style.display=(pl.state==='normal'&&nearBoost())?'block':'none';
   {const hm=Object.keys(mntOwn).length>0&&(pl.state==='normal');$('bMount').style.display=hm?'block':'none';if(hm)$('bMount').textContent=mntSel?'🐴 Turun':'🐴 Naik';}
-  {const ce=(pl.state==='normal'||pl.state==='steal')&&carryingEgg();$('bDrop').style.display=ce?'block':'none';$('redVig').classList.toggle('on',ce||pl.state==='steal');}   /* sedang mencuri: tepi layar merah berdenyut */
+  {const ce=(pl.state==='normal'||pl.state==='steal')&&carryingEgg();$('bDrop').style.display=ce?'block':'none';$('redVig').classList.toggle('on',ce||pl.state==='steal');if(ce){try{sfxBeat(performance.now()/1000);}catch(e){}}}   /* sedang mencuri: tepi layar merah berdenyut */
   const np=pl.state==='normal'&&inBox(pl.root.position.x,pl.root.position.z,penBox(mySlot),3)&&penLv<PENCAP.length-1;
   if(np)$('bPen').textContent='⬆ Upgrade '+fmt(PENCOST[penLv+1]);
   updatePenSign(np);
