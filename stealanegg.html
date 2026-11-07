@@ -1859,11 +1859,12 @@ function buildSea(c,body,root,col,opt,eye){
     for(let i=0;i<9;i++)[-1,1].forEach(sd=>mk(body,G.cone,BEL,sd*(.56-i*.01),-.12,.8-i*.28,.1,.22,.1));
     for(let i=0;i<5;i++)[-1,1].forEach(sd=>mk(body,G.box,SLIT,sd*.6,.0,.62-i*.07,.015,.28,.025));
     for(let i=0;i<4;i++)[-1,1].forEach(sd=>mk(body,G.box,SCAR,sd*.62,.15+i*.04,.2-i*.3,.01,.01,.35));
-    c.head=grp(body,0,0,1.3);mk(c.head,G.sph,TOP,0,.05,.15,.44,.4,.55);mk(c.head,G.cone,TOP,0,.0,.65,.28,.55,.28).rotation.x=Math.PI/2;
-    mk(c.head,G.sph,BEL,0,-.2,.25,.38,.18,.55);mk(c.head,G.sph,M(0x3a0d12),0,-.18,.3,.26,.1,.26);mk(c.head,G.sph,RED,0,-.21,.32,.3,.05,.28);
-    for(let k=-3;k<=3;k++)mk(c.head,G.cone,TOOTH,k*.085,-.27,.38-Math.abs(k)*.045,.035,.15,.035).rotation.x=Math.PI;
-    [-1,1].forEach(sd=>{eye(c.head,sd*.37,.12,.25,.07);mk(c.head,G.sph,M(0xffffff),sd*.39,.15,.3,.02);});
-    c.jaw=grp(c.head,0,-.2,0);mk(c.jaw,G.sph,BEL,0,-.05,.3,.3,.08,.32);mk(c.jaw,G.sph,RED,0,0,.3,.26,.04,.26);
+    /* kepala menyatu dgn badan: titik putar di DALAM badan, kepala lonjong ramping (selebar badan di sambungan) lalu meruncing ke moncong — bukan bola terpisah */
+    c.head=grp(body,0,0,.95);mk(c.head,G.sph,TOP,0,.04,.5,.42,.38,.75);mk(c.head,G.cone,TOP,0,-.01,.88,.34,.6,.28).rotation.x=Math.PI/2;
+    mk(c.head,G.sph,BEL,0,-.2,.6,.38,.18,.55);mk(c.head,G.sph,M(0x3a0d12),0,-.18,.65,.26,.1,.26);mk(c.head,G.sph,RED,0,-.21,.67,.3,.05,.28);
+    for(let k=-3;k<=3;k++)mk(c.head,G.cone,TOOTH,k*.085,-.27,.73-Math.abs(k)*.045,.035,.15,.035).rotation.x=Math.PI;
+    [-1,1].forEach(sd=>{eye(c.head,sd*.37,.12,.6,.07);mk(c.head,G.sph,M(0xffffff),sd*.39,.15,.65,.02);});
+    c.jaw=grp(c.head,0,-.2,.35);mk(c.jaw,G.sph,BEL,0,-.05,.3,.3,.08,.32);mk(c.jaw,G.sph,RED,0,0,.3,.26,.04,.26);
     for(let k=-2;k<=2;k++)mk(c.jaw,G.cone,TOOTH,k*.09,.06,.3+Math.abs(k)*-.04+.1,.03,.13,.03);
     mk(body,G.cone,FIN,0,.85,.1,.07,1.15,.75).rotation.x=-.45;mk(body,G.cone,FIN,0,.55,-1.05,.04,.4,.22).rotation.x=-.5;
     mk(body,G.cone,FIN,0,-.5,-1.05,.04,.32,.2).rotation.x=Math.PI+.5;
@@ -1915,10 +1916,17 @@ function buildCreature(kind,S,col,opt){
     c.bodyY=.55;c.dropY=.14;c.top=1.4;body.position.y=c.bodyY;
     mk(body,G.dome,A,0,0,0,.95,.72,1.1);mk(body,G.cyl,SH,0,-.02,0,1,.12,1.15);
     const sy=(x,z)=>.72*Math.sqrt(Math.max(0,1-(x/.95)**2-(z/1.1)**2));
-    [[0,0],[.42,.3],[-.42,.3],[.45,-.45],[-.45,-.45],[0,.62],[0,-.7]].forEach(q=>mk(body,G.sph,DKS,q[0],sy(q[0],q[1])*.97,q[1],.25,.07,.25));
-    for(let k=0;k<14;k++){const an=k/14*TAU;mk(body,G.sph,k%2?SH:SK,Math.cos(an)*.93,.1,Math.sin(an)*1.08,.12,.09,.12);}
-    c.head=grp(body,0,.15,1.05);mk(c.head,G.sph,SK,0,0,.12,.3,.27,.34);mk(c.head,G.cone,M(0xe0d08c),0,-.06,.44,.1,.18,.1).rotation.x=Math.PI/2;
-    mk(c.head,G.sph,SK,0,-.2,-.15,.2,.18,.3);eye(c.head,-.13,.1,.32,.06);eye(c.head,.13,.1,.32,.06);
+    /* petak cangkang: pelat heksagon rata yang menempel mengikuti lengkung cangkang (bukan bola) */
+    const HEX=new THREE.CylinderGeometry(1,1,1,6),UP=new THREE.Vector3(0,1,0);
+    [[0,0],[.42,.3],[-.42,.3],[.45,-.45],[-.45,-.45],[0,.62],[0,-.7],[.62,-.05],[-.62,-.05]].forEach(q=>{const x=q[0],z=q[1],y=sy(x,z),n=new THREE.Vector3(x/.9025,y/.5184,z/1.21).normalize();
+      const m=mk(body,HEX,DKS,x,y*.985,z,.23,.035,.23);m.quaternion.setFromUnitVectors(UP,n);});
+    {const rg=mk(body,new THREE.TorusGeometry(1,.075,6,36),SH,0,.07,0,.96,1.12,.9);rg.rotation.x=Math.PI/2;}   /* tepi cangkang menyambung */
+    for(let k=0;k<16;k++){const an=k/16*TAU,tx=-.97*Math.sin(an),tz=1.12*Math.cos(an);   /* pelat tepi pipih mengikuti tepi */
+      const e=mk(body,G.box,k%2?SH:SK,Math.cos(an)*.97,.1,Math.sin(an)*1.12,.3,.06,.1);e.rotation.y=Math.atan2(-tz,tx);}
+    /* kepala lonjong menyambung ke leher panjang (tidak seperti bola) */
+    c.head=grp(body,0,.12,1.0);mk(c.head,G.sph,SK,0,0,.2,.25,.21,.36);mk(c.head,G.sph,SK,0,-.02,-.12,.19,.17,.4);
+    mk(c.head,G.cone,M(0xe0d08c),0,-.05,.5,.09,.16,.07).rotation.x=Math.PI/2;
+    eye(c.head,-.19,.08,.3,.06);eye(c.head,.19,.08,.3,.06);
     [[-.75,.6,1],[.75,.6,1],[-.75,-.6,.6],[.75,-.6,.6]].forEach(q=>{const l=grp(root,q[0],.32,q[1]),f=q[2];
       mk(l,G.sph,SK,0,-.08,0,.3*f+.04,.1,.44*f+.06);mk(l,G.sph,DKS,0,-.04,.18*f,.2*f,.05,.2*f);c.legs.push(l);});
     c.tail=grp(body,0,0,-1.1);mk(c.tail,G.cone,SK,0,0,0,.12,.4,.12).rotation.x=-1.6;
@@ -2996,7 +3004,7 @@ function poseCreature(c,t,dt){
   if(c.jaw)c.jaw.rotation.x=.38+atk*.5-s*.3+Math.sin(t*2.4)*.04;
   switch(c.kind){
     case 0:c.head.rotation.y=2.6*s;c.head.rotation.x=.35*s-atk*.7+bow*.8+Math.sin(ph)*.1*run;c.tail.rotation.y=Math.sin(ph)*.35*run;break;
-    case 1:c.head.position.z=1.05-.7*s+atk*.6;c.head.scale.setScalar(1-.4*s);c.head.rotation.x=bow*.7;break;
+    case 1:c.head.position.z=1.0-.2*s+atk*.6;c.head.position.y=.12-.07*s;c.head.scale.setScalar(1-.08*s);c.head.rotation.x=.28*s+bow*.7;break;   /* tidur: kepala merunduk di depan cangkang, tetap terlihat */
     case 2:c.head.rotation.x=.7*s-atk*.6+bow*.8;break;
     case 3:c.head.rotation.x=.5*s-atk*.5+bow*.8;c.tail.rotation.y=1.1*s+Math.sin(ph)*.35*run;break;
     case 5:c.head.rotation.x=.3*s-atk*.5+bow*.6;c.tail.rotation.y=Math.sin(t*2.2)*.12*s+Math.sin(ph*2)*.55*(run+mad*.5);c.body.rotation.z=1.4*s;break;
@@ -3119,7 +3127,7 @@ function buildLite(s,mut){   /* versi ringan: siluet tiap spesies tetap dikenali
   const f=Math.max(.5,s.S*.62)*[1,1.3,1.9,2.4,3.4][m];
   switch(s.kind){
     case 0:mk(g,G.sph,A,0,.75,0,.55,.45,.7);mk(g,G.sph,A,0,1.25,.5,.3);mk(g,G.box,M(s.col.c||0xff8c1a),0,1.2,.85,.2,.07,.26);if(o.comb)mk(g,G.box,M(0xe02020),0,1.6,.5,.08,.14,.22);break;
-    case 1:mk(g,G.dome,A,0,.3,0,.9,.65,1);mk(g,G.sph,B,0,.5,1.05,.28);break;
+    case 1:mk(g,G.dome,A,0,.3,0,.9,.65,1);mk(g,G.sph,B,0,.45,1.0,.2,.18,.32);break;
     case 2:mk(g,G.sph,A,0,1.1,0,.58,.9,.5);mk(g,G.sph,B,0,1.05,.2,.44,.7,.36);mk(g,G.sph,A,0,2,.05,.34);break;
     case 4:
       mk(g,G.sph,A,0,1.1,0,.7,.6,1.15);mk(g,G.sph,A,0,1.7,1.1,.38,.34,.45);
