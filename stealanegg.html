@@ -3979,7 +3979,7 @@ function localGuard(N,dt,t){
       c.sleepT=0;c.madT=1;
       if(pp.z>GATEZ+.3){if(N.stolenId){N.stolenId=0;N.common=false;N.noGive=false;keepClaim(N);hwDelivered();}N.st='return';break;}   /* sampai zona aman: telur jadi milikmu */
       if(isNight){N.st='return';break;}
-      if(!N.noGive&&N.stolenId&&commonZ(N,pp.z)){N.common=true;N.fast=false;N.st='return';toast('🌐 Telur sudah jadi UMUM — induk berhenti mengejar & pulang!',3200);break;}
+      if(!N.noGive&&N.stolenId&&commonZ(N,pp.z)){N.common=true;N.fast=false;N.st='return';toast('🌐 Kamu keluar dari wilayah induk — induk berhenti mengejar & pulang, telur tetap milikmu!',3600);break;}
       if(guardOff()){c.sleepT=1;c.madT=0;break;}   /* Guard nonaktif (Creator): penjaga diam */
       const d=Math.hypot(pp.x-N.px,pp.z-N.pz),canHit=(pl.state==='normal'||pl.state==='steal')&&pl.inv<=0&&!(IS_CREATOR&&antiGuard);
       const ds=(pl.ox===undefined)?d:Math.min(d,segDist(N.px,N.pz,pl.ox,pl.oz,pp.x,pp.z));
@@ -4034,7 +4034,7 @@ function updateNest(N,dt,t,cp){
   if(N.stolenId&&(N.mine||N.common)){   /* jaga-jaga: telur curian tidak boleh nyangkut tanpa induk yang mengejar */
     const pz=player.root.position.z;
     if(pz>GATEZ+.3&&N.st!=='attack'){N.stolenId=0;N.common=false;N.noGive=false;keepClaim(N);hwDelivered();if(N.st==='wake'||N.st==='chase')N.st='return';}
-    else if(!N.noGive&&commonZ(N,pz)){if(!N.common){N.common=true;toast('🌐 Telur sudah jadi UMUM — induk berhenti mengejar & pulang!',3200);}N.fast=false;if(N.st==='wake'||N.st==='chase')N.st='return';}
+    else if(!N.noGive&&commonZ(N,pz)){if(!N.common){N.common=true;toast('🌐 Kamu keluar dari wilayah induk — induk berhenti mengejar & pulang, telur tetap milikmu!',3600);}N.fast=false;if(N.st==='wake'||N.st==='chase')N.st='return';}
     else if(!isNight&&pz<=GATEZ+.3&&N.mine&&!N.common&&!(N.st==='wake'||N.st==='chase'||N.st==='attack')){N.st='chase';N.fast=false;}
   }
   const c=N.c;
@@ -5243,8 +5243,8 @@ function startMorning(){
 }
 const regionAt=z=>{if(z>GATEZ)return -1;for(let i=0;i<REG.length;i++)if(z>REG[i].bnd1||i===REG.length-1)return i;return REG.length-1;};
 const isColdZone=z=>{const r=regionAt(z);return r>=0&&r<=2;};
-/* telur UMUM: bila pembawa sudah melewati 2 biome dari wilayah asal telur (mis. Nirwana → lewat Kristal & Konoha → Galaxy dst), induk berhenti mengejar */
-const commonZ=(N,z)=>{const r=regionAt(z);return r>=0&&r<=N.reg-3;};
+/* telur UMUM: induk hanya mengejar di wilayahnya sendiri; bila pembawa sudah keluar dari wilayah asal telur, induk berhenti mengejar */
+const commonZ=(N,z)=>{const r=regionAt(z);return r>=0&&r<N.reg;};   /* induk hanya mengejar di wilayahnya sendiri: begitu pembawa keluar dari wilayah induk, telur jadi milik pembawa & induk pulang */
 
 /* ===== NEXORIA online: akun, server (mabar 4 pemain), penyimpanan ===== */
 const FB_CFG={
