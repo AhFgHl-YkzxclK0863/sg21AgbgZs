@@ -1827,5 +1827,9 @@ $('navKeys').addEventListener('click',()=>{closeDrawer();keyHelp();});
   enter();
 })();
 </script>
+<script>
+/* daftarkan service worker: halaman offline (anda_offline.html) */
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
 </body>
 </html>
