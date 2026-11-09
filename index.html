@@ -282,6 +282,19 @@ main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env
 .stbar span{flex:1;min-width:160px}
 .stbar .btn{margin-top:0;height:40px}
 .acts .devdel{flex:none;width:38px;height:38px;border-radius:11px;border:1px solid #ff4d6a66;background:#ff4d6a14;color:var(--bad);font-size:16px;cursor:pointer;padding:0}
+.banm{z-index:9999;background:#000e}
+.ban-card{text-align:center;border-color:#ff4d6a88;box-shadow:0 0 60px #ff4d6a33}
+.ban-ic{font-size:54px;line-height:1;margin:6px 0 8px}
+.ban-card h3{color:var(--bad);letter-spacing:.04em;font-size:19px}
+.ban-card p{color:var(--mute);font-size:14px;margin:0 0 10px;word-break:break-word}
+.ban-left{font-weight:800;font-size:15px;margin:0 0 16px}
+.dv-sec{margin:16px 0 6px;font-weight:800;font-size:13px;color:var(--cy)}
+.dv-row{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid var(--line2);font-size:13px}
+.dv-row>div{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dv-row small{display:block;color:var(--mute);font-size:11px}
+.dv-c{flex:none;color:var(--gold);font-weight:800}
+.dv-in{width:100%;margin-bottom:8px}
+[hidden]{display:none!important}
 </style>
 <style>
 /* ---------- ⚡ Login cepat ---------- */
@@ -357,6 +370,7 @@ main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env
       <button id="navRedeem">🎟️ Redeem Code</button>
       <button id="navProfile">👤 Profil</button>
       <button id="navKeys">⌨️ Pintasan Keyboard</button>
+      <button id="navDev" hidden>🛡️ Panel Developer</button>
       <button id="navPw">🔒 Ubah Password</button>
       <button id="navLogout">⛔ Logout</button>
     </div>
@@ -687,7 +701,7 @@ function launch(id){
 /* ---------- tampilan ---------- */
 function setUserUI(){
   try{PHOTO=localStorage.getItem(PH_K())||'';}catch(e){PHOTO='';}if(!okPhoto(PHOTO))PHOTO='';
-  $('nameTop').innerHTML=esc(USER)+nmB(USER);$('nameSide').innerHTML=esc(USER)+nmB(USER);$('roleSide').textContent=isDev(USER)?'Developer':'Akun terdaftar';paintPhoto();
+  $('nameTop').innerHTML=esc(USER)+nmB(USER);$('nameSide').innerHTML=esc(USER)+nmB(USER);$('roleSide').textContent=isDev(USER)?'Developer':'Akun terdaftar';$('navDev').hidden=!isDev(USER);paintPhoto();
 }
 function showApp(){
   $('splash').hidden=true;$('app').hidden=false;
@@ -717,6 +731,7 @@ $('navHome').addEventListener('click',()=>{closeDrawer();window.scrollTo({top:0,
 $('navGames').addEventListener('click',()=>{closeDrawer();$('gamesTop').scrollIntoView({behavior:'smooth',block:'start'});});
 $('navProfile').addEventListener('click',()=>{closeDrawer();showProfile();});
 $('navPw').addEventListener('click',()=>{closeDrawer();changePw();});
+$('navDev').addEventListener('click',()=>{closeDrawer();openDevPanel();});
 $('navLogout').addEventListener('click',()=>{
   closeDrawer();
   try{localStorage.removeItem(LS_USER);}catch(e){}
@@ -751,8 +766,66 @@ function watchBan(){
   if(banRef)banRef.off();
   banRef=d.ref('nexoria/bans/'+USER.toLowerCase());
   banRef.on('value',sn=>{const b=sn.val();
-    if(isBanned(b)){try{localStorage.removeItem(LS_USER);}catch(e){}USER='';showSplash();$('err').textContent=banMsg(b);}
+    if(isBanned(b)){try{localStorage.removeItem(LS_USER);}catch(e){}USER='';showSplash();showBan(b);}
   },()=>{});
+}
+
+/* ---------- jendela "akun diblokir" ---------- */
+const durTxt=ms=>{const t=Math.max(0,Math.floor(ms/1000)),d=Math.floor(t/86400),h=Math.floor(t%86400/3600),m=Math.floor(t%3600/60),c=t%60;return d?d+' hari '+h+' jam':h?h+' jam '+m+' mnt':m?m+' mnt '+c+' dtk':c+' dtk';};
+let banTick=0;
+function showBan(b){
+  const old=$('banM');if(old)old.remove();clearInterval(banTick);
+  const u=+b.until||0,perm=u>=9e12,m=document.createElement('div');
+  m.id='banM';m.className='mdl banm';m.setAttribute('role','alertdialog');m.setAttribute('aria-modal','true');
+  m.innerHTML='<div class="mdl-card ban-card"><div class="ban-ic">⛔</div><h3>AKUN INI TELAH DI BLOKIR</h3>'+(b.reason?'<p>Alasan: '+esc(b.reason)+'</p>':'')+'<div class="ban-left" id="banLeft"></div><button class="btn" id="banOut">Logout</button></div>';
+  document.body.appendChild(m);
+  const L=m.querySelector('#banLeft'),tick=()=>{if(perm){L.textContent='Blokir permanen';return;}const r=u-(Date.now()+srvOff);if(r<=0){L.textContent='Blokir sudah berakhir. Silakan login lagi.';clearInterval(banTick);}else L.textContent='Sisa waktu blokir: '+durTxt(r);};
+  tick();if(!perm)banTick=setInterval(tick,1000);
+  m.querySelector('#banOut').onclick=()=>{clearInterval(banTick);m.remove();};
+}
+/* ---------- cermin koin untuk panel developer (maks. 1x/menit) ---------- */
+let boardT=0;
+function pushBoard(){const d=getDB();if(!d||!USER||!COINLOADED)return;const n=Date.now();if(n-boardT<60000)return;boardT=n;d.ref('nexoria/board/'+USER.toLowerCase()).set({n:USER,c:COINS,ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});}
+/* ---------- 🛡️ panel developer: koin semua pemain + blokir ---------- */
+const BAN_DUR=[['1 jam',36e5],['6 jam',216e5],['1 hari',864e5],['3 hari',2592e5],['7 hari',6048e5],['30 hari',2592e6],['Permanen',0]];
+async function openDevPanel(){
+  if(!isDev(USER))return;const d=getDB();if(!d){status('Belum terhubung ke server','err');return;}
+  const au=await authReady();closeMdl();
+  const m=document.createElement('div');m.className='mdl';
+  m.innerHTML='<div class="mdl-card"><h3>🛡️ Panel Developer</h3><div class="err" id="dvE" style="margin-bottom:8px"></div>'
+   +'<div class="dv-sec">Blokir pemain</div><input id="dvU" class="search dv-in" placeholder="Username" maxlength="16" autocomplete="off">'
+   +'<select id="dvD" class="search dv-in">'+BAN_DUR.map((x,i)=>'<option value="'+i+'">'+x[0]+'</option>').join('')+'<option value="c">Kustom (jam)…</option></select>'
+   +'<input id="dvH" class="search dv-in" type="number" min="1" placeholder="Jumlah jam" hidden><input id="dvR" class="search dv-in" placeholder="Alasan (opsional)" maxlength="120">'
+   +'<button class="btn" id="dvGo">🚫 Blokir</button>'
+   +'<div class="dv-sec">Blokir aktif</div><div id="dvBans"></div>'
+   +'<div class="dv-sec">Koin pemain <span id="dvSum" style="color:var(--mute);font-weight:600"></span></div><input id="dvQ" class="search dv-in" placeholder="Cari pemain…"><div id="dvList"></div>'
+   +'<div class="av-foot"><button class="btn ghost" id="dvX">Tutup</button></div></div>';
+  document.body.appendChild(m);
+  const q=x=>m.querySelector(x),bnr=d.ref('nexoria/bans'),br=d.ref('nexoria/board').orderByChild('c').limitToLast(300);let BN={},BD={};
+  const stop=()=>{try{bnr.off();br.off();}catch(e){}m.remove();};
+  q('#dvX').onclick=stop;
+  const deny=e=>{if(m.isConnected)q('#dvE').innerHTML='Akses ditolak server. Daftarkan UID ini sebagai admin di Firebase: <b style="user-select:text;word-break:break-all">nexoria/admins/'+esc(au?au.uid:'?')+'</b> = true';};
+  const isB=b=>b&&(+b.until||0)>Date.now()+srvOff,uTxt=b=>(+b.until||0)>=9e12?'permanen':'sampai '+new Date(+b.until).toLocaleString('id-ID');
+  const paintBans=()=>{const ks=Object.keys(BN);q('#dvBans').innerHTML=ks.length?ks.map(k=>{const b=BN[k]||{};return '<div class="dv-row"'+(isB(b)?'':' style="opacity:.55"')+'><div><b>'+esc(b.n||k)+'</b><small>'+(isB(b)?uTxt(b):'berakhir')+(b.reason?' · '+esc(b.reason):'')+'</small></div><button class="btn ghost small" data-un="'+esc(k)+'">'+(isB(b)?'Buka blokir':'Hapus')+'</button></div>';}).join(''):'<p style="color:var(--mute);font-size:13px">Tidak ada.</p>';
+    q('#dvBans').querySelectorAll('[data-un]').forEach(b=>b.onclick=()=>d.ref('nexoria/bans/'+b.dataset.un).remove().then(()=>status('Blokir dibuka','ok')).catch(()=>status('Gagal','err')));};
+  const paintList=()=>{const f=q('#dvQ').value.trim().toLowerCase(),ks=Object.keys(BD).sort((a,b)=>(+BD[b].c||0)-(+BD[a].c||0)),tot=ks.reduce((a,k)=>a+(+BD[k].c||0),0);
+    q('#dvSum').textContent='· '+ks.length+' pemain · total 💵 '+Math.floor(tot).toLocaleString('id-ID');
+    q('#dvList').innerHTML=ks.filter(k=>!f||k.includes(f)||String(BD[k].n||'').toLowerCase().includes(f)).map(k=>'<div class="dv-row"><div><b>'+esc(BD[k].n||k)+'</b>'+nmB(k)+(isB(BN[k])?'<small style="color:var(--bad)">diblokir</small>':'')+'</div><span class="dv-c">💵 '+Math.floor(+BD[k].c||0).toLocaleString('id-ID')+'</span>'+(isDev(k)?'':'<button class="btn ghost small" data-bn="'+esc(k)+'">🚫</button>')+'</div>').join('')||'<p style="color:var(--mute);font-size:13px">Belum ada data. Pemain muncul setelah membuka versi terbaru.</p>';
+    q('#dvList').querySelectorAll('[data-bn]').forEach(b=>b.onclick=()=>{q('#dvU').value=b.dataset.bn;q('#dvU').scrollIntoView({block:'center'});});};
+  bnr.on('value',sn=>{if(!m.isConnected){bnr.off();return;}BN=sn.val()||{};paintBans();paintList();},deny);
+  br.on('value',sn=>{if(!m.isConnected){br.off();return;}BD={};sn.forEach(x=>{BD[x.key]=x.val();});paintList();},deny);
+  q('#dvQ').oninput=paintList;
+  q('#dvD').onchange=()=>{q('#dvH').hidden=q('#dvD').value!=='c';};
+  q('#dvGo').onclick=async()=>{
+    const name=q('#dvU').value.trim(),key=name.toLowerCase();
+    if(!valid(name)){status('Username tidak valid','err');return;}
+    if(isDev(key)){status('Akun developer tidak bisa diblokir','err');return;}
+    const v=q('#dvD').value;let ms=0;
+    if(v==='c'){const h=+q('#dvH').value;if(!(h>=1)){status('Isi jumlah jam','err');return;}ms=Math.min(h,87600)*36e5;}else ms=BAN_DUR[+v][1];
+    const until=ms?Date.now()+srvOff+ms:9e12;
+    try{await d.ref('nexoria/bans/'+key).set({until,reason:q('#dvR').value.trim().slice(0,120),by:USER,n:name,ts:firebase.database.ServerValue.TIMESTAMP});status('🚫 '+name+' diblokir','ok');q('#dvU').value='';q('#dvR').value='';}
+    catch(e){deny();status('Gagal memblokir','err');}
+  };
 }
 async function changePw(){
   const d=getDB();if(!d){status('Belum terhubung ke server','err');return;}
@@ -968,7 +1041,7 @@ async function doLogin(o){
     step='baca-akun';
     const key=name.toLowerCase(),ref=d.ref('nexoria/users/'+key);
     const bsn=await withTimeout(d.ref('nexoria/bans/'+key).once('value'),8000);
-    if(isBanned(bsn.val())){err.textContent=banMsg(bsn.val());btn.disabled=false;btn.textContent='MASUK';return;}
+    if(isBanned(bsn.val())){showBan(bsn.val());btn.disabled=false;btn.textContent='MASUK';return;}
     const snap=await withTimeout(ref.once('value'),10000);
     let finalName=name;
     if(snap.exists()){
@@ -1095,7 +1168,7 @@ function watchCoins(){
   const d=getDB();if(!d||!USER)return;
   if(coinRef)coinRef.off();
   coinRef=d.ref('nexoria/users/'+USER.toLowerCase()+'/coins');
-  coinRef.on('value',sn=>{COINS=Math.floor(+sn.val()||0);COINRAW=sn.val();COINLOADED=true;$('coinV').textContent=fmtC(sn.val());saveCache();refreshUI();},()=>{if(!COINLOADED)$('coinV').textContent='—';});
+  coinRef.on('value',sn=>{COINS=Math.floor(+sn.val()||0);COINRAW=sn.val();COINLOADED=true;$('coinV').textContent=fmtC(sn.val());saveCache();refreshUI();pushBoard();},()=>{if(!COINLOADED)$('coinV').textContent='—';});
   if(window._nxRefs)window._nxRefs.forEach(r=>{try{r.off();}catch(e){}});
   {const K='nexoria/users/'+USER.toLowerCase(),R=window._nxRefs=[d.ref(K+'/owned'),d.ref(K+'/incomeLv'),d.ref(K+'/daily'),d.ref(K+'/anim')];
    R[0].on('value',sn=>{OWN=sn.val()||{};SPON=!!OWN.shadowpurple;refreshUI();});
