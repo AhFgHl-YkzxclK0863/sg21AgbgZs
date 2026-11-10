@@ -804,7 +804,12 @@ async function openDevPanel(){
   const q=x=>m.querySelector(x),bnr=d.ref('nexoria/bans'),br=d.ref('nexoria/board').orderByChild('c').limitToLast(300);let BN={},BD={};
   const stop=()=>{try{bnr.off();br.off();}catch(e){}m.remove();};
   q('#dvX').onclick=stop;
-  const deny=e=>{if(m.isConnected)q('#dvE').innerHTML='Akses ditolak server. Daftarkan UID ini sebagai admin di Firebase: <b style="user-select:text;word-break:break-all">nexoria/admins/'+esc(au?au.uid:'?')+'</b> = true';};
+  let admTried=false;
+  const deny=e=>{if(!m.isConnected)return;
+    q('#dvE').innerHTML='Akunmu belum terdaftar sebagai admin. <button class="btn small" id="dvAdm" type="button" style="margin-top:8px">Daftarkan saya sebagai admin</button><div id="dvAdmE" style="margin-top:6px"></div>';
+    q('#dvAdm').onclick=async()=>{const b=q('#dvAdm');b.disabled=true;
+      try{await d.ref('nexoria/admins/'+au.uid).set(true);status('Terdaftar sebagai admin','ok');stop();openDevPanel();}
+      catch(x){b.disabled=false;q('#dvAdmE').textContent='Ditolak server. Pastikan rules terbaru sudah dipublish dan admin belum pernah didaftarkan. Cara manual: tambahkan nexoria/admins/'+(au?au.uid:'?')+' = true di Firebase.';}};};
   const isB=b=>b&&(+b.until||0)>Date.now()+srvOff,uTxt=b=>(+b.until||0)>=9e12?'permanen':'sampai '+new Date(+b.until).toLocaleString('id-ID');
   const paintBans=()=>{const ks=Object.keys(BN);q('#dvBans').innerHTML=ks.length?ks.map(k=>{const b=BN[k]||{};return '<div class="dv-row"'+(isB(b)?'':' style="opacity:.55"')+'><div><b>'+esc(b.n||k)+'</b><small>'+(isB(b)?uTxt(b):'berakhir')+(b.reason?' · '+esc(b.reason):'')+'</small></div><button class="btn ghost small" data-un="'+esc(k)+'">'+(isB(b)?'Buka blokir':'Hapus')+'</button></div>';}).join(''):'<p style="color:var(--mute);font-size:13px">Tidak ada.</p>';
     q('#dvBans').querySelectorAll('[data-un]').forEach(b=>b.onclick=()=>d.ref('nexoria/bans/'+b.dataset.un).remove().then(()=>status('Blokir dibuka','ok')).catch(()=>status('Gagal','err')));};
