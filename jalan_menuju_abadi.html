@@ -444,9 +444,9 @@ function skyFx(){skyFlash();const y=P.yaw,fx=Math.sin(y),fz=Math.cos(y),cx=P.x+f
  vfx(g,1.6,(o,r)=>{const w=Math.max(.05,Math.sin(Math.min(1,r*1.15)*Math.PI));core.scale.set(1.8*w,50,.3);r1.scale.set(2.8*w,52,.6);r2.scale.set(4*w,54,.9);fade(o,r>.7?(1-r)/.3:1);});
  const sl=mk(gB,0xfff2a0,.85);sl.scale.set(1.4,.2,45);sl.position.set(P.x+fx*22,H(P.x,P.z)+.2,P.z+fz*22);sl.rotation.y=y;vfx(sl,.8,(o,r)=>{o.scale.x=1.4*(1-r)+.01;fade(o,1-r);});
  for(let i=1;i<=5;i++)burst(P.x+fx*i*8,H(P.x+fx*i*8,P.z+fz*i*8)+1,P.z+fz*i*8,0xfff2a0,16,7,8);boom(cx,gy+2,cz,0xfff2a0,5);}
-const TLV=72,TPS=[['Desa Pemula',0,4],['Sekte Suci',SX,SZ+24],['Dataran Qingyun',-30,-10],['Hutan Spiritual',120,10],['Hutan Spiritual Dalam',280,40],['Gunung Pedang',0,-95],['Puncak Salju',0,-170],['Gurun Kuno',0,120],['Gurun Terjauh',20,300],['Lembah Kabut',-120,40],['Lembah Barat',-300,80]];
+const TLV=72,TPS=[['Desa Pemula',0,4],['Sekte Suci',SX,SZ+24],['Dataran Qingyun',-30,-10],['Hutan Spiritual',120,10],['Hutan Spiritual Dalam',280,40],['Gunung Pedang',0,-95],['Puncak Salju',0,-170],['Gurun Kuno',0,120],['Gurun Terjauh',20,300],['Lembah Kabut',-120,40],['Lembah Barat',-300,80],['Bulan',0,0]];
 function warp(x,y,z){const c=mk(gY,0xbfeaff,.6);c.position.set(x,y+15,z);c.scale.set(1.6,30,1.6);vfx(c,.8,(o,r)=>{o.scale.x=o.scale.z=1.6*(1-r*.7);fade(o,1-r);});disc(x,z,0xbfeaff,5,.8,.5);burst(x,y+1,z,0xe8f8ff,40,8,4);}
-function tele(n,x,z){if(P.dead>0)return;if(P.en<40)return toast('Energi tidak cukup');P.en-=40;P.med=false;warp(P.x,P.y,P.z);P.x=x;P.z=z;P.y=H(x,z)+(P.fly?3:0);P.vy=0;warp(x,P.y,z);skyFlash();$('jp').style.display='none';toast('🌀 Menembus ruang: '+n);}
+function tele(n,x,z){if(P.dead>0)return;if(P.en<40)return toast('Energi tidak cukup');P.en-=40;P.med=false;warp(P.x,P.y,P.z);P.x=x;P.z=z;P.y=n==='Bulan'?mH(x,z):H(x,z)+(P.fly?3:0);P.vy=0;warp(x,P.y,z);skyFlash();$('jp').style.display='none';toast('🌀 Menembus ruang: '+n);}
 function setTime(n,a){if(P.en<60)return toast('Energi tidak cukup');P.en-=60;const cur=(clock+toff)*.03+1;let d=(a-cur)%(2*Math.PI);if(d<0)d+=2*Math.PI;toff+=d/.03;skyFlash();$('jp').style.display='none';toast('⏳ Waktu berputar: '+n);}
 function openT(){if(P.lvl<TLV)return toast('Hanya tingkat Maha Agung ke atas yang menguasai ruang dan waktu');const c=$('jp');if(c.style.display==='block'){c.style.display='none';return;}c.innerHTML='<h3>🌀 Teleport Ruang & Waktu</h3>';
  const add=(t,f)=>{const b=document.createElement('button');b.innerHTML=t;b.onclick=f;c.appendChild(b);};
@@ -455,23 +455,23 @@ function openT(){if(P.lvl<TLV)return toast('Hanya tingkat Maha Agung ke atas yan
  add('Tutup',()=>c.style.display='none');c.style.display='block';}
 const SPC=new THREE.Color(0x01010a),stars=(()=>{const n=1800,pos=new Float32Array(n*3);for(let i=0;i<n;i++){const a=R()*6.283,e=Math.asin(R()*2-1),r=4000;pos[i*3]=Math.cos(a)*Math.cos(e)*r;pos[i*3+1]=Math.sin(e)*r;pos[i*3+2]=Math.sin(a)*Math.cos(e)*r;}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));const m=new THREE.PointsMaterial({color:0xffffff,size:2.2,sizeAttenuation:false,transparent:true,opacity:0,fog:false,depthWrite:false}),p=new THREE.Points(geo,m);p.frustumCulled=false;p.visible=false;p.renderOrder=-1;scene.add(p);return p;})();
 const planet=(()=>{const t=tex(512,256,(x,w,h)=>{x.fillStyle='#2f6fd6';x.fillRect(0,0,w,h);for(let i=0;i<60;i++){x.fillStyle=R()<.5?'#3d9a52':'#6aa84f';x.beginPath();x.ellipse(R()*w,R()*h,10+R()*40,6+R()*24,R()*3,0,6.28);x.fill();}for(let i=0;i<120;i++){x.fillStyle='rgba(255,255,255,'+(.15+R()*.3)+')';x.beginPath();x.ellipse(R()*w,R()*h,8+R()*34,3+R()*8,R()*3,0,6.28);x.fill();}}),m=new THREE.Mesh(new THREE.SphereGeometry(3000,48,32),new THREE.MeshLambertMaterial({map:t,fog:false}));m.visible=false;scene.add(m);return m;})();
-const MOON={x:-250,y:2600,z:-300},moon=(()=>{const t=tex(512,256,(x,w,h)=>{x.fillStyle='#b9bac2';x.fillRect(0,0,w,h);for(let i=0;i<40;i++){x.fillStyle='rgba(110,112,122,'+(.15+R()*.25)+')';x.beginPath();x.ellipse(R()*w,R()*h,14+R()*50,10+R()*30,R()*3,0,6.28);x.fill();}for(let i=0;i<130;i++){const cx=R()*w,cy=R()*h,r=3+R()*13,g=x.createRadialGradient(cx,cy,r*.2,cx,cy,r);g.addColorStop(0,'rgba(80,82,92,.8)');g.addColorStop(.8,'rgba(120,122,132,.5)');g.addColorStop(1,'rgba(230,230,240,.5)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,r,0,6.283);x.fill();}}),m=new THREE.Mesh(new THREE.SphereGeometry(300,48,32),new THREE.MeshLambertMaterial({map:t,emissive:0x2a2a34,fog:false}));m.position.set(MOON.x,MOON.y,MOON.z);m.visible=false;scene.add(m);return m;})();
-let spaceT=0,lastIn=false;
+const MR=300,MOON={x:0,y:2600,z:0},moon=(()=>{const t=tex(512,256,(x,w,h)=>{x.fillStyle='#b9bac2';x.fillRect(0,0,w,h);for(let i=0;i<40;i++){x.fillStyle='rgba(110,112,122,'+(.15+R()*.25)+')';x.beginPath();x.ellipse(R()*w,R()*h,14+R()*50,10+R()*30,R()*3,0,6.28);x.fill();}for(let i=0;i<130;i++){const cx=R()*w,cy=R()*h,r=3+R()*13,g=x.createRadialGradient(cx,cy,r*.2,cx,cy,r);g.addColorStop(0,'rgba(80,82,92,.8)');g.addColorStop(.8,'rgba(120,122,132,.5)');g.addColorStop(1,'rgba(230,230,240,.5)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,r,0,6.283);x.fill();}}),m=new THREE.Mesh(new THREE.SphereGeometry(300,48,32),new THREE.MeshLambertMaterial({map:t,emissive:0x2a2a34,fog:false}));m.position.set(MOON.x,MOON.y,MOON.z);m.visible=false;scene.add(m);return m;})();
+let spaceT=0,lastIn=false,onMoon=false;function mH(x,z){const d=Math.hypot(x-MOON.x,z-MOON.z);return d<MR*.9?MOON.y+Math.sqrt(MR*MR-d*d):-1e9;}
 function airTick(m,dt){const g=m.g;if(m.dead>0||m.gone)return;m.flash-=dt;m.atkCd-=dt;m.bm.color.setHex(m.flash>0?0xffffff:m.d.c);m.ph=(m.ph||R()*6)+dt;
  if(m.burn>0){m.burn-=dt;m.bt=(m.bt||0)-dt;if(m.bt<=0){m.bt=1;hurtM(m,m.bd,true);if(m.dead>0)return;}}
  const st=m.stun>0;if(st)m.stun-=dt;let sp=m.d.sp;if(m.slow>0){m.slow-=dt;sp*=.35;}
  const dx=P.x-g.position.x,dy=P.y+1-g.position.y,dz=P.z-g.position.z,d=Math.hypot(dx,dy,dz)||.001;
- if(!st&&P.dead<=0){if(d>10){g.position.x+=dx/d*sp*dt;g.position.y+=dy/d*sp*dt;g.position.z+=dz/d*sp*dt;}else if(d<7){g.position.x-=dx/d*sp*.6*dt;g.position.z-=dz/d*sp*.6*dt;}
+ if(!st&&P.dead<=0){const want=P.fly?10:4.5;if(d>want+.5){g.position.x+=dx/d*sp*dt;g.position.y+=dy/d*sp*dt;g.position.z+=dz/d*sp*dt;}else if(d<want-2){g.position.x-=dx/d*sp*.6*dt;g.position.z-=dz/d*sp*.6*dt;}
   g.rotation.y=Math.atan2(dx,dz);
   if(d<18&&m.atkCd<=0){m.atkCd=2.4;const dm=Math.round(m.d.atk*(.85+R()*.3));bolt(new THREE.Vector3(g.position.x,g.position.y+3.5,g.position.z),new THREE.Vector3(P.x,P.y+1.2,P.z),0x9be7ff,.1,.3);if(P.invul<=0){P.hp-=dm;P.hit=.25;pop(P.x,P.y+2.4,P.z,'-'+dm,'#ff5a6e');}}}
  g.position.y+=Math.sin(m.ph*1.5)*.02;g.children[0].userData.tn.forEach((t,i)=>{t.rotation.x=Math.sin(m.ph*2+i)*.25;t.rotation.z=Math.cos(m.ph*2+i*1.3)*.25;});
  m.bar2.visible=true;m.bar2.position.set(g.position.x,g.position.y+(m.d.bh||2.6)*m.sc,g.position.z);m.bar2.quaternion.copy(cam.quaternion);m.bar.scale.x=1.6*cl(m.hp/m.max,0,1)+.001;}
-function airUpdate(dt){const inSp=P.fly&&P.y>900&&P.dead<=0;
+function airUpdate(dt){const inSp=((P.fly&&P.y>900)||onMoon)&&P.dead<=0;
  for(let i=mons.length-1;i>=0;i--){const m=mons[i];if(m.air&&(m.dead>0||m.gone||!inSp)){scene.remove(m.g,m.bar2);mons.splice(i,1);}}
  if(!inSp){if(lastIn){spaceT=60;lastIn=false;}return;}lastIn=true;
  if(mons.some(m=>m.air)){spaceT=45;return;}
  if(spaceT>0){spaceT-=dt;return;}
- for(let i=0;i<3;i++){const a=R()*6.283,r=35+R()*25;spawn('jelly',P.x+Math.sin(a)*r,P.z+Math.cos(a)*r);const m=mons[mons.length-1];m.air=true;m.g.position.y=P.y+(R()-.5)*14;}}
+ for(let i=0;i<3;i++){const a=R()*6.283,r=onMoon?18+R()*14:35+R()*25;let x=P.x+Math.sin(a)*r,z=P.z+Math.cos(a)*r;if(onMoon){const dd=Math.hypot(x-MOON.x,z-MOON.z);if(dd>MR*.7){const k=MR*.7/dd;x=MOON.x+(x-MOON.x)*k;z=MOON.z+(z-MOON.z)*k;}}spawn('jelly',x,z);const m=mons[mons.length-1];m.air=true;m.g.position.set(x,onMoon?mH(x,z)+3+R()*3:P.y+(R()-.5)*14,z);}}
 /* ---------- aksi ---------- */
 function hurtM(m,dmg,skill){const cr=R()<.12;dmg=Math.round(dmg*(cr?2:1));m.hp-=dmg;m.flash=.12;pop(m.g.position.x,m.g.position.y+2.4*m.sc,m.g.position.z,(cr?'💥':'')+dmg,skill?'#7fe9ff':cr?'#ffd54a':'#fff');
  if(m.hp<=0){m.dead=m.d.rs||25;m.g.visible=false;m.bar2.visible=false;const st=m.d.st[0]+Math.floor(R()*(m.d.st[1]-m.d.st[0]+1));P.qi+=m.d.qi;P.stones+=st;P.kills++;toast(m.d.n+' dikalahkan  +'+m.d.qi+' Qi  +'+st+' 💎');}}
@@ -498,7 +498,7 @@ function skill(){if(P.dead>0)return;const j=curJ();if((CDJ[j.id]||0)>0)return to
  if(j.k==='drain')P.hp=Math.min(P.maxHp,P.hp+Math.min(P.maxHp*.4,tot*.25));
  if(j.k==='el'&&j.e===1)P.hp=Math.min(P.maxHp,P.hp+P.maxHp*[.08,.14,.22][j.t]);}
 function dodge(){if(P.dgCd>0||P.dead>0||P.fly)return;P.dgCd=1.1;P.dodge=.3;P.invul=.38;P.med=false;ring(P.x,P.y+.2,P.z,0xffffff,2);}
-function jump(){if(!P.fly&&P.y<=H(P.x,P.z)+.05&&P.dead<=0){P.vy=8;P.med=false;}}
+function jump(){if(!P.fly&&P.y<=(onMoon?mH(P.x,P.z):H(P.x,P.z))+.05&&P.dead<=0){P.vy=onMoon?11:8;P.med=false;}}
 const FLY={lv:18,spd:6,drain:.022,max:6000},flyIn={u:0,d:0};
 function toggleFly(){if(P.dead>0)return;if(P.lvl<FLY.lv)return toast('Tingkat biasa belum bisa terbang. Hanya Pembangunan Fondasi ke atas yang ahli mengendalikan pedang');
  if(P.fly){P.fly=false;return;}
@@ -533,7 +533,7 @@ function start(){$('menu').style.display='none';run=true;resize();P.y=H(P.x,P.z)
 /* ---------- loop ---------- */
 const DAY=new THREE.Color(0x87c6ff),NIGHT=new THREE.Color(0x0a1230),SK=new THREE.Color();let night=false,toff=0,clock=0,last=performance.now(),zn='',txT=0,saveT=0;
 function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;
- const dk=.5+.5*Math.sin((clock+toff)*.03+1);night=dk<.3;if(night&&$('dlg').style.display==='block')$('dlg').style.display='none';SK.copy(NIGHT).lerp(DAY,dk);const spc=cl((P.y-300)/600,0,1);SK.lerp(SPC,spc);scene.background.copy(SK);scene.fog.color.copy(SK);scene.fog.far=170+Math.max(0,P.y-40)*8;scene.fog.near=40+Math.max(0,P.y-40)*1.5;stars.visible=night||spc>0;stars.material.opacity=Math.max(night?.8:0,spc);stars.position.copy(cam.position);planet.visible=spc>.02;moon.visible=spc>.02;moon.rotation.y+=dt*.01;planet.position.set(P.x,-3010,P.z);hemi.intensity=.25+.65*dk;sun.intensity=.12+.95*dk;
+ const dk=.5+.5*Math.sin((clock+toff)*.03+1);night=dk<.3;if(night&&$('dlg').style.display==='block')$('dlg').style.display='none';SK.copy(NIGHT).lerp(DAY,dk);const spc=cl((P.y-300)/600,0,1);SK.lerp(SPC,spc);scene.background.copy(SK);scene.fog.color.copy(SK);scene.fog.far=170+Math.max(0,P.y-40)*8;scene.fog.near=40+Math.max(0,P.y-40)*1.5;stars.visible=night||spc>0;stars.material.opacity=Math.max(night?.8:0,spc);stars.position.copy(cam.position);planet.visible=spc>.02;moon.visible=spc>.02;moon.rotation.y+=dt*.01;planet.position.set(P.x,-3010,P.z);hemi.intensity=.25+.65*dk;sun.intensity=.12+.95*dk;if(spc>0){hemi.intensity=Math.max(hemi.intensity,.7*spc);sun.intensity=Math.max(sun.intensity,.9*spc);}
  if(run){
   P.atkCd-=dt;P.dgCd-=dt;if(P.boost>0)P.boost-=dt;if(P.buff>0)P.buff-=dt;for(const k in CDJ)if(CDJ[k]>0)CDJ[k]-=dt;P.invul-=dt;P.swing-=dt;P.hit-=dt;
   if(P.dead>0){P.dead-=dt;if(P.dead<=0){P.x=0;P.z=4;P.stones=Math.floor(P.stones*.9);P.hp=P.maxHp;P.en=P.maxEn;}}
@@ -545,9 +545,10 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
    if(P.dodge>0){P.dodge-=dt;P.dx=P.dx||Math.sin(P.yaw);P.dz=P.dz||Math.cos(P.yaw);P.x+=P.dx*14*dt;P.z+=P.dz*14*dt;if(P.dodge<=0)P.dx=P.dz=0;}
    else if(mv&&P.swing<=0){const sp=P.fly?6.2*FLY.spd:6.2;P.x+=mx*sp*dt;P.z+=mz*sp*dt;const ty=Math.atan2(mx,mz);let d=ty-P.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));P.yaw+=d*Math.min(1,dt*12);}
    P.x=cl(P.x,-345,345);P.z=cl(P.z,-345,345);
-   const gy=H(P.x,P.z);
+   const hm0=mH(P.x,P.z);if(!P.fly&&hm0>-1e8&&P.y>=hm0-3){const dd=Math.hypot(P.x-MOON.x,P.z-MOON.z);if(dd>MR*.75){const k=MR*.75/dd;P.x=MOON.x+(P.x-MOON.x)*k;P.z=MOON.z+(P.z-MOON.z)*k;}}
+   const hm=mH(P.x,P.z),gy=(hm>-1e8&&P.y>=hm-3)?hm:H(P.x,P.z);onMoon=hm>-1e8&&P.y>=hm-3&&P.y<hm+80;
    if(P.fly){const upd=(K[' ']||flyIn.u?1:0)-((K.shift||K.c||flyIn.d)?1:0);P.y=cl(P.y+upd*(14+Math.min(110,Math.max(0,P.y)*.1))*dt,gy+2.5,FLY.max);P.vy=0;P.en-=P.maxEn*FLY.drain*(1+(P.root?P.root.els.length-1:0)*.15)*(mv?1:.5)*dt;if(P.en<=0){P.en=0;P.fly=false;toast('🔷 Energi habis! Kamu jatuh dari pedang');}}
-   else{P.vy=Math.max(P.vy-22*dt,-14-Math.min(110,Math.max(0,P.y-gy)*.15));P.y+=P.vy*dt;if(P.y<=gy){P.y=gy;P.vy=0;}}
+   else{P.vy=Math.max(P.vy-(onMoon?7:22)*dt,-14-Math.min(110,Math.max(0,P.y-gy)*.15));P.y+=P.vy*dt;if(P.y<=gy){P.y=gy;P.vy=0;}}
    if(P.fly&&P.lvl<FLY.lv)P.fly=false;if(!P.fly)P.en=Math.min(P.maxEn,P.en+(P.med?9:3+P.lvl*.2)*dt);
    if(P.med){const sp=Math.hypot(P.x-SP.x,P.z-SP.z)<5.5?3:1;if(P.lvl<MAXL||P.qi<needQ())P.qi+=(1.5+P.lvl*.9)*sp*P.qm*(P.pill?10:1)*(P.boost>0?BOOST.mul:1)*dt;P.hp=Math.min(P.maxHp,P.hp+P.maxHp*.02*dt);}
    P.qi=Math.min(P.qi,needQ()*1.0);
@@ -594,7 +595,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
  /* HUD */
  $('hp').style.width=cl(P.hp/P.maxHp*100,0,100)+'%';$('en').style.width=cl(P.en/P.maxEn*100,0,100)+'%';const nq=needQ();$('qb').style.width=cl(P.qi/nq*100,0,100)+'%';
  txT-=dt;if(txT<=0){txT=.2;$('rl').textContent=REALMS[Math.floor(P.lvl/9)]+' · Tahap '+(P.lvl%9+1)+'  (Tingkat '+(P.lvl+1)+')'+(P.root?' '+P.root.els.map(e=>EL[e].ic).join(''):'')+(P.sect>=5?(isSenior()?' · Murid Senior':' · Murid Sekte Suci'):'');$('qt').textContent='Qi '+fmt(P.qi)+' / '+fmt(nq)+(P.med?'  🧘':'')+(P.pill?'  💊×10':'')+(P.boost>0?'  ⚡×'+BOOST.mul+' '+Math.ceil(P.boost)+'d':'');$('sg').textContent='💎 '+fmt(P.stones)+'   ☠ '+P.kills;const cj=curJ(),lab=cj.ic+'<small>'+cj.n+'</small>';if(lab!==lastJL){lastJL=lab;$('bS').innerHTML=lab;}$('bS').style.opacity=(CDJ[cj.id]||0)>0?.45:1;
-  const z=P.fly&&P.y>900?(Math.hypot(P.x-MOON.x,P.y-MOON.y,P.z-MOON.z)<700?'Orbit Bulan':'Luar Angkasa'):P.fly&&P.y>300?'Langit Tinggi':zoneAt(P.x,P.z);if(z!==zn){zn=z;$('zn').textContent=z;if(run&&!P.fly)toast('📍 '+z);}$('bF').style.display=run&&P.lvl>=FLY.lv?'flex':'none';$('bT').style.display=run&&P.lvl>=72?'flex':'none';$('bI').style.display=run&&!P.fly&&canInteract()?'flex':'none';$('bF').style.borderColor=P.fly?'#ffd54a':'';$('bB').style.display=run&&P.qi>=nq-.01&&P.lvl<MAXL?'flex':'none';}
+  const z=onMoon&&!P.fly?'Permukaan Bulan':P.fly&&P.y>900?(Math.hypot(P.x-MOON.x,P.y-MOON.y,P.z-MOON.z)<700?'Orbit Bulan':'Luar Angkasa'):P.fly&&P.y>300?'Langit Tinggi':zoneAt(P.x,P.z);if(z!==zn){zn=z;$('zn').textContent=z;if(run&&!P.fly)toast('📍 '+z);}$('bF').style.display=run&&P.lvl>=FLY.lv?'flex':'none';$('bT').style.display=run&&P.lvl>=72?'flex':'none';$('bI').style.display=run&&!P.fly&&canInteract()?'flex':'none';$('bF').style.borderColor=P.fly?'#ffd54a':'';$('bB').style.display=run&&P.qi>=nq-.01&&P.lvl<MAXL?'flex':'none';}
  saveT+=dt;if(run&&saveT>10){saveT=0;save(true);}
  renderer.render(scene,cam);}
 setQ();resize();requestAnimationFrame(loop);
