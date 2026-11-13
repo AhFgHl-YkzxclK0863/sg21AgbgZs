@@ -41,7 +41,7 @@ canvas{display:block;position:fixed;inset:0}
 </style></head><body>
 <div id="hud">
   <div id="st"><div id="rl">Manusia Biasa</div><div class="bar"><i id="hp" style="background:#ff4d6a"></i></div><div class="bar"><i id="en" style="background:#39f4ff"></i></div><div class="bar" style="height:9px"><i id="qb" style="background:#ffd54a"></i></div><div id="qt" style="font-weight:600;color:#cbbfff;margin-top:3px"></div></div>
-  <div id="top"><div id="zn">Desa Pemula</div><div id="sg">💎 0</div><div style="margin-top:6px"><button id="bJp" aria-label="Jurus">📜</button><button id="bQ" aria-label="Grafis">⚙</button></div></div>
+  <div id="top"><div id="zn">Desa Pemula</div><div id="sg">💎 0</div><div style="margin-top:6px"><button id="bJp" aria-label="Jurus">📜</button><button id="bQ" aria-label="Grafis">⚙</button><button id="bMs" aria-label="Misi">📝</button><button id="bTu" aria-label="Tutorial">📕</button></div></div>
   <button class="b" id="bM">🧘<small>Meditasi</small></button><button class="b" id="bI">✋<small>Interaksi</small></button>
   <button class="b" id="bS">✨<small>Jurus</small></button><button class="b" id="bW">🔁<small>Ganti</small></button><button class="b" id="bF">🗡️<small>Pedang</small></button><button class="b" id="bT">🌀<small>Teleport</small></button><button class="b" id="bD">💨<small>Hindar</small></button>
   <button class="b" id="bJ">⤒<small>Lompat</small></button><button class="b" id="bA">⚔</button>
@@ -72,9 +72,9 @@ const MAXL=REALMS.length*9-1,need=l=>Math.round(60*Math.pow(1.38,l));
 const fmt=n=>n>=1e12?(n/1e12).toFixed(1)+'T':n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':Math.floor(n)+'';
 const KEY='nexoria_dunia_abadi_v1';
 /* ---------- dunia ---------- */
-const SX=-40,SZ=-40;const H=(x,z)=>H0(x,z)*cl((Math.hypot(x-SX,z-SZ)-22)/10,0,1);const H0=(x,z)=>{const d=Math.hypot(x,z),f=cl((d-18)/30,0,1),b=Math.sin(x*.03)*3+Math.cos(z*.025)*3+Math.sin((x+z)*.012)*6,m=Math.max(0,-z-60)*.12*(1+Math.sin(x*.05));return (b+m)*f;};
-const zoneAt=(x,z)=>Math.hypot(x-SX,z-SZ)<27?'Sekte Suci':Math.hypot(x,z)<28?'Desa Pemula':z<-125?'Puncak Salju':z<-60?'Gunung Pedang':x>60?'Hutan Spiritual':x<-60?'Lembah Kabut':z>60?'Gurun Kuno':'Dataran Qingyun';
-const ZC={'Desa Pemula':[.38,.64,.32],'Sekte Suci':[.64,.64,.6],'Gunung Pedang':[.5,.52,.58],'Puncak Salju':[.84,.9,.96],'Tebing Langit':[.36,.5,.36],'Hutan Spiritual':[.16,.45,.26],'Lembah Kabut':[.45,.6,.7],'Gurun Kuno':[.82,.7,.45],'Dataran Qingyun':[.34,.58,.3]};
+const SX=-40,SZ=-40;const H=(x,z)=>H0(x,z)*cl((Math.hypot(x-SX,z-SZ)-22)/10,0,1)*cl((Math.hypot(x-210,z+30)-58)/14,0,1);const H0=(x,z)=>{const d=Math.hypot(x,z),f=cl((d-18)/30,0,1),b=Math.sin(x*.03)*3+Math.cos(z*.025)*3+Math.sin((x+z)*.012)*6,m=Math.max(0,-z-60)*.12*(1+Math.sin(x*.05));return (b+m)*f;};
+const zoneAt=(x,z)=>Math.hypot(x-SX,z-SZ)<27?'Sekte Suci':Math.hypot(x-210,z+30)<62?'Sekte Spiritual':Math.hypot(x,z)<28?'Desa Pemula':z<-125?'Puncak Salju':z<-60?'Gunung Pedang':x>60?'Hutan Spiritual':x<-60?'Lembah Kabut':z>60?'Gurun Kuno':'Dataran Qingyun';
+const ZC={'Sekte Spiritual':[.85,.78,.5],'Desa Pemula':[.38,.64,.32],'Sekte Suci':[.64,.64,.6],'Gunung Pedang':[.5,.52,.58],'Puncak Salju':[.84,.9,.96],'Tebing Langit':[.36,.5,.36],'Hutan Spiritual':[.16,.45,.26],'Lembah Kabut':[.45,.6,.7],'Gurun Kuno':[.82,.7,.45],'Dataran Qingyun':[.34,.58,.3]};
 const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});
 renderer.shadowMap.enabled=true;document.body.prepend(renderer.domElement);
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(60,1,.3,9000);
@@ -89,16 +89,16 @@ const TS=720,SEG=180,tg=new THREE.PlaneGeometry(TS,TS,SEG,SEG);tg.rotateX(-Math.
 const terrain=new THREE.Mesh(tg,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}));terrain.receiveShadow=true;scene.add(terrain);
 const mat=(c,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c},o||{}));
 /* pohon & batu (InstancedMesh) */
-const NT=520,ic_=r=>new THREE.IcosahedronGeometry(r,1),trCone=new THREE.InstancedMesh(ic_(2),mat(0xffffff),NT),trP1=new THREE.InstancedMesh(ic_(1.3),mat(0xffffff),NT),trP2=new THREE.InstancedMesh(ic_(1.2),mat(0xffffff),NT),trTrunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(.3,.4,2.4,7),mat(0x6b4a2b),NT),D=new THREE.Object3D(),CC=new THREE.Color();
-for(let i=0,n=0;n<NT&&i<9000;i++){const x=(R()-.5)*680,z=(R()-.5)*680,zn=zoneAt(x,z);if(Math.hypot(x,z)<26||Math.hypot(x-SX,z-SZ)<55||zn==='Puncak Salju'&&R()<.95||zn==='Gurun Kuno'&&R()<.8||zn==='Gunung Pedang'&&R()<.6)continue;
+const TPOS=[],NT=520,ic_=r=>new THREE.IcosahedronGeometry(r,1),trCone=new THREE.InstancedMesh(ic_(2),mat(0xffffff),NT),trP1=new THREE.InstancedMesh(ic_(1.3),mat(0xffffff),NT),trP2=new THREE.InstancedMesh(ic_(1.2),mat(0xffffff),NT),trTrunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(.3,.4,2.4,7),mat(0x6b4a2b),NT),D=new THREE.Object3D(),CC=new THREE.Color();
+for(let i=0,n=0;n<NT&&i<9000;i++){const x=(R()-.5)*680,z=(R()-.5)*680,zn=zoneAt(x,z);if(Math.hypot(x,z)<26||Math.hypot(x-SX,z-SZ)<55||Math.hypot(x-210,z+30)<68||zn==='Puncak Salju'&&R()<.95||zn==='Gurun Kuno'&&R()<.8||zn==='Gunung Pedang'&&R()<.6)continue;
  const y=H(x,z),s=.8+R()*.8,r0=R()*6;D.rotation.set(0,r0,0);D.scale.set(s,s,s);D.position.set(x,y+1.2*s,z);D.updateMatrix();trTrunk.setMatrixAt(n,D.matrix);
  D.rotation.set(0,0,0);D.scale.set(s,s*.88,s);D.position.set(x,y+3.6*s,z);D.updateMatrix();trCone.setMatrixAt(n,D.matrix);
  D.scale.set(s,s*.85,s);D.position.set(x+1.3*s*Math.cos(r0),y+3.1*s,z+1.3*s*Math.sin(r0));D.updateMatrix();trP1.setMatrixAt(n,D.matrix);
  D.position.set(x-1.1*s*Math.cos(r0+1),y+4.5*s,z-1.1*s*Math.sin(r0+1));D.updateMatrix();trP2.setMatrixAt(n,D.matrix);
- CC.set(R()<.16?0xff9ec4:zn==='Hutan Spiritual'?(R()<.5?0x1f6b3a:0x2f9a64):0x3f8f3a);trCone.setColorAt(n,CC);trP1.setColorAt(n,CC);trP2.setColorAt(n,CC);n++;}
+ CC.set(R()<.16?0xff9ec4:zn==='Hutan Spiritual'?(R()<.5?0x1f6b3a:0x2f9a64):0x3f8f3a);trCone.setColorAt(n,CC);trP1.setColorAt(n,CC);trP2.setColorAt(n,CC);TPOS.push({n,x,z});n++;}
 trCone.frustumCulled=trP1.frustumCulled=trP2.frustumCulled=trTrunk.frustumCulled=false;scene.add(trCone,trP1,trP2,trTrunk);
-const rocks=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),mat(0x888a90,{flatShading:true}),200);
-for(let i=0;i<200;i++){const x=(R()-.5)*680,z=(R()-.5)*680,s=.6+R()*1.6;D.rotation.set(R()*3,R()*3,0);const o_=Math.hypot(x-SX,z-SZ)<45?0:1;D.scale.set(s*o_,s*.7*o_,s*o_);D.position.set(x,H(x,z)+.2,z);D.updateMatrix();rocks.setMatrixAt(i,D.matrix);}
+const ROCKS=[],rocks=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),mat(0x888a90,{flatShading:true}),200);
+for(let i=0;i<200;i++){const x=(R()-.5)*680,z=(R()-.5)*680,s=.6+R()*1.6;D.rotation.set(R()*3,R()*3,0);const o_=Math.hypot(x-SX,z-SZ)<45||Math.hypot(x-210,z+30)<70?0:1;D.scale.set(s*o_,s*.7*o_,s*o_);D.position.set(x,H(x,z)+.2,z);D.updateMatrix();rocks.setMatrixAt(i,D.matrix);ROCKS.push({i,x,z,o:o_,s});}
 rocks.frustumCulled=false;scene.add(rocks);
 /* desa pemula: rumah, mata air spiritual, tetua */
 [[-10,-8],[12,-10],[-14,6],[14,12],[-4,14]].forEach(([x,z])=>{const g=new THREE.Group();const w=new THREE.Mesh(new THREE.BoxGeometry(5,3,5),mat(0xe0cfa8)),r=new THREE.Mesh(new THREE.ConeGeometry(4.6,2.4,4),mat(0xa32b2b));r.rotation.y=Math.PI/4;r.position.y=4.2;w.position.y=1.5;g.add(w,r);g.position.set(x,H(x,z),z);scene.add(g);});
@@ -139,7 +139,7 @@ function setOutfit(k){const c=pm.userData.cg;while(c.children.length)c.remove(c.
  const sash=new THREE.Mesh(new THREE.TorusGeometry(.3,.05,6,16),bl);sash.rotation.x=Math.PI/2;sash.position.y=1.06;
  const em=new THREE.Mesh(new THREE.CircleGeometry(.1,14),new THREE.MeshBasicMaterial({color:0xd9a93a,side:THREE.DoubleSide}));em.position.set(0,1.38,.31);
  c.add(col,sash,em);c.traverse(e=>e.castShadow=true);}setOutfit(0);
-P.qm=1;P.sect=0;P.root=null;P.exam=null;P.boost=0;P.pill=0;P.ss=0;P.buff=0;P.fly=false;
+P.qm=1;P.sect=0;P.root=null;P.exam=null;P.boost=0;P.pill=0;P.ss=0;P.mi={f:{},k:{},d:{}};P.spPass=0;P.buff=0;P.fly=false;
 const EL=[{n:'Api',ic:'🔥',c:0xff5a3a,p:1.25,w:22},{n:'Kayu',ic:'☘️',c:0x5adf6a,p:1,w:30},{n:'Air',ic:'💧',c:0x39a0ff,p:1.1,w:28},{n:'Petir',ic:'⚡',c:0xd49bff,p:1.5,w:7},{n:'Es',ic:'❄️',c:0xbfeaff,p:1.3,w:13}];
 /* qm: kecepatan meditasi, nm: pengali kebutuhan Qi terobosan, dr: pengali energi jurus, qd: Qi terkuras per jurus elemen, bc: bonus peluang terobos, pr: peluang muncul */
 const RT=[{n:'Akar Surgawi',qm:3,nm:.7,dr:1,qd:0,bc:.1,pr:.05},{n:'Akar Jenius',qm:2,nm:.85,dr:1,qd:0,bc:.05,pr:.15},{n:'Akar Bagus',qm:1.2,nm:1,dr:1.1,qd:.004,bc:0,pr:.3},{n:'Akar Biasa',qm:.7,nm:1.3,dr:1.25,qd:.008,bc:-.05,pr:.3},{n:'Akar Sampah',qm:.45,nm:1.7,dr:1.5,qd:.015,bc:-.1,pr:.2}];
@@ -166,13 +166,13 @@ function openJ(){const c=$('jp');if(c.style.display==='block'){c.style.display='
  const x=document.createElement('button');x.textContent='Tutup';x.onclick=()=>c.style.display='none';c.appendChild(x);c.style.display='block';const on=c.querySelector('.on');if(on&&on.scrollIntoView)on.scrollIntoView({block:'center'});}
 function tag(t,big){const T=tex(256,64,(x,w,h)=>{x.fillStyle='#0b1030cc';x.fillRect(0,8,w,48);x.strokeStyle='#ffd54a';x.lineWidth=3;x.strokeRect(2,10,w-4,44);x.fillStyle='#fff';x.font='bold 22px sans-serif';x.textAlign='center';x.fillText(t,w/2,43);});
  const p=new THREE.Sprite(new THREE.SpriteMaterial({map:T,depthTest:false,transparent:true}));p.scale.set(big?6:3.4,big?1.5:.85,1);p.renderOrder=6;return p;}
-const wall=mat(0xefe6d0),roofM=mat(0x25306e),glowM=new THREE.MeshBasicMaterial({color:0xffcf70}),COL=[],LB=[];
+const wall=mat(0xefe6d0),roofM=mat(0x25306e),glowM=new THREE.MeshBasicMaterial({color:0xffcf70}),COL=[],LB=[],BLD=[];
 const box=(w,h,d,m,x,y,z,g)=>{const e=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);e.position.set(x,y,z);(g||scene).add(e);return e;};
 const roof=(r,h)=>new THREE.Mesh(new THREE.ConeGeometry(r,h,4).rotateY(Math.PI/4),roofM);
 function label(t,x,y,z){const p=tag(t,1);p.position.set(x,y,z);scene.add(p);LB.push(p);}
 function bld(dx,dz,w,d,h,name,tier){const x=SX+dx,z=SZ+dz,g=new THREE.Group(),m=Math.max(w,d);box(w,h,d,wall,0,h/2,0,g);box(w*.22,h*.65,.15,glowM,0,h*.33,d/2+.02,g);
  const r=roof(m*.82,h*.75);r.scale.set(w/m,1,d/m);r.position.y=h*1.37;g.add(r);if(tier){const r2=roof(m*.5,h*.6);r2.scale.set(w/m,1,d/m);r2.position.y=h*2.05;g.add(r2);}
- g.position.set(x,H(x,z),z);g.traverse(e=>e.castShadow=true);scene.add(g);COL.push({x,z,r:m*.55+.5});label(name,x,h*2.4+1,z);}
+ g.position.set(x,H(x,z),z);g.traverse(e=>e.castShadow=true);scene.add(g);{const ce={x,z,r:m*.55+.5};COL.push(ce);BLD.push({g,ce,x,z,r:m*.6,hp:900,max:900,on:true});}label(name,x,h*2.4+1,z);}
 bld(0,-15,12,7,5,'Aula Utama',1);bld(15,4,6,5,3.2,'Pendaftaran Sekte');bld(15,14,6,5,3.2,'Toko Sekte');bld(-15,9,7,5,3.2,'Asrama Murid');
 {const x=SX-16,z=SZ-16,g=new THREE.Group(),bl=mat(0x39c8ff,{emissive:0x1a6aff});for(let i=0;i<4;i++){const w=5-i*.9;box(w,2.2,w,wall,0,i*3.1+1.1,0,g);const r=roof(w*.85,1.3);r.position.y=i*3.1+2.85;g.add(r);}
  const c=new THREE.Mesh(new THREE.OctahedronGeometry(.7),bl);c.position.y=13.4;g.add(c);g.position.set(x,H(x,z),z);scene.add(g);COL.push({x,z,r:3.2});label('Menara Kultivasi',x,16,z);}
@@ -230,8 +230,9 @@ label('Kultivasi Tertutup',SX,3.4,SZ-15+3.9);
 mkNpc('Penjaga Aula',...S_(-3.2,-9.6),0xbfc7d9,{sword:1},0,()=>say('Penjaga Aula','Pemimpin Sekte sedang berkultivasi tertutup di dalam Aula Utama. Dilarang mengganggu!'));
 mkNpc('Penjaga Aula',...S_(3.2,-9.6),0xbfc7d9,{sword:1},0,()=>say('Penjaga Aula','Pintu aula dikunci. Jangan membuat keributan di sini, Adik.'));
 {const tl=tag('Tetua Lin');tl.position.set(0,3.2,0);npc.add(tl);}
-function canInteract(){for(const n of NPCS){if(n.in||!n.g.visible||(n.sp&&Math.abs(P.y-n.sy)>25))continue;if(Math.hypot(P.x-n.g.position.x,P.z-n.g.position.z)<4.2)return true;}return Math.hypot(P.x-SX,P.z-(SZ-9.5))<4.5||(!night&&Math.hypot(P.x+6,P.z-6)<5)||Math.hypot(P.x-SP.x,P.z-SP.z)<5;}
-function talkNear(){let b=null,bd=4.2;NPCS.forEach(n=>{if(n.in||(n.sp&&Math.abs(P.y-n.sy)>25))return;const d=Math.hypot(P.x-n.g.position.x,P.z-n.g.position.z);if(d<bd){bd=d;b=n;}});if(b){dlgN=b;b.talk();return true;}if(Math.hypot(P.x-SX,P.z-(SZ-9.5))<4.5){dlgN=null;say('Aula Utama','Pintu terkunci rapat dari dalam. Pemimpin Sekte Suci sedang berkultivasi tertutup. Jangan diganggu!');return true;}return false;}
+function canInteract(){for(const n of NPCS){if(n.in||!n.g.visible||(n.sp&&Math.abs(P.y-n.sy)>25))continue;if(Math.hypot(P.x-n.g.position.x,P.z-n.g.position.z)<4.2)return true;}return Math.hypot(P.x-SX,P.z-(SZ-9.5))<4.5||(!night&&Math.hypot(P.x+6,P.z-6)<5)||Math.hypot(P.x-SP.x,P.z-SP.z)<5||mons.some(m=>m.sct&&!SPW.war&&m.dead<=0&&m.g.visible&&Math.hypot(P.x-m.g.position.x,P.z-m.g.position.z)<4.2);}
+function talkNear(){let b=null,bd=4.2;NPCS.forEach(n=>{if(n.in||(n.sp&&Math.abs(P.y-n.sy)>25))return;const d=Math.hypot(P.x-n.g.position.x,P.z-n.g.position.z);if(d<bd){bd=d;b=n;}});mons.forEach(m=>{if(!m.sct||SPW.war||m.dead>0||!m.g.visible)return;const d=Math.hypot(P.x-m.g.position.x,P.z-m.g.position.z);if(d<bd){bd=d;b={n:m.nm,g:m.g,talk:()=>spTalk(m)};}});
+if(b){dlgN=b;b.talk();return true;}if(Math.hypot(P.x-SX,P.z-(SZ-9.5))<4.5){dlgN=null;say('Aula Utama','Pintu terkunci rapat dari dalam. Pemimpin Sekte Suci sedang berkultivasi tertutup. Jangan diganggu!');return true;}return false;}
 /* ---------- Murid Senior: patroli, emosi, membasmi musuh ---------- */
 const WP=[[0,2],[6,-4],[-6,-2],[0,10],[8,9],[-8,12],[-8,3],[5,8]];
 function mkBubble(){const c=document.createElement('canvas');c.width=256;c.height=96;const t=new THREE.CanvasTexture(c),sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true}));sp.scale.set(3.6,1.35,1);sp.renderOrder=7;sp.visible=false;scene.add(sp);return{c,t,s:sp};}
@@ -338,7 +339,7 @@ function yetiMesh(fur){const g=new THREE.Group(),sk=mat(0x4a6088),dk=mat(0x141a2
   const a=part(k,k*.8,1.85);E(.3,.62,.3,fur,0,-.5,0,a);E(.28,.55,.28,fur,0,-1.15,.04,a);E(.2,.22,.2,sk,0,-1.58,.06,a);T(0,-.55,0,.3,.6,.3,6,a,.9);arms.push(a);
   const l=part(k,k*.28,.98);E(.3,.46,.32,fur,0,-.32,0,l);E(.25,.42,.26,fur,0,-.7,.02,l);E(.24,.1,.36,sk,0,-.9,.14,l);T(0,-.4,0,.3,.45,.3,5,l,.9);legs.push(l);});
  g.traverse(o=>o.castShadow=true);g.userData={l1:legs[0],l2:legs[1],a1:arms[0],a2:arms[1]};return g;}
-const MT={wolf:{n:'Serigala Roh',hp:60,atk:9,lv:1,sp:4.6,c:0x6f7a96,sc:1.1,qi:20,st:[3,6]},tiger:{n:'Harimau Hutan',hp:150,atk:18,lv:3,sp:5.4,c:0xe08a1f,sc:1.35,qi:65,st:[8,15]},yeti:{n:'Yeti Salju',hp:1500,atk:48,lv:9,sp:3.8,c:0xeef3fa,sc:1.7,qi:1100,st:[50,50],rs:90,bh:3.1},lion:{n:'Singa Api Fondasi',hp:4200,atk:90,lv:18,sp:5.2,c:0xd9a441,sc:1.9,qi:2600,st:[350,350],rs:150,bh:3.7},jelly:{n:'Ubur-ubur Bintang',hp:4000,atk:85,lv:18,sp:7,c:0x8fd8ff,sc:2.2,qi:2400,st:[350,350],rs:1,bh:3.4},golem:{n:'Golem Batu (BOSS)',hp:700,atk:34,lv:6,sp:2.8,c:0x7a7f88,sc:1.6,qi:450,st:[80,130],bh:3.4}};
+const MT={wolf:{n:'Serigala Roh',hp:60,atk:9,lv:1,sp:4.6,c:0x6f7a96,sc:1.1,qi:20,st:[3,6]},tiger:{n:'Harimau Hutan',hp:150,atk:18,lv:3,sp:5.4,c:0xe08a1f,sc:1.35,qi:65,st:[8,15]},yeti:{n:'Yeti Salju',hp:1500,atk:48,lv:9,sp:3.8,c:0xeef3fa,sc:1.7,qi:1100,st:[50,50],rs:90,bh:3.1},spl:{n:'Pemimpin Sekte Spiritual',hp:30000,atk:380,lv:53,sp:5.5,c:0xe0b44a,sc:1.35,qi:20000,st:[20000,20000],rs:900,bh:2.7},spc:{n:'Murid Inti Spiritual',hp:4500,atk:110,lv:22,sp:5,c:0x2fb59a,sc:1.1,qi:900,st:[400,400],rs:240,bh:2.7},spd:{n:'Murid Sekte Spiritual',hp:800,atk:35,lv:13,sp:4.6,c:0xefe6d0,sc:1,qi:120,st:[60,60],rs:180,bh:2.7},lion:{n:'Singa Api Fondasi',hp:4200,atk:90,lv:18,sp:5.2,c:0xd9a441,sc:1.9,qi:2600,st:[350,350],rs:150,bh:3.7},jelly:{n:'Ubur-ubur Bintang',hp:4000,atk:85,lv:18,sp:7,c:0x8fd8ff,sc:2.2,qi:2400,st:[350,350],rs:1,bh:3.4},golem:{n:'Golem Batu (BOSS)',hp:700,atk:34,lv:6,sp:2.8,c:0x7a7f88,sc:1.6,qi:450,st:[80,130],bh:3.4}};
 function tigerMesh(m){const g=dogMesh(m,new THREE.MeshBasicMaterial({color:0xffe14a}),0),dk=mat(0x1a1208),cr=mat(0xfff0d8),S=new THREE.SphereGeometry(1,8,6),K=new THREE.ConeGeometry(1,1,5),
  ad=(geo,mt,x,y,z,a,b,c,p)=>{const k=new THREE.Mesh(geo,mt);k.position.set(x,y,z);k.scale.set(a,b,c);(p||g).add(k);return k;};
  for(let i=0;i<9;i++){const z=-.9+i*.2,f=Math.sqrt(Math.max(0,1-Math.pow((z+.1)/1,2)));ad(S,dk,0,.95,z,(.4+(i%2)*.03)*f+.03,(.42+(i%2)*.03)*f+.03,.035);}
@@ -373,16 +374,16 @@ function slam(m,rad,mul){const gp=m.g.position,dm=Math.round(m.d.atk*mul);ring(g
  for(const n of SEN){const q=n.g.position;if(!night&&n.s.st!=='down'&&Math.hypot(q.x-SX,q.z-SZ)>=29.5&&Math.hypot(q.x-gp.x,q.z-gp.z)<rad){n.s.hp-=dm;pop(q.x,q.y+2.6,q.z,'-'+dm,'#ff9a5a');}}}
 const mons=[];
 function spawn(t,x,z){const d=MT[t],g=new THREE.Group(),bm=mat(d.c,t==='yeti'?{flatShading:true}:undefined),b=new THREE.Mesh(new THREE.BoxGeometry(1.4,.9,.8),bm),h=new THREE.Mesh(new THREE.BoxGeometry(.6,.6,.6),bm),l=new THREE.Mesh(new THREE.BoxGeometry(1.2,.5,.6),mat(0x222230));
- b.position.y=.95;h.position.set(0,1.2,.85);l.position.y=.3;if(t==='wolf')g.add(dogMesh(bm,new THREE.MeshBasicMaterial({color:0xff5050})));else if(t==='yeti')g.add(yetiMesh(bm));else if(t==='tiger')g.add(tigerMesh(bm));else if(t==='lion')g.add(lionMesh(bm));else if(t==='jelly')g.add(jellyMesh(bm));else if(t==='golem')g.add(golemMesh(bm));else g.add(b,h,l);g.scale.setScalar(d.sc);g.traverse(o=>o.castShadow=true);
+ b.position.y=.95;h.position.set(0,1.2,.85);l.position.y=.3;if(t==='wolf')g.add(dogMesh(bm,new THREE.MeshBasicMaterial({color:0xff5050})));else if(t==='yeti')g.add(yetiMesh(bm));else if(t==='tiger')g.add(tigerMesh(bm));else if(t==='lion')g.add(lionMesh(bm));else if(t==='jelly')g.add(jellyMesh(bm));else if(t==='golem')g.add(golemMesh(bm));else if(t==='spl'||t==='spc'||t==='spd')g.add(sectHuman(t));else g.add(b,h,l);g.scale.setScalar(d.sc);g.traverse(o=>o.castShadow=true);
  const bg=new THREE.PlaneGeometry(1,.14).translate(.5,0,0),bar=new THREE.Mesh(bg,new THREE.MeshBasicMaterial({color:0xff4d6a,depthTest:false}));bar.renderOrder=5;bar.scale.x=1.6;
  const bar2=new THREE.Group();bar2.add(bar);bar.position.x=-.8;scene.add(g,bar2);
  const m={t,d,g,bar,bar2,bm,hp:d.hp,max:d.hp,hx:x,hz:z,wx:x,wz:z,wt:0,atkCd:0,dead:0,flash:0,sc:d.sc};g.position.set(x,H(x,z),z);mons.push(m);}
 for(let i=0;i<10;i++){let x,z;do{const a=R()*6.28,r=34+R()*40;x=Math.cos(a)*r;z=Math.sin(a)*r;}while(Math.hypot(x-SX,z-SZ)<36);spawn('wolf',x,z);}
-for(let i=0;i<8;i++)spawn('tiger',75+R()*85,(R()-.5)*160);
+for(let i=0;i<8;i++)spawn('tiger',75+R()*65,(R()-.5)*160);
 spawn('golem',0,-120);
-for(let i=0;i<16;i++){let x,z;do{const a=R()*6.28,r=100+R()*230;x=Math.cos(a)*r;z=Math.sin(a)*r;}while(Math.hypot(x-SX,z-SZ)<40||z<-125);spawn('wolf',x,z);}for(let i=0;i<12;i++)spawn('tiger',130+R()*200,(R()-.5)*600);
+for(let i=0;i<16;i++){let x,z;do{const a=R()*6.28,r=100+R()*230;x=Math.cos(a)*r;z=Math.sin(a)*r;}while(Math.hypot(x-SX,z-SZ)<40||z<-125||Math.hypot(x-210,z+30)<80);spawn('wolf',x,z);}for(let i=0;i<12;i++){let x,z;do{x=130+R()*200;z=(R()-.5)*600;}while(Math.hypot(x-210,z+30)<80);spawn('tiger',x,z);}
 for(let i=0;i<3;i++){let x,z,k=0;do{x=(R()-.5)*260;z=-130-R()*42;k++;}while(H(x,z)<10&&k<300);spawn('yeti',x,z);}
-for(let i=0;i<6;i++){let x,z,k=0;do{const a=R()*6.28,r=170+R()*150;x=Math.cos(a)*r;z=Math.sin(a)*r;k++;}while((Math.hypot(x-SX,z-SZ)<60||z<-125||H(x,z)>10)&&k<400);spawn('lion',x,z);}
+for(let i=0;i<6;i++){let x,z,k=0;do{const a=R()*6.28,r=170+R()*150;x=Math.cos(a)*r;z=Math.sin(a)*r;k++;}while((Math.hypot(x-SX,z-SZ)<60||z<-125||Math.hypot(x-210,z+30)<80||H(x,z)>10)&&k<400);spawn('lion',x,z);}
 /* ---------- UI helpers ---------- */
 let tT=0;function toast(s){const t=$('toast');t.textContent=s;t.style.opacity=1;clearTimeout(tT);tT=setTimeout(()=>t.style.opacity=0,2400);}
 const V=new THREE.Vector3();function pop(x,y,z,s,c){V.set(x,y,z).project(cam);if(V.z>1)return;const e=document.createElement('div');e.className='dm';e.textContent=s;e.style.color=c;e.style.left=((V.x*.5+.5)*innerWidth-10)+'px';e.style.top=((-V.y*.5+.5)*innerHeight)+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),800);}
@@ -575,9 +576,134 @@ async function mpStart(){if(MP.started)return;MP.started=true;try{
  addEventListener('pagehide',()=>{try{MP.me.remove();}catch(e){}});
  const t=document.createElement('div');t.style.cssText='position:fixed;top:4px;left:50%;transform:translateX(-50%);font:11px sans-serif;color:#cfe;background:#0008;padding:2px 8px;border-radius:8px;pointer-events:none;z-index:5';t.textContent='👥 Online: 1';document.body.appendChild(t);MP.tx=t;MP.on=true;
 }catch(e){console.warn('Mabar gagal',e);MP.on=false;}}
+/* ===== SEKTE SPIRITUAL, KERUSAKAN DUNIA, EFEK, MISI, TUTORIAL ===== */
+const SPS={x:210,z:-30,r:62},SPW={war:false,duel:false,warn:0,warnT:0,away:0,lt:0,asked:false,in:false};
+const sGold=mat(0xe0b44a,{emissive:0x5a4208}),sJade=mat(0x2fb59a,{emissive:0x083a30}),sCream=mat(0xf6efd8),sRed=mat(0xb02a2a,{emissive:0x300808}),sGlow=new THREE.MeshBasicMaterial({color:0xffe08a});
+function sbld(dx,dz,w,d,h,name,tier,rm){const x=SPS.x+dx,z=SPS.z+dz,g=new THREE.Group(),m=Math.max(w,d);box(w,h,d,sCream,0,h/2,0,g);box(w+.8,.7,d+.8,sGold,0,h+.2,0,g);box(w*.22,h*.65,.15,sGlow,0,h*.33,d/2+.02,g);
+ [-1,1].forEach(k=>box(.7,h,.7,sGold,k*w*.34,h/2,d/2+.5,g));
+ const r=new THREE.Mesh(new THREE.ConeGeometry(m*.85,h*.8,4).rotateY(Math.PI/4),rm||sGold);r.scale.set(w/m,1,d/m);r.position.y=h*1.4;g.add(r);
+ if(tier){const r2=new THREE.Mesh(new THREE.ConeGeometry(m*.52,h*.65,4).rotateY(Math.PI/4),rm||sGold);r2.scale.set(w/m,1,d/m);r2.position.y=h*2.15;g.add(r2);const o=new THREE.Mesh(new THREE.SphereGeometry(.9,10,8),sGlow);o.position.y=h*2.7;g.add(o);}
+ g.position.set(x,H(x,z),z);g.traverse(e=>e.castShadow=true);scene.add(g);const ce={x,z,r:m*.55+.6};COL.push(ce);BLD.push({g,ce,x,z,r:m*.62,hp:1300,max:1300,on:true});label(name,x,h*(tier?3.3:2.5)+1,z);}
+{sbld(0,-14,26,16,10,'Aula Agung',1,sGold);sbld(-32,-26,14,10,7,'Perbendaharaan',1,sGold);sbld(32,-26,14,10,7,'Balai Alkimia',1,sJade);sbld(-40,4,12,9,6,'Balai Murid Inti',0,sJade);sbld(40,4,12,9,6,'Asrama Murid',0,sJade);sbld(-34,30,12,9,5.5,'Perpustakaan',0,sGold);sbld(34,30,12,9,5.5,'Dojo Latihan',0,sJade);
+ [[-30,-17],[-34,-20],[-27,-21]].forEach(([a,b],i)=>box(2.2+i*.4,1.2+i*.3,2,sGold,SPS.x+a-2+i*1.4,.6+i*.15,SPS.z+b+6));
+ box(7,.12,60,mat(0xd8cfae),SPS.x,.07,SPS.z+28);
+ const pond=new THREE.Mesh(new THREE.CylinderGeometry(8,8,.3,28),new THREE.MeshBasicMaterial({color:0x3fd0c0}));pond.position.set(SPS.x-16,.15,SPS.z+14);scene.add(pond);COL.push({x:SPS.x-16,z:SPS.z+14,r:8.4});
+ const st=new THREE.Group();[[0,1.5,0,1.1],[0,3,.3,.7]].forEach(([a,b,c,r])=>{const e=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),sGold);e.position.set(a,b,c);st.add(e);});const hn=new THREE.Mesh(new THREE.ConeGeometry(.2,1.2,6),sGlow);hn.position.set(0,4,.4);st.add(hn);st.position.set(SPS.x+16,0,SPS.z+14);scene.add(st);COL.push({x:SPS.x+16,z:SPS.z+14,r:1.8});
+ for(let i=0;i<16;i++){const a=i/16*6.283,x=SPS.x+Math.sin(a)*28,z=SPS.z+Math.cos(a)*28;box(.25,2.6,.25,sGold,x,1.3,z);const o=new THREE.Mesh(new THREE.SphereGeometry(.45,8,6),sGlow);o.position.set(x,2.9,z);scene.add(o);}
+ for(let i=0;i<28;i++){const a=i/28*6.283;if(Math.abs(Math.atan2(Math.sin(a),Math.cos(a))-0)<.17||Math.abs(a-6.283)<.17)continue;const x=SPS.x+Math.sin(a)*59,z=SPS.z+Math.cos(a)*59,w=box(13.4,3.4,1.4,sCream,x,1.7,z);w.rotation.y=a;const tp=box(13.6,.5,1.8,sGold,x,3.55,z);tp.rotation.y=a;COL.push({x,z,r:6.8});}
+ const gx=SPS.x,gz=SPS.z+59;[-10,10].forEach(k=>{box(1.4,9,1.4,sRed,gx+k,4.5,gz);COL.push({x:gx+k,z:gz,r:1.6});});box(24,1,1.8,sGold,gx,9,gz);box(26.5,.8,2.6,sRed,gx,10.2,gz);box(21,.5,.6,sGold,gx,8,gz);label('Sekte Spiritual',gx,13,gz);}
+// ---- orang sekte (bermodel manusia, punya emosi)
+function sectHuman(t){const c={spl:0xe0b44a,spc:0x2fb59a,spd:[0xefe6d0,0xd7e8f5,0xf0d9e4][Math.floor(R()*3)]}[t],g=human(c,1,{hair:t==='spl'?0xe8e8e8:[0x1b1522,0x5a3a1a,0x2a2a6a][Math.floor(R()*3)],sword:t!=='spd'});g.rotation.order='YXZ';const w=new THREE.Group();w.add(g);return w;}
+const MOODS=['happy','angry','sad','sleepy','thinking','proud','scared','happy'],
+ LN={happy:[['😊','Sekte kita makin makmur!'],['🥰','Cuaca hari ini sempurna.']],angry:[['😠','Awas, jangan macam-macam di sini.'],['😤','Latihan hari ini melelahkan!']],sad:[['😢','Aku rindu keluargaku...'],['😞','Gagal terobosan lagi.']],sleepy:[['😴','Zzz... mengantuk.'],['🥱','Latihan semalaman...']],thinking:[['🤔','Bagaimana menembus Fondasi?'],['🧐','Jurus ini masih kurang.']],proud:[['😎','Kita sekte terkaya & terbesar!'],['🤩','Pemimpin kita Jiwa Pembentukan!']],scared:[['😨','Semoga tak ada penyusup...'],['😰','Aku takut bertarung.']]};
+function sbub(m,ic,tx){if(!m.bub){const c=document.createElement('canvas');c.width=320;c.height=96;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(4.4,1.32,1);sp.position.y=5;sp.renderOrder=11;m.g.add(sp);m.bub=sp;m.bc=c;}
+ const x=m.bc.getContext('2d');x.clearRect(0,0,320,96);x.fillStyle='#0b1030e8';x.fillRect(4,6,312,78);x.strokeStyle='#ffd54a';x.lineWidth=3;x.strokeRect(4,6,312,78);x.fillStyle='#fff';x.font='38px sans-serif';x.textAlign='left';x.fillText(ic,12,58);x.font='bold 19px sans-serif';x.fillText(tx.slice(0,24),62,52);m.bub.material.map.needsUpdate=true;m.bub.visible=true;m.bubT=3.4;}
+const spEmo=sbub,spAll=f=>mons.filter(m=>m.sct&&m.dead<=0).forEach(f),spLeader=()=>mons.find(m=>m.t==='spl'),spNear=()=>{let b=null,bd=1e9;spAll(m=>{if(m.t==='spl')return;const d=Math.hypot(P.x-m.g.position.x,P.z-m.g.position.z);if(d<bd){bd=d;b=m;}});return b;};
+function spMake(t,dx,dz,name,lvl,mood,role){spawn(t,SPS.x+dx,SPS.z+dz);const m=mons[mons.length-1];m.sct=1;m.nm=name;m.lvl=lvl;m.mood=mood;m.role=role;m.emT=R()*8;const pl=mpPlate(name,mpInfo(lvl),t==='spl'?'#ffd54a':t==='spc'?'#8fe8ff':'#ffffff');pl.position.y=3.6;m.g.add(pl);m.plate=pl;pl.visible=false;return m;}
+spMake('spl',0,-1,'Pemimpin Chen Tian',53,'proud','leader');
+[['Murid Inti Lan',-9,6],['Murid Inti Jun',9,6],['Murid Inti Rei',0,14]].forEach(([n,a,b],i)=>spMake('spc',a,b,n,22,['proud','angry','thinking'][i],'core'));
+['Lin Feng','Mei Zhu','Shen Yu','Bai Luo','Xiao Han','Yun Qi','Hua Rong','Tian Ji','Jing Wei','Ru Yan','Zhao An','Lan Ying'].forEach((n,i)=>{const a=i/12*6.283,r=22+R()*22;spMake('spd',Math.sin(a)*r*.9,Math.cos(a)*r*.7+8,n,13,MOODS[i%8],'disc');});
+spMake('spd',-6,53,'Penjaga Wang',13,'angry','gate');spMake('spd',6,53,'Penjaga Ming',13,'sleepy','gate');
+function spTalk(m){const L={leader:'Aku memimpin <b>Sekte Spiritual</b>, sekte terkaya dan terbesar di hutan ini (Pembentukan Jiwa Tahap 9). Hormati aturan kami: tamu harus punya izin. Siapa menyerang kami akan berhadapan denganku.',core:'Aku murid inti (Pembangunan Fondasi Tahap 5). Jangan buat masalah di sini, ya.'};
+ if(m.role==='gate')return say(m.nm,P.spPass>clock?'Izinmu masih berlaku. Silakan masuk, tapi jaga sikap.':'Sekte Spiritual tidak menerima tamu tanpa izin. Sumbangan <b>300💎</b> untuk izin masuk 10 menit.',P.spPass>clock?undefined:[['Beri sumbangan 300💎',()=>{if(P.stones<300)return toast('💎 tidak cukup');P.stones-=300;P.spPass=clock+600;SPW.warn=0;toast('📜 Izin masuk Sekte Spiritual diberikan (10 menit)');}],['Tidak jadi']]);
+ if(L[m.role])return say(m.nm,L[m.role]);const l=LN[m.mood];const q=l[Math.floor(R()*l.length)];say(m.nm,q[0]+' '+q[1]+' <small>(Pemurnian Qi Tahap 5)</small>');}
+function spMood(m){if(R()<.18)m.mood=MOODS[Math.floor(R()*MOODS.length)];const l=LN[m.mood],q=l[Math.floor(R()*l.length)];sbub(m,q[0],q[1]);}
+function spWar(why){if(SPW.war)return;SPW.war=true;SPW.duel=false;SPW.asked=false;SPW.lt=0;SPW.away=0;spAll(m=>{if(m.t!=='spl')sbub(m,m.mood==='scared'?'😱':'😠',m.mood==='scared'?'Tolong! Penyerang!':'Penyusup! Serang!');});toast(why==='hit'?'⚔ Kamu menyerang Sekte Spiritual — perang dimulai!':'⚔ Kamu diusir paksa — perang dengan Sekte Spiritual!');}
+function spPeace(){SPW.war=false;SPW.duel=false;SPW.warn=0;SPW.warnT=0;SPW.away=0;mons.forEach(m=>{if(m.sct){m.hp=m.max;m.stun=0;m.burn=0;}});}
+function spDeath(m){if(m.t==='spl'){P.mi.k.spl=(P.mi.k.spl||0)+1;spPeace();spAll(x=>sbub(x,'😭','Pemimpin kita kalah...'));}}
+function spChallenge(){const L=spLeader();if(!L||L.dead>0)return;sbub(L,'😤','Berani sekali!');say(L.nm,'Anak muda! Berani mengacau di Sekte Spiritual? Duel denganku satu lawan satu — atau seluruh sekte akan menghabisimu!',[['Terima duel',()=>{SPW.duel=true;spAll(m=>{if(m.t!=='spl')sbub(m,'😮','Pemimpin turun tangan!');});toast('⚔ Duel melawan Pemimpin Chen Tian!');}],['Menyerah (1000💎)',()=>{if(P.stones<1000)return toast('💎 tidak cukup untuk menyerah');P.stones-=1000;spPeace();toast('🏳 Perang usai. Kamu diminta pergi.');}],['Lawan semua']]);}
+function spWatch(dt){const dc=Math.hypot(P.x-SPS.x,P.z-SPS.z),inside=dc<SPS.r&&P.y<H(P.x,P.z)+25&&P.dead<=0;
+ if(inside&&!SPW.in){SPW.in=true;if(SPW.warn===0)SPW.warnT=2;}if(!inside)SPW.in=false;
+ if(inside&&P.spPass>clock)P.mi.f.sp=1;
+ if(inside&&P.spPass<=clock&&!SPW.war){SPW.warnT-=dt;if(SPW.warnT<=0){SPW.warn++;SPW.warnT=7;const g0=spNear();if(SPW.warn===1){if(g0)sbub(g0,'😠','Berhenti! Tanpa izin dilarang!');toast('📢 Murid Spiritual menegurmu: Berhenti! Tamu tanpa izin dilarang masuk.');}else if(SPW.warn===2){if(g0)sbub(g0,'😡','Pergi, atau kami usir!');toast('📢 Peringatan terakhir: pergi sekarang atau kami usir dengan kekerasan!');}else spWar('trespass');}}
+ else if(!inside&&!SPW.war){SPW.away+=dt;if(SPW.away>6){SPW.warn=0;SPW.warnT=0;SPW.away=0;}}
+ if(SPW.war){SPW.lt+=dt;if(P.dead>0||dc>SPS.r+55){SPW.away+=dt;if(SPW.away>20)spPeace();}else SPW.away=0;if(!SPW.asked&&!SPW.duel&&SPW.lt>7){SPW.asked=true;spChallenge();}}}
+function spTick(m,dt,d){const g=m.g,w=g.children[0],u=w.children[0]?w.children[0].userData:null,px=g.position.x,pz=g.position.z;m.atkCd-=dt;m.bubT-=dt;if(m.bub&&m.bubT<=0)m.bub.visible=false;if(m.plate)m.plate.visible=d<45;
+ if(m.burn>0){m.burn-=dt;m.bt=(m.bt||0)-dt;if(m.bt<=0){m.bt=1;hurtM(m,m.bd,true);if(m.dead>0)return;}}
+ const st=m.stun>0;if(st)m.stun-=dt;let sp=m.d.sp;if(m.slow>0){m.slow-=dt;sp*=.35;}
+ const lead=m.t==='spl',war=SPW.war&&P.dead<=0,flee=war&&m.mood==='scared'&&m.t==='spd',host=war&&!flee&&(!SPW.duel||lead)&&(!lead||SPW.asked||SPW.duel);let tx=null,tz=null;
+ if(host&&!st){const dx=P.x-px,dz=P.z-pz,dd=Math.hypot(dx,dz),reach=1.9+m.sc;g.rotation.y=Math.atan2(dx,dz);
+  if(dd>reach){tx=P.x;tz=P.z;}else if(m.atkCd<=0&&P.invul<=0&&P.y<g.position.y+4){m.atkCd=1.3;const dm=Math.round(m.d.atk*(.85+R()*.3));P.hp-=dm;P.hit=.25;pop(P.x,P.y+2.4,P.z,'-'+dm,'#ff5a6e');if(u)u.arm.rotation.x=-1.6;}
+  if(m.t!=='spd'){m.rcd=(m.rcd||0)-dt;if(m.rcd<=0&&dd>6&&dd<24&&P.invul<=0){m.rcd=3.2;const dm=Math.round(m.d.atk*.55);bolt(new THREE.Vector3(px,g.position.y+2.4,pz),new THREE.Vector3(P.x,P.y+1.2,P.z),0xffe08a,.1,.3);P.hp-=dm;P.hit=.25;pop(P.x,P.y+2.4,P.z,'-'+dm,'#ffd54a');}}
+  if(lead){m.scd=(m.scd||0)-dt;if(m.scd<=0&&dd<9){m.scd=6;slam(m,8,1.1);}}}
+ else if(flee){const dx=px-P.x,dz=pz-P.z,e=Math.hypot(dx,dz)||1;tx=px+dx/e*10;tz=pz+dz/e*10;sp*=1.2;if(m.emT<=0){m.emT=2.5;sbub(m,'😱','Aaah!');}}
+ else{if(SPW.duel&&!lead&&Math.hypot(P.x-px,P.z-pz)<9){const dx=px-P.x,dz=pz-P.z,e=Math.hypot(dx,dz)||1;tx=px+dx/e*5;tz=pz+dz/e*5;}else{m.wt-=dt;if(m.wt<=0){m.wt=3+R()*4;const rr=lead?2:m.role==='gate'?1.5:m.role==='core'?5:12;m.wx=m.hx+(R()-.5)*rr*2;m.wz=m.hz+(R()-.5)*rr*2;}tx=m.wx;tz=m.wz;sp*=war?1:.35;}}
+ if(st)tx=null;let mv=false;if(tx!==null){const ex=tx-px,ez=tz-pz,e=Math.hypot(ex,ez);if(e>.6){g.position.x+=ex/e*sp*dt;g.position.z+=ez/e*sp*dt;mv=true;if(!host)g.rotation.y=Math.atan2(ex,ez);}}
+ g.position.y=H(g.position.x,g.position.z);
+ if(u){const ph=clock*(host?12:7);u.l1.rotation.x=mv?Math.sin(ph)*.7:0;u.l2.rotation.x=mv?-Math.sin(ph)*.7:0;u.arm.rotation.x+=((mv?Math.sin(ph)*.4:0)-u.arm.rotation.x)*Math.min(1,dt*10);u.la.rotation.x=mv?-Math.sin(ph)*.4:0;}
+ m.emT-=dt;if(m.emT<=0&&!SPW.war){m.emT=7+R()*9;if(d<32)spMood(m);}
+ m.bar2.visible=m.hp<m.max||SPW.war;m.bar2.position.set(g.position.x,g.position.y+(m.d.bh||2.6)*m.sc,g.position.z);m.bar2.quaternion.copy(cam.quaternion);m.bar.scale.x=1.6*cl(m.hp/m.max,0,1)+.001;}
+// ---- kerusakan dunia
+const TZ_=new THREE.Matrix4().makeScale(0,0,0),WR=[];
+function crater(x,z,r){const c=mk(gD,0x2a2118,.55,0);c.rotation.x=-Math.PI/2;c.position.set(x,H(x,z)+.12,z);c.scale.setScalar(r);vfx(c,25,(o,q)=>{fade(o,q>.7?(1-q)/.3:1);});}
+function wreck(x,y,z,rad,pow){if(y>H(x,z)+rad*1.2+20)return;let cnt=0,tc=0,tm=[trCone,trP1,trP2,trTrunk];
+ for(const t of TPOS){if(t.dead||Math.hypot(t.x-x,t.z-z)>=rad)continue;t.dead=1;t.m=tm.map(M=>{const m=new THREE.Matrix4();M.getMatrixAt(t.n,m);return m;});tm.forEach(M=>M.setMatrixAt(t.n,TZ_));tc=1;WR.push({t:clock+90+R()*60,k:'tree',o:t});if(cnt++<6)burst(t.x,H(t.x,t.z)+3,t.z,0x4fbf4f,10,6,8);}
+ if(tc)tm.forEach(M=>M.instanceMatrix.needsUpdate=true);
+ if(pow>=2.5){let rc=0;for(const r of ROCKS){if(!r.o||r.dead||Math.hypot(r.x-x,r.z-z)>=rad)continue;r.dead=1;r.m=new THREE.Matrix4();rocks.getMatrixAt(r.i,r.m);rocks.setMatrixAt(r.i,TZ_);rc=1;WR.push({t:clock+120+R()*60,k:'rock',o:r});if(cnt++<8)burst(r.x,H(r.x,r.z)+1,r.z,0x9a9ca4,10,7,14);}if(rc)rocks.instanceMatrix.needsUpdate=true;}
+ for(const b of BLD){if(!b.on||Math.hypot(b.x-x,b.z-z)>=rad+b.r)continue;b.hp-=pow*35*(1+Math.floor(P.lvl/9)*.5);burst(b.x,H(b.x,b.z)+3,b.z,0xd8cfae,12,6,10);if(b.hp<=0){b.on=false;b.g.visible=false;const i=COL.indexOf(b.ce);if(i>=0)COL.splice(i,1);boom(b.x,H(b.x,b.z)+3,b.z,0xd8cfae,5);burst(b.x,H(b.x,b.z)+2,b.z,0x7a6a50,50,12,16,.8);crater(b.x,b.z,b.r*1.3);WR.push({t:clock+200,k:'bld',o:b});toast('💥 Bangunan runtuh!');}}
+ if(pow>=2&&rad>=4)crater(x,z,rad*.8);}
+function wreckSkill(j,Rr,fx,fz){const k=j.k,pw=j.d;if(k==='shield'||k==='buff')return;
+ if(k==='beam'){const len=Rr*2;for(let i=1;i<=4;i++)wreck(P.x+fx*len*i/4,P.y,P.z+fz*len*i/4,3.5,pw);return;}
+ if(k==='dash'){for(let i=1;i<=3;i++)wreck(P.x+fx*i*3.3,P.y,P.z+fz*i*3.3,3,pw);return;}
+ if(k==='sky'){for(let i=1;i<=6;i++)wreck(P.x+fx*i*8,P.y,P.z+fz*i*8,9,pw*1.5);return;}
+ if(k==='sword')return wreck(P.x+fx*3,P.y,P.z+fz*3,Rr*.9,pw);
+ wreck(P.x,P.y,P.z,k==='nova'?Rr*1.4:k==='rain'?Rr*1.2:Rr,pw);}
+function wrTick(){for(let i=WR.length-1;i>=0;i--){const w=WR[i];if(clock<w.t)continue;
+ if(w.k==='tree'){[trCone,trP1,trP2,trTrunk].forEach((M,j)=>{M.setMatrixAt(w.o.n,w.o.m[j]);M.instanceMatrix.needsUpdate=true;});w.o.dead=0;}
+ else if(w.k==='rock'){rocks.setMatrixAt(w.o.i,w.o.m);rocks.instanceMatrix.needsUpdate=true;w.o.dead=0;}
+ else{w.o.on=true;w.o.hp=w.o.max;w.o.g.visible=true;COL.push(w.o.ce);}WR.splice(i,1);}}
+// ---- efek jurus & terobosan
+function blastFx(rad,c){const x=P.x,y=P.y+.8,z=P.z;boom(x,y,z,c,rad*.35);
+ for(let i=0;i<3;i++){const s=S1(c,.35,1);s.position.set(x,y,z);vfx(s,.6+i*.12,(o,r)=>{o.scale.setScalar(rad*(.15+.95*Math.sqrt(r)));fade(o,(1-r)*(1-i*.2));},i*.08);}
+ for(let i=0;i<14;i++){const a=i/14*6.283,rr=rad*(.55+R()*.35),px=x+Math.sin(a)*rr,pz=z+Math.cos(a)*rr,h=3+R()*2.5,f=K1([0xffd54a,0xff7a2a,0xff3a1a][i%3],.85,.9,h);vfx(f,.7,(o,q)=>{const sn=Math.sin(q*Math.PI);o.scale.set(.9,h*sn+.01,.9);o.position.set(px,H(px,pz)+h*sn/2,pz);fade(o,1-q*q);},.12+R()*.12);}
+ burst(x,y,z,c,50,rad*1.6,10,.55);burst(x,y,z,0x4a4038,30,rad,14,.8);}
+function rageFx(){const g=new THREE.Group();for(let i=0;i<10;i++)g.add(K1([0xff3a1a,0xff7a2a,0xffd54a][i%3],.7,.35,2.4));
+ vfx(g,10,(o,r)=>{o.position.set(P.x,P.y,P.z);o.children.forEach((k,i)=>{const a=i/10*6.283+clock*2.5,rr=.9+Math.sin(clock*5+i)*.15;k.position.set(Math.sin(a)*rr,1+Math.sin(clock*7+i)*.3,Math.cos(a)*rr);k.scale.y=2.4*(.7+.3*Math.sin(clock*9+i*2));});fade(o,r>.9?(1-r)*10:.9);});
+ boom(P.x,P.y+1,P.z,0xff5a2a,3);burst(P.x,P.y+1,P.z,0xff7a2a,40,6,-3,.5);}
+function skyBlast(r){skyFlash();const x=P.x,y=P.y,z=P.z,big=r>=2?1.6:1,n=Math.min(12,4+r*2),V=(a,b,c)=>new THREE.Vector3(a,b,c);
+ const pil=mk(gY,0xfff2a0,.7);pil.position.set(x,y+40,z);vfx(pil,1.6,(o,q)=>{o.scale.set(4*(1-q*.5)*big,90,4*(1-q*.5)*big);fade(o,1-q);});
+ const dm=S1(0xffe08a,.35,1);dm.position.set(x,y,z);vfx(dm,1.4,(o,q)=>{o.scale.setScalar(.1+60*big*Math.sqrt(q));fade(o,1-q);});
+ for(let i=0;i<n;i++){const a=i/n*6.283,rr=10+R()*30*big,px=x+Math.sin(a)*rr,pz=z+Math.cos(a)*rr,gy=H(px,pz);bolt(V(px+(R()-.5)*8,y+70,pz+(R()-.5)*8),V(px,gy+.5,pz),0xfff2a0,.25,.5,i*.07);setTimeout(()=>boom(px,gy+1,pz,0xffd54a,3),i*70);}
+ [0,.3,.6].forEach(dl=>{const rg=mk(gD,0xffe08a,.45);rg.rotation.x=-Math.PI/2;rg.position.set(x,H(x,z)+.2,z);vfx(rg,1.2,(o,q)=>{o.scale.setScalar(50*big*q+.01);fade(o,1-q);},dl);});
+ burst(x,y+2,z,0xfff2a0,80,16,6,.7);wreck(x,y,z,30*big,8);}
+// ---- misi
+const MIS=[['sekte','Masuk sekte mana saja','Bergabung ke Sekte Suci (bumi) atau Sekte Angkasa.',()=>P.sect>=5||P.ss,null,100],
+ ['qi','Capai Pemurnian Qi','Terobos sampai tingkat Pemurnian Qi.',()=>P.lvl>=9,()=>Math.min(P.lvl,9)+'/9',150],
+ ['fond','Capai Pembangunan Fondasi','Terobos sampai Pembangunan Fondasi.',()=>P.lvl>=18,()=>Math.min(P.lvl,18)+'/18',400],
+ ['senior','Jadi Murid Senior','Murid Sekte Suci dengan tingkat Pembangunan Fondasi.',()=>isSenior(),null,400],
+ ['fly','Naik pedang terbang','Naik pedang dengan tombol 🗡️.',()=>P.mi.f.fly,null,200],
+ ['sp','Kunjungi Sekte Spiritual','Masuk Sekte Spiritual (Hutan Spiritual) dengan izin dari penjaga gerbang.',()=>P.mi.f.sp,null,300],
+ ['space','Jelajahi luar angkasa','Terbang dengan pedang sampai ketinggian di atas 900.',()=>P.mi.f.space,null,500],
+ ['moon','Mendarat di bulan','Turun dari pedang di permukaan bulan.',()=>P.mi.f.moon,null,500],
+ ['ss','Kunjungi Sekte Angkasa','Mendarat di platform Sekte Angkasa.',()=>P.mi.f.ss,null,300],
+ ['jelly','Kalahkan monster luar angkasa','Kalahkan 3 Ubur-ubur Bintang di luar angkasa atau bulan.',()=>(P.mi.k.jelly||0)>=3,()=>Math.min(3,P.mi.k.jelly||0)+'/3',1000],
+ ['lion','Kalahkan Singa Api Fondasi','Cari di wilayah jauh dari desa.',()=>(P.mi.k.lion||0)>=1,null,500],
+ ['sun','Mendarat di matahari','Permukaan matahari. HP terkuras kecuali tingkat Jiwa Awal ke atas!',()=>P.mi.f.sun,null,1000],
+ ['duel','Kalahkan Pemimpin Sekte Spiritual','Pembentukan Jiwa Tahap 9. Sangat berbahaya!',()=>(P.mi.k.spl||0)>=1,null,5000]];
+let miT=0;
+function miKill(t){if(t==='jelly'||t==='lion')P.mi.k[t]=(P.mi.k[t]||0)+1;}
+function miTick(dt){miT-=dt;if(miT>0)return;miT=1;const f=P.mi.f;if(P.fly){f.fly=1;if(P.y>900)f.space=1;}if(onMoon)f.moon=1;if(onSS)f.ss=1;if(onSun)f.sun=1;
+ MIS.forEach(([id,t,d,ck,pg,rw])=>{if(!P.mi.d[id]&&ck()){P.mi.d[id]=1;P.stones+=rw;toast('📝 Misi selesai: '+t+'  +'+rw+'💎');}});}
+function openMisi(){const c=$('jp');if(c.style.display==='block'&&c.dataset.k==='mi'){c.style.display='none';return;}c.dataset.k='mi';const n=MIS.filter(m=>P.mi.d[m[0]]).length;c.innerHTML='<h3>📝 Misi ('+n+'/'+MIS.length+')</h3>';
+ [...MIS].sort((a,b)=>(P.mi.d[a[0]]?1:0)-(P.mi.d[b[0]]?1:0)).forEach(([id,t,d,ck,pg,rw])=>{const b=document.createElement('div'),ok=P.mi.d[id];b.style.cssText='padding:7px 8px;margin:5px 0;border-radius:10px;background:'+(ok?'#143a24':'#1a1438')+';font-size:13px;line-height:1.4';b.innerHTML=(ok?'✅ ':'⬜ ')+'<b>'+t+'</b>'+(pg&&!ok?' <span style="color:#8fe8ff">['+pg()+']</span>':'')+'<br><small style="opacity:.85">'+d+'</small><br><small style="color:#ffd54a">Hadiah: '+rw+' 💎</small>';c.appendChild(b);});
+ const x=document.createElement('button');x.textContent='Tutup';x.onclick=()=>c.style.display='none';c.appendChild(x);c.style.display='block';}
+// ---- tutorial
+function openTut(){const c=$('jp');if(c.style.display==='block'&&c.dataset.k==='tu'){c.style.display='none';return;}c.dataset.k='tu';
+ const T=[['🎮 Kontrol dasar','Geser jari di sisi kiri layar untuk berjalan, geser di sisi kanan untuk memutar kamera. Tombol: ⤒ lompat, ⚔ serang biasa, ✨ jurus terpilih, 🔁 ganti jurus, ✋ interaksi (muncul hanya dekat NPC), 🧘 meditasi. PC: Spasi lompat, J serang, K jurus, Q ganti jurus, F pedang, L menghindar, M meditasi, E interaksi, B terobos, T teleport.'],
+ ['🧘 Meditasi & Terobosan','Tekan 🧘 untuk duduk bersila dan mengumpulkan Qi (bar Qi bertambah). Saat Qi penuh, tekan ⚡ TEROBOS untuk naik tingkat. Tiap naik tingkat HP dan energi maksimal bertambah. Pindah tahap besar (Pemurnian Qi, Fondasi, dst.) disertai ledakan langit dan jurusmu berevolusi.'],
+ ['🧬 Akar roh & elemen','Daftar di Sekte Suci (bumi) untuk ujian akar roh. Kamu bisa punya 1–5 elemen (Api, Kayu, Air, Petir, Es). Tiap elemen punya 3 jurus yang makin kuat. Lebih banyak elemen = jurus lebih murah.'],
+ ['✨ Jurus & energi','Buka 📜 untuk melihat jurus. Jurus memakai energi (bar biru) dan punya jeda. Jurus bisa menghancurkan pohon, batu, dan bangunan di sekitar. Energi pulih sendiri; meditasi memulihkannya lebih cepat.'],
+ ['⛩ Sekte','Sekte Suci (dekat desa): jadi murid, naik jadi Senior di Pembangunan Fondasi agar penjaga gerbang menghormatimu. Sekte Spiritual (Hutan Spiritual): minta izin ke penjaga gerbang (300💎) — masuk tanpa izin akan ditegur, menyerang berarti perang dan pemimpin akan mengajak duel. Sekte Angkasa (luar angkasa): jadi murid agar kultivasi ×70 di platformnya.'],
+ ['💎 Batu roh & toko','Kalahkan monster untuk batu roh dan Qi. Toko menjual Pil Qi, Pil Pemulih, Pil Meditasi ×50 (60 detik) dan Pil Meditasi ×10 permanen. Mulai Pembangunan Fondasi toko memberi diskon 10%, naik 10% tiap tahap berikutnya.'],
+ ['🗡️ Pedang terbang & angkasa','Mulai Pembangunan Fondasi kamu bisa naik pedang (🗡️). Terbang menguras energi biru; kecepatan naik tiap tahap. Terus naik untuk keluar bumi: ada bulan, matahari, dan Sekte Angkasa. Di matahari HP terkuras kecuali tingkat Jiwa Awal ke atas, tapi kultivasi ×100.'],
+ ['🌀 Teleport','Mulai tahap Maha Agung tombol 🌀 membuka teleport ruang (ke berbagai lokasi, termasuk bulan, matahari, Sekte Angkasa) dan teleport waktu (siang, senja, malam, fajar). Jurus Belah Langit juga terbuka.'],
+ ['👥 Mabar','Pemain lain muncul sebagai karakter dengan papan nama dan tingkat kultivasinya di atas kepala. Monster dan NPC tidak tersinkron antar pemain.'],
+ ['📝 Misi & tips','Buka 📝 untuk daftar misi dan hadiah. Tips: jangan menyerang sekte besar kecuali kuat; bawa Pil Pemulih; simpan energi untuk menghindar; malam hari NPC bumi menghilang.']];
+ c.innerHTML='<h3>📕 Tutorial Pemula</h3>'+T.map(([t,d])=>'<details style="margin:6px 0;background:#1a1438;border-radius:10px;padding:6px 10px"><summary style="font-weight:700;font-size:14px;cursor:pointer">'+t+'</summary><p style="font-size:13px;line-height:1.55;margin:6px 0 2px">'+d+'</p></details>').join('');
+ const x=document.createElement('button');x.textContent='Tutup';x.onclick=()=>c.style.display='none';c.appendChild(x);c.style.display='block';}
 /* ---------- aksi ---------- */
-function hurtM(m,dmg,skill){const cr=R()<.12;dmg=Math.round(dmg*(cr?2:1));m.hp-=dmg;m.flash=.12;pop(m.g.position.x,m.g.position.y+2.4*m.sc,m.g.position.z,(cr?'💥':'')+dmg,skill?'#7fe9ff':cr?'#ffd54a':'#fff');
- if(m.hp<=0){m.dead=m.d.rs||25;m.g.visible=false;m.bar2.visible=false;const st=m.d.st[0]+Math.floor(R()*(m.d.st[1]-m.d.st[0]+1));P.qi+=m.d.qi;P.stones+=st;P.kills++;toast(m.d.n+' dikalahkan  +'+m.d.qi+' Qi  +'+st+' 💎');}}
+function hurtM(m,dmg,skill){if(m.sct&&!SPW.war)spWar('hit');if(m.sct&&SPW.duel&&m.t!=='spl')SPW.duel=false;const cr=R()<.12;dmg=Math.round(dmg*(cr?2:1));m.hp-=dmg;m.flash=.12;pop(m.g.position.x,m.g.position.y+2.4*m.sc,m.g.position.z,(cr?'💥':'')+dmg,skill?'#7fe9ff':cr?'#ffd54a':'#fff');
+ if(m.hp<=0){m.dead=m.d.rs||25;m.g.visible=false;m.bar2.visible=false;const st=m.d.st[0]+Math.floor(R()*(m.d.st[1]-m.d.st[0]+1));P.qi+=m.d.qi;P.stones+=st;P.kills++;miKill(m.t);if(m.sct)spDeath(m);toast((m.nm||m.d.n)+' dikalahkan  +'+m.d.qi+' Qi  +'+st+' 💎');}}
 const nearest=r=>{let b=null,bd=r;mons.forEach(m=>{if(m.dead>0)return;const d=Math.hypot(m.g.position.x-P.x,m.g.position.z-P.z);if(d<bd){bd=d;b=m;}});return b;};
 function attack(){if(P.atkCd>0||P.dead>0||P.dodge>0||P.fly)return;P.atkCd=.5;P.swing=.28;P.med=false;const t=nearest(7);if(t)P.yaw=Math.atan2(t.g.position.x-P.x,t.g.position.z-P.z);
  const fx=Math.sin(P.yaw),fz=Math.cos(P.yaw);mons.forEach(m=>{if(m.dead>0)return;const dx=m.g.position.x-P.x,dz=m.g.position.z-P.z,d=Math.hypot(dx,dz);if(d<2.6+m.sc*1.1&&(dx*fx+dz*fz)/(d||1)>.3)hurtM(m,ATK()*(.9+R()*.2),false);});}
@@ -586,15 +712,15 @@ function skill(){if(P.dead>0)return;const j=curJ();if((CDJ[j.id]||0)>0)return to
  const A=ATK(),fx_=Math.sin(P.yaw),fz_=Math.cos(P.yaw),Rr=j.r||6,live=()=>mons.filter(m=>m.dead<=0&&m.g.visible),
   rel=m=>{const dx=m.g.position.x-P.x,dz=m.g.position.z-P.z;return{dx,dz,d:Math.hypot(dx,dz),f:dx*fx_+dz*fz_,l:Math.abs(dx*fz_-dz*fx_)};};
  if(j.k==='rain'&&!live().some(m=>rel(m).d<Rr*1.6)){toast('Tidak ada musuh di jangkauan');return;}
- P.en-=en;if(j.k==='el'&&rt.qd)P.qi=Math.max(0,P.qi-needQ()*rt.qd*(j.t+1));CDJ[j.id]=j.cd;P.med=false;
+ wreckSkill(j,Rr,fx_,fz_);P.en-=en;if(j.k==='el'&&rt.qd)P.qi=Math.max(0,P.qi-needQ()*rt.qd*(j.t+1));CDJ[j.id]=j.cd;P.med=false;
  if(j.k==='sky'){skyFx();live().forEach(m=>{const q=rel(m);if(q.f>0&&q.f<Rr&&q.l<9+m.sc)hurtM(m,A*j.d,true);});return;}
  if(j.k==='shield'){ring(P.x,P.y+.3,P.z,j.c,5);P.invul=Math.max(P.invul,3);P.hp=Math.min(P.maxHp,P.hp+P.maxHp*.2);toast('🛡️ '+j.n+' aktif');return;}
- if(j.k==='buff'){ring(P.x,P.y+.3,P.z,j.c,6);P.buff=10;P.en=Math.min(P.maxEn,P.en+P.maxEn*.3);toast('🔥 '+j.n+'! Serangan ×1.5 selama 10 detik');return;}
+ if(j.k==='buff'){rageFx();ring(P.x,P.y+.3,P.z,j.c,6);P.buff=10;P.en=Math.min(P.maxEn,P.en+P.maxEn*.3);toast('🔥 '+j.n+'! Serangan ×1.5 selama 10 detik');return;}
  if(j.k==='dash'){const Ld=10;P.invul=Math.max(P.invul,.5);ring(P.x,P.y+.3,P.z,j.c,3);live().forEach(m=>{const q=rel(m);if(q.f>-1&&q.f<Ld+1&&q.l<2.4+m.sc)hurtM(m,A*j.d*1.2,true);});P.x=cl(P.x+fx_*Ld,-345,345);P.z=cl(P.z+fz_*Ld,-345,345);ring(P.x,P.y+.3,P.z,j.c,3);return;}
  if(j.k==='beam'){const len=Rr*2;for(let i=1;i<=3;i++)ring(P.x+fx_*len*i/3,P.y+.3,P.z+fz_*len*i/3,j.c,3);live().forEach(m=>{const q=rel(m);if(q.f>0&&q.f<len&&q.l<2.4+m.sc)hurtM(m,A*j.d*1.5,true);});return;}
  if(j.k==='sword'){ring(P.x+fx_*3,P.y+.3,P.z+fz_*3,j.c,5);live().forEach(m=>{const q=rel(m);if(q.d<Rr*1.6&&q.f/(q.d||1)>.55)hurtM(m,A*j.d*1.3,true);});return;}
  if(j.k==='rain'){live().filter(m=>rel(m).d<Rr*1.6).slice(0,5).forEach(m=>{ring(m.g.position.x,m.g.position.y+.3,m.g.position.z,j.c,3);hurtM(m,A*j.d*.8,true);});return;}
- const rad=j.k==='nova'?Rr*1.4:Rr;if(j.k==='el')elFx(j,rad,live().filter(m=>rel(m).d<rad+m.sc).map(m=>m.g.position.clone()));else ring(P.x,P.y+.3,P.z,j.c,rad);let tot=0;
+ const rad=j.k==='nova'?Rr*1.4:Rr;if(j.k==='el')elFx(j,rad,live().filter(m=>rel(m).d<rad+m.sc).map(m=>m.g.position.clone()));else if(j.k==='ring'||j.k==='nova')blastFx(rad,j.c);else ring(P.x,P.y+.3,P.z,j.c,rad);let tot=0;
  live().forEach(m=>{const q=rel(m);if(q.d>=rad+m.sc)return;const mul=j.k==='nova'?1.2:1;hurtM(m,A*j.d*mul,true);tot+=A*j.d*mul;if(m.dead>0)return;
   if(j.k==='nova')m.stun=1.5;
   if(j.k==='el'){const t=j.t;if(j.e===0){m.burn=4;m.bd=A*.35*(t+1);}else if(j.e===1)m.stun=[1.5,2.5,3.5][t];else if(j.e===2){const k=(5+t*2)/(q.d||1);m.g.position.x+=q.dx*k;m.g.position.z+=q.dz*k;}else if(j.e===3)m.stun=.7;else m.slow=[3,4,5][t];}});
@@ -611,17 +737,17 @@ function meditate(){if(P.fly)return toast('Turun dari pedang dulu');if(P.dead>0)
 const tips=['Sekte Suci ada di barat laut desa (sekitar -40,-40), ikuti pilar cahaya. Tunggu perekrutan murid dibuka!','Meditasi di dekat mata air spiritual 3x lebih cepat.','Kalahkan Golem Batu di Gunung Pedang (utara) untuk Qi besar.','Tekan Terobos saat bar Qi penuh. Ujian di tahap 9 sangat berbahaya.','Hindari serangan dengan Hindar — kamu kebal sesaat.','Semakin tinggi Tingkat, semakin banyak jurus baru. Ganti jurus dengan tombol 🔁.','Serigala Roh tidak berani masuk wilayah Sekte Suci.','Yeti Salju di puncak utara sangat kuat, tapi hadiahnya 50 💎 dan Qi besar.','Capai Pembangunan Fondasi untuk naik pedang (tekan 🗡️). Terbang menguras energi biru, tapi bisa menjelajah dunia yang luas.','Murid Senior berkeliling membasmi serigala. Jangan lupa bantu mereka!','Tiap terobosan memberi jurus spesial baru. Buka 📜 untuk memilih.'];let tipI=0;
 function interact(){if(P.dead>0)return;if(talkNear())return;if(!night&&Math.hypot(P.x+6,P.z-6)<5){P.hp=P.maxHp;P.en=P.maxEn;toast('Tetua Lin: Kamu dipulihkan. '+tips[tipI++%tips.length]);}else if(Math.hypot(P.x-SP.x,P.z-SP.z)<5)toast('Mata air spiritual: meditasi di sini 3x lebih cepat.');else toast('Tidak ada yang bisa diajak berinteraksi.');}
 function breakthrough(){const nq=needQ();if(P.qi<nq||P.lvl>=MAXL||P.dead>0)return;const rt=P.root?RT[P.root.els.length-1]:{bc:0},bound=P.lvl%9===8,ch=(bound?.5:.85)+rt.bc;
- if(R()<ch){const old=new Set(myJurus().map(j=>j.id)),oldN=new Map(myJurus().map(j=>[j.id,j.n]));P.qi-=nq;const oh=P.maxHp,oe=P.maxEn;P.lvl++;stats();P.hp=P.maxHp;P.en=P.maxEn;ring(P.x,P.y+.2,P.z,0xffd54a,12);const f=$('flash');f.style.transition='none';f.style.opacity=.8;requestAnimationFrame(()=>{f.style.transition='opacity .9s';f.style.opacity=0;});toast('✨ TEROBOS! '+REALMS[Math.floor(P.lvl/9)]+' Tahap '+(P.lvl%9+1));
+ if(R()<ch){const old=new Set(myJurus().map(j=>j.id)),oldN=new Map(myJurus().map(j=>[j.id,j.n]));P.qi-=nq;const oh=P.maxHp,oe=P.maxEn;P.lvl++;stats();if(P.lvl%9===0)setTimeout(()=>skyBlast(P.lvl/9),150);P.hp=P.maxHp;P.en=P.maxEn;ring(P.x,P.y+.2,P.z,0xffd54a,12);const f=$('flash');f.style.transition='none';f.style.opacity=.8;requestAnimationFrame(()=>{f.style.transition='opacity .9s';f.style.opacity=0;});toast('✨ TEROBOS! '+REALMS[Math.floor(P.lvl/9)]+' Tahap '+(P.lvl%9+1));
   if(P.lvl===72)setTimeout(()=>toast('🌌 Maha Agung! Jurus Belah Langit dan Teleport Ruang & Waktu 🌀 terbuka'),3900);if(P.lvl===18&&P.sect>=5)setTimeout(()=>toast('🏅 Kamu kini Murid Senior! Murid sekte akan menghormatimu'),3900);setTimeout(()=>toast('❤️ HP maks +'+(P.maxHp-oh)+'  ·  🔷 Energi maks +'+(P.maxEn-oe)),1300);const nw=myJurus().filter(j=>!old.has(j.id));if(nw.length)setTimeout(()=>toast('🆕 Jurus baru: '+nw.map(j=>j.ic+' '+j.n).join(', ')),2600);const ev=myJurus().filter(j=>oldN.has(j.id)&&oldN.get(j.id)!==j.n);if(ev.length)setTimeout(()=>toast('⬆️ Jurus berevolusi: '+ev.slice(0,2).map(j=>oldN.get(j.id)+' → '+j.n).join(', ')+(ev.length>2?' dll':'')),nw.length?5200:2600);save(true);}
  else{P.qi=Math.max(0,P.qi-nq*.3*(1+(P.root?P.root.els.length-1:0)*.25));P.hp=Math.max(1,P.hp-P.maxHp*.3);toast('Terobosan gagal! Qi kacau dan kamu terluka.');}}
 function die(){P.dead=2.5;P.med=false;P.fly=false;toast('Kamu gugur… kehilangan 10% 💎');}
 /* ---------- simpan / muat ---------- */
-function save(q){const o={t:Date.now(),x:P.x,z:P.z,hp:P.hp,lvl:P.lvl,qi:P.qi,en:P.en,stones:P.stones,kills:P.kills,sect:P.sect>=5?5:0,root:P.root,boost:Math.max(0,Math.floor(P.boost||0)),pill:P.pill?1:0,ss:P.ss?1:0};try{localStorage.setItem(KEY,JSON.stringify(o));if(!q)toast(fbDb?'💾 Tersimpan (cloud)':'💾 Tersimpan');}catch(e){if(!q)toast('Gagal menyimpan');}cloudSave(o);}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(!s)return false;P.x=cl(+s.x||0,-345,345);P.z=cl(+s.z||4,-345,345);P.lvl=cl(+s.lvl||0,0,MAXL);stats();P.hp=cl(+s.hp||P.maxHp,1,P.maxHp);P.qi=+s.qi||0;P.en=cl(+s.en||P.maxEn,0,P.maxEn);P.stones=+s.stones||0;P.kills=+s.kills||0;P.sect=s.sect>=5?5:0;P.root=parseRoot(s.root);P.boost=+s.boost||0;P.pill=s.pill?1:0;P.ss=s.ss?1:0;P.exam=null;applyRoot();setOutfit(P.sect>=5?1:0);P.y=H(P.x,P.z);return true;}catch(e){return false;}}
+function save(q){const o={t:Date.now(),x:P.x,z:P.z,hp:P.hp,lvl:P.lvl,qi:P.qi,en:P.en,stones:P.stones,kills:P.kills,sect:P.sect>=5?5:0,root:P.root,boost:Math.max(0,Math.floor(P.boost||0)),pill:P.pill?1:0,ss:P.ss?1:0,mi:P.mi};try{localStorage.setItem(KEY,JSON.stringify(o));if(!q)toast(fbDb?'💾 Tersimpan (cloud)':'💾 Tersimpan');}catch(e){if(!q)toast('Gagal menyimpan');}cloudSave(o);}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(!s)return false;P.x=cl(+s.x||0,-345,345);P.z=cl(+s.z||4,-345,345);P.lvl=cl(+s.lvl||0,0,MAXL);stats();P.hp=cl(+s.hp||P.maxHp,1,P.maxHp);P.qi=+s.qi||0;P.en=cl(+s.en||P.maxEn,0,P.maxEn);P.stones=+s.stones||0;P.kills=+s.kills||0;P.sect=s.sect>=5?5:0;P.root=parseRoot(s.root);P.boost=+s.boost||0;P.pill=s.pill?1:0;P.ss=s.ss?1:0;P.mi=(s.mi&&s.mi.f&&s.mi.k&&s.mi.d)?s.mi:{f:{},k:{},d:{}};P.exam=null;applyRoot();setOutfit(P.sect>=5?1:0);P.y=H(P.x,P.z);return true;}catch(e){return false;}}
 /* ---------- input ---------- */
 let run=false,cy=0,cp=.38,Q=1;const K={},joy={id:null,x:0,y:0,ix:0,iy:0},ct={id:null,x:0,y:0};let held=false;
 const bind=(id,f,hold)=>{const e=$(id);e.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(!run)return;if(hold)held=true;f();});if(hold){const u=()=>held=false;e.addEventListener('pointerup',u);e.addEventListener('pointerleave',u);e.addEventListener('pointercancel',u);}};
-bind('bA',attack,true);bind('bS',skill);bind('bW',cycleJ);bind('bD',dodge);bind('bJ',jump);bind('bM',meditate);bind('bI',interact);bind('bB',breakthrough);bind('bF',toggleFly);bind('bT',openT);bind('bJp',openJ);
+bind('bA',attack,true);bind('bS',skill);bind('bW',cycleJ);bind('bD',dodge);bind('bJ',jump);bind('bM',meditate);bind('bI',interact);bind('bB',breakthrough);bind('bF',toggleFly);$('bMs').onclick=openMisi;$('bTu').onclick=openTut;bind('bT',openT);bind('bJp',openJ);
 [['bJ','u'],['bD','d']].forEach(([id,k])=>{const e=$(id),on=()=>flyIn[k]=1,off=()=>flyIn[k]=0;e.addEventListener('pointerdown',on);['pointerup','pointerleave','pointercancel'].forEach(t=>e.addEventListener(t,off));});
 addEventListener('pointerdown',e=>{if(!run||e.target.closest('.b,#top,#menu,#dlg,#rot,#jp'))return;if(e.pointerType!=='mouse'&&e.clientX<innerWidth*.42&&e.clientY>innerHeight*.3&&joy.id===null){joy.id=e.pointerId;joy.x=e.clientX;joy.y=e.clientY;joy.ix=joy.iy=0;for(const i of['jb','jk']){$(i).style.display='block';$(i).style.left=joy.x+'px';$(i).style.top=joy.y+'px';}}else if(ct.id===null){ct.id=e.pointerId;ct.x=e.clientX;ct.y=e.clientY;}});
 addEventListener('pointermove',e=>{if(e.pointerId===joy.id){let dx=e.clientX-joy.x,dy=e.clientY-joy.y;const l=Math.hypot(dx,dy),m=40;if(l>m){dx*=m/l;dy*=m/l;}joy.ix=dx/m;joy.iy=-dy/m;$('jk').style.left=(joy.x+dx)+'px';$('jk').style.top=(joy.y+dy)+'px';}else if(e.pointerId===ct.id){cy-=(e.clientX-ct.x)*.006;cp=cl(cp+(e.clientY-ct.y)*.005,.08,1.25);ct.x=e.clientX;ct.y=e.clientY;}});
@@ -659,12 +785,13 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
    if(P.hp<=0)die();
   }
   /* monster */
-  mpTick(dt);airUpdate(dt);mons.forEach(m=>{if(m.air){airTick(m,dt);return;}const g=m.g;if(m.dead>0){m.dead-=dt;if(m.dead<=0){m.hp=m.max;g.visible=true;m.bar2.visible=true;g.position.set(m.hx,H(m.hx,m.hz),m.hz);}return;}
+  mpTick(dt);spWatch(dt);wrTick();miTick(dt);airUpdate(dt);mons.forEach(m=>{if(m.air){airTick(m,dt);return;}const g=m.g;if(m.dead>0){m.dead-=dt;if(m.dead<=0){m.hp=m.max;g.visible=true;m.bar2.visible=true;g.position.set(m.hx,H(m.hx,m.hz),m.hz);}return;}
    const dx=P.x-g.position.x,dz=P.z-g.position.z,d=Math.hypot(dx,dz);if(d>90){g.visible=m.bar2.visible=false;return;}g.visible=m.bar2.visible=true;
+   if(m.sct){spTick(m,dt,d);return;}
    m.atkCd-=dt;m.flash-=dt;m.bm.color.setHex(m.flash>0?(m.t==='yeti'?0xffa0a0:0xffffff):m.d.c);
    if(m.burn>0){m.burn-=dt;m.bt=(m.bt||0)-dt;if(m.bt<=0){m.bt=1;hurtM(m,m.bd,true);if(m.dead>0)return;}}
    const st=m.stun>0;if(st)m.stun-=dt;let tx=null,tz=null,sp=m.d.sp;if(m.slow>0){m.slow-=dt;sp*=.35;}
-   const safe=Math.hypot(P.x-SX,P.z-SZ)<29.5||(P.fly&&P.y>H(P.x,P.z)+4);let Tg=null,td=1e9;
+   const safe=Math.hypot(P.x-SX,P.z-SZ)<29.5||Math.hypot(P.x-210,P.z+30)<62||(P.fly&&P.y>H(P.x,P.z)+4);let Tg=null,td=1e9;
    if(!safe&&P.dead<=0){Tg={x:P.x,z:P.z};td=d;}
    for(const n of SEN){const q=n.s;if(q.st==='down'||night)continue;const sx=n.g.position.x,sz=n.g.position.z;if(Math.hypot(sx-SX,sz-SZ)<29.5)continue;const sd=Math.hypot(sx-g.position.x,sz-g.position.z);if(sd<td){td=sd;Tg={x:sx,z:sz,n};}}
    let rng=m.t==='golem'?18:14;if(m.t==='wolf'&&mons.some(o=>o!==m&&o.t==='wolf'&&o.chase&&o.dead<=0&&Math.hypot(o.g.position.x-g.position.x,o.g.position.z-g.position.z)<20))rng=24;
