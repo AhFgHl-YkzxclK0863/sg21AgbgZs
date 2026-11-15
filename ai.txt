@@ -1,0 +1,4 @@
+# ai.txt — NEXORIA © 2026 TaherJs
+# Seluruh gambar, teks, kode, dan media dilarang untuk pelatihan/pengeditan AI.
+User-Agent: *
+Disallow: *
