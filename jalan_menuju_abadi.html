@@ -21,6 +21,14 @@ canvas{display:block;position:fixed;inset:0}
 #jp h3{margin:0 0 8px;font-size:15px;color:#ffd54a}
 #jp button{display:block;width:100%;text-align:left;margin:0 0 5px;padding:9px 12px;border-radius:10px;border:1px solid #fff3;background:#1d1540;color:#fff;font-size:13px;font-weight:700}
 #jp button.on{border-color:#ffd54a;background:#3a2a7a}#jp small{color:#bfb4ff;font-weight:600}
+#dlg{max-height:62vh;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#jp,#dlg{scrollbar-width:thin;scrollbar-color:#ffd54a #1a1438;overscroll-behavior:contain}
+#jp::-webkit-scrollbar,#dlg::-webkit-scrollbar{width:9px}
+#jp::-webkit-scrollbar-thumb,#dlg::-webkit-scrollbar-thumb{background:#ffd54a;border-radius:6px}
+#jp::-webkit-scrollbar-track,#dlg::-webkit-scrollbar-track{background:#1a1438;border-radius:6px}
+.xbar{position:sticky;display:flex;justify-content:space-between;align-items:center;height:36px;z-index:3;pointer-events:none}
+.xbar.t{top:0;margin-bottom:2px}.xbar.b{bottom:0;margin-top:4px}
+#jp .xbar button,#dlg .xbar button{pointer-events:auto;display:flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0;padding:0;border-radius:50%;border:1px solid #fff6;background:#8a1226;color:#fff;font-size:15px;line-height:1;text-align:center}
 #bB{left:50%;bottom:26px;transform:translateX(-50%);width:auto;padding:0 20px;height:46px;border-radius:24px;font-size:15px;font-weight:800;border-color:#ffd54a;color:#ffd54a;display:none}
 #jb,#jk{position:fixed;border-radius:50%;pointer-events:none;display:none}
 #jb{width:96px;height:96px;margin:-48px 0 0 -48px;border:2px solid #fff4;background:#ffffff10}
@@ -187,7 +195,7 @@ const cry=new THREE.Mesh(new THREE.OctahedronGeometry(1.1),mat(0x39c8ff,{emissiv
 const beacon=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,70,12,1,true),new THREE.MeshBasicMaterial({color:0xfff2b0,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));beacon.position.set(SX,35,SZ+2);scene.add(beacon);
 /* shop, dialog, NPC */
 let dlgN=null;
-function say(n,t,ch){const d=$('dlg');if(dlgN&&dlgN.sec&&isSenior()&&n!=='Aula Utama')t='<i>(menunduk hormat)</i> Hormat, Senior! '+t;d.innerHTML='<b>'+n+'</b><p>'+t+'</p>';(ch||[['Tutup']]).forEach(([l,f])=>{const b=document.createElement('button');b.textContent=l;b.onclick=()=>{d.style.display='none';f&&f();};d.appendChild(b);});d.style.display='block';}
+function say(n,t,ch){const d=$('dlg');if(dlgN&&dlgN.sec&&isSenior()&&n!=='Aula Utama')t='<i>(menunduk hormat)</i> Hormat, Senior! '+t;d.innerHTML='<b>'+n+'</b><p>'+t+'</p>';(ch||[]).forEach(([l,f])=>{const b=document.createElement('button');b.textContent=l;b.onclick=()=>{d.style.display='none';f&&f();};d.appendChild(b);});d.style.display='block';}
 const PILL={cost:250};
 function dsc(){return Math.min(.8,Math.max(0,Math.floor(P.lvl/9)-1)*.1);}
 const pr=c=>Math.max(1,Math.round(c*(1-dsc())));
@@ -296,7 +304,7 @@ function tickWorld(dt){const o=recOpen();
  if(P.exam){P.exam.t-=dt;if(P.kills-P.exam.k>=3){P.exam=null;P.sect=4;toast('✅ Ujian Tempur lulus! Temui Penerima Murid');}else if(P.exam.t<=0||P.dead>0){P.exam=null;P.sect=0;toast('❌ Ujian gagal. Coba lagi di perekrutan berikutnya');}}
  {const gy0=H(P.x,P.z);for(const c of COL){if(c.sy!==undefined?Math.abs(P.y-c.sy)>30:c.h?P.y>c.h:(P.y>gy0+40||(P.fly&&P.y>gy0+14)))continue;const dx=P.x-c.x,dz=P.z-c.z,d=Math.hypot(dx,dz);if(d<c.r&&d>.001){P.x=c.x+dx/d*c.r;P.z=c.z+dz/d*c.r;}}}
  NPCS.forEach(n=>{const g=n.g,d=Math.hypot(P.x-g.position.x,P.z-g.position.z);let mv=false;g.visible=(!night||!!n.sp)&&!n.in&&(!n.sp||P.y>1200);if(g.visible===false){if(n.s)n.s.b.s.visible=false;return;}const bow=isSenior()&&n.sec&&d<10&&!(n.s&&['hunt','flee','down'].includes(n.s.st));n.bw=(n.bw||0)+((bow?1:0)-(n.bw||0))*Math.min(1,dt*5);if(bow&&!n.bowed){n.bowed=1;}if(!bow&&d>13)n.bowed=0;n.tg.visible=d<16;
-  if(bow){g.rotation.y=Math.atan2(P.x-g.position.x,P.z-g.position.z);}else if(n.s)mv=seniorTick(n,dt,d);else if(d<5)g.rotation.y=Math.atan2(P.x-g.position.x,P.z-g.position.z);else if(n.w){n.t-=dt;if(n.t<=0){n.t=3+R()*5;n.tx=n.hx+(R()-.5)*n.w;n.tz=n.hz+(R()-.5)*n.w;}const ex=n.tx-g.position.x,ez=n.tz-g.position.z,e=Math.hypot(ex,ez);if(e>.4){g.position.x+=ex/e*1.4*dt;g.position.z+=ez/e*1.4*dt;g.rotation.y=Math.atan2(ex,ez);mv=true;}}
+  if(bow){g.rotation.y=Math.atan2(P.x-g.position.x,P.z-g.position.z);}else if(n.s)mv=seniorTick(n,dt,d);else if(d<5)g.rotation.y=Math.atan2(P.x-g.position.x,P.z-g.position.z);else if(n.rm){const ex=n.rm.x-g.position.x,ez=n.rm.z-g.position.z,e=Math.hypot(ex,ez);if(e>1.5){g.position.x+=ex/e*3.6*dt;g.position.z+=ez/e*3.6*dt;g.rotation.y=Math.atan2(ex,ez);mv=true;}}else if(n.w){n.t-=dt;if(n.t<=0){n.t=3+R()*5;n.tx=n.hx+(R()-.5)*n.w;n.tz=n.hz+(R()-.5)*n.w;}const ex=n.tx-g.position.x,ez=n.tz-g.position.z,e=Math.hypot(ex,ez);if(e>.4){g.position.x+=ex/e*1.4*dt;g.position.z+=ez/e*1.4*dt;g.rotation.y=Math.atan2(ex,ez);mv=true;}}
   g.position.y=n.sy!==undefined?n.sy:H(g.position.x,g.position.z);const u=g.userData,ph=clock*7;u.l1.rotation.x=mv?Math.sin(ph)*.5:0;u.l2.rotation.x=mv?-Math.sin(ph)*.5:0;u.la.rotation.x=mv?Math.sin(ph)*.3:0;u.arm.rotation.x=mv?-Math.sin(ph)*.3:0;if(n.bw>.02){g.rotation.x=n.bw*.7;u.arm.rotation.x=-.9*n.bw;u.la.rotation.x=-.9*n.bw;}else g.rotation.x=0;if(n.s)seniorPose(n,dt);});
  LB.forEach(l=>l.visible=Math.hypot(P.x-l.position.x,P.z-l.position.z)<38&&(l.userData.sy===undefined?P.y<500:Math.abs(P.y-l.userData.sy)<150));
  let tx=P.x-Math.sin(P.yaw)*2.6+Math.cos(P.yaw)*1.4,tz=P.z-Math.cos(P.yaw)*2.6-Math.sin(P.yaw)*1.4;const t=P.dead>0?null:nearest(9,1);if(t){tx=t.g.position.x;tz=t.g.position.z;}
@@ -700,7 +708,7 @@ function openMisi(){const c=$('jp');if(c.style.display==='block'&&c.dataset.k===
 // ---- tutorial
 function openTut(){const c=$('jp');if(c.style.display==='block'&&c.dataset.k==='tu'){c.style.display='none';return;}c.dataset.k='tu';
  const T=[['🎮 Kontrol dasar','Geser jari di sisi kiri layar untuk berjalan, geser di sisi kanan untuk memutar kamera. Tombol: ⤒ lompat, ⚔ serang biasa, ✨ jurus terpilih, 🔁 ganti jurus, ✋ interaksi (muncul hanya dekat NPC), 🧘 meditasi. PC: Spasi lompat, J serang, K jurus, Q ganti jurus, F pedang, L menghindar, M meditasi, E interaksi, B terobos, T teleport.'],
- ['🧘 Meditasi & Terobosan','Tekan 🧘 untuk duduk bersila dan mengumpulkan Qi (bar Qi bertambah). Saat Qi penuh, tekan ⚡ TEROBOS untuk naik tingkat. Tiap naik tingkat HP dan energi maksimal bertambah. Pindah tahap besar (Pemurnian Qi, Fondasi, dst.) disertai ledakan langit dan jurusmu berevolusi.'],
+ ['🧘 Meditasi & Terobosan','Tekan 🧘 untuk duduk bersila dan mengumpulkan Qi (bar Qi bertambah). Saat Qi penuh, tekan ⚡ TEROBOS untuk naik tingkat. Tiap naik tingkat HP dan energi maksimal bertambah. Pindah tahap besar (Pemurnian Qi, Fondasi, dst.) disertai ledakan langit dan jurusmu berevolusi. Efek meditasi juga berubah dan makin dahsyat di tiap tahap.'],
  ['🧬 Akar roh & elemen','Daftar di Sekte Suci (bumi) untuk ujian akar roh. Kamu bisa punya 1–5 elemen (Api, Kayu, Air, Petir, Es). Tiap elemen punya 3 jurus yang makin kuat. Lebih banyak elemen = jurus lebih murah.'],
  ['✨ Jurus & energi','Buka 📜 untuk melihat jurus. Jurus memakai energi (bar biru) dan punya jeda. Jurus bisa menghancurkan pohon, batu, dan bangunan di sekitar. Energi pulih sendiri; meditasi memulihkannya lebih cepat.'],
  ['⛩ Sekte','Sekte Suci (dekat desa): jadi murid, naik jadi Senior di Pembangunan Fondasi agar penjaga gerbang menghormatimu. Sekte Spiritual (Hutan Spiritual): minta izin ke penjaga gerbang (300💎) — masuk tanpa izin akan ditegur, menyerang berarti perang dan pemimpin akan mengajak duel. Sekte Angkasa (luar angkasa): jadi murid agar kultivasi ×70 di platformnya.'],
@@ -719,7 +727,7 @@ function auraFx(){const r=Math.floor(P.lvl/9),col=new THREE.Color().setHSL((.12+
  const pil=mk(gY,col,.5);vfx(pil,3,(o,q)=>{o.position.set(P.x,P.y+12*big,P.z);o.scale.set(1.6*big*(1+Math.sin(q*30)*.05),24*big,1.6*big);fade(o,q>.7?(1-q)/.3*.6:.6);});
  [0,.35,.7,1.05].forEach(dl=>{const rg=mk(gD,col,.4);rg.rotation.x=-Math.PI/2;vfx(rg,1.4,(o,q)=>{o.position.set(P.x,P.y+.2,P.z);o.scale.setScalar(2+q*9*big);fade(o,1-q);},dl);});
  burst(P.x,P.y+1,P.z,col,60,5*big,-2,.5);burst(P.x,P.y+2,P.z,0xffffff,30,3*big,-3,.35);}
-function showAura(){if(P.dead>0||clock<(P.auraCd||0))return;P.auraCd=clock+4;auraFx();P.aura=clock+300;
+function showAura(){if(P.dead>0||clock<(P.auraCd||0))return;P.auraCd=clock+4;auraFx();P.aura=clock+300;if(Math.hypot(P.x-ar.g.position.x,P.z-ar.g.position.z)<22)sbub(ar,P.lvl>=45?'😮':'😏',P.lvl>=45?'Aura ini... hebat!':'Aura segitu? Lucu.');
  let gd=null,bd=14;mons.forEach(m=>{if(m.sct&&m.role==='gate'&&m.dead<=0){const d=Math.hypot(P.x-m.g.position.x,P.z-m.g.position.z);if(d<bd){bd=d;gd=m;}}});
  NPCS.forEach(n=>{if(n.in||!n.g.visible||!/^Penjaga (Gerbang|Portal|Aula)$/.test(n.n)||(n.sp&&Math.abs(P.y-n.sy)>25))return;const d=Math.hypot(P.x-n.g.position.x,P.z-n.g.position.z);if(d<bd){bd=d;gd={npc:1,nm:n.n,lvl:n.sp?20:n.n==='Penjaga Aula'?14:10,g:n.g};}});
  mons.forEach(m=>{if(m.sct&&m.dead<=0&&Math.hypot(P.x-m.g.position.x,P.z-m.g.position.z)<22){m.respectT=clock+90;sbub(m,P.lvl>=m.lvl?'😮':'😒',P.lvl>=m.lvl?'Aura yang dahsyat!':'Aura selemah itu...');}});
@@ -782,6 +790,50 @@ function asTick(dt){if(P.y<1200)return;ASPR.forEach(p=>{const a=p.a,b=p.b;[a,b].
  a.g.position.x=cx-ox-sw;a.g.position.z=cz-oz;b.g.position.x=cx+ox+sw;b.g.position.z=cz+oz;a.sy=p.y+Math.sin(clock*1.5+p.i)*.4;b.sy=p.y+Math.sin(clock*1.5+p.i+2)*.4;
  a.g.rotation.y=Math.atan2(b.g.position.x-a.g.position.x,b.g.position.z-a.g.position.z);b.g.rotation.y=a.g.rotation.y+Math.PI;
  if(p.t<=0){p.sp^=1;const sd=p.sp?a:b,ot=p.sp?b:a;if(p.mode==='chat'){p.t=4.5;sbub(sd,'💬',ACL[Math.floor(R()*ACL.length)]);}else{p.t=1.1;const A=new THREE.Vector3(sd.g.position.x,sd.sy+1.8,sd.g.position.z),B=new THREE.Vector3(ot.g.position.x,ot.sy+1.5,ot.g.position.z);bolt(A,B,[0x9be7ff,0xff9bff,0xffd54a][p.i%3],.08,.25);burst(B.x,B.y,B.z,0xffffff,12,5,6,.35);if(R()<.35)sbub(sd,'💢',FL[Math.floor(R()*FL.length)]);}}});}
+/* ===== EFEK MEDITASI PER TAHAP, NPC SOMBONG, JENDELA ===== */
+const medG=new THREE.Group();medG.visible=false;scene.add(medG);let medR=-1,medU=null;const medT=new THREE.TorusGeometry(1,.035,6,48);
+function medClear(){while(medG.children.length){const o=medG.children[0];medG.remove(o);o.traverse(e=>{if(e.material)e.material.dispose();if(e.geometry&&e.geometry.userData.own)e.geometry.dispose();});}}
+function medBuild(r){medClear();const hue=(.55+r*.07)%1,col=new THREE.Color().setHSL(hue,.85,.6).getHex(),col2=new THREE.Color().setHSL((hue+.12)%1,.9,.7).getHex(),u={r,rings:[],gyro:[],orbs:[]};
+ const nR=1+Math.floor(r/2);for(let i=0;i<nR;i++){const m=mk(medT,i%2?col2:col,.55);m.rotation.x=Math.PI/2;m.position.y=.08+i*.01;m.scale.setScalar(1.3+i*.75);medG.add(m);u.rings.push(m);}
+ const nG=r>=3?1+Math.floor((r-2)/3):0;for(let i=0;i<nG;i++){const m=mk(medT,col2,.5);m.position.y=1.3;m.scale.setScalar(1.6+i*.5);medG.add(m);u.gyro.push(m);}
+ const nO=Math.min(12,r+2);for(let i=0;i<nO;i++){const m=S1(i%2?col:col2,.9,.1+r*.012);medG.add(m);u.orbs.push(m);}
+ if(r>=2){const h=5+r*2.2,b=mk(gY,col,.16+r*.015);b.scale.set(.9+r*.07,h,.9+r*.07);b.position.y=h/2;medG.add(b);u.beam=b;}
+ if(r>=8){const hl=mk(medT,col2,.7);hl.scale.setScalar(1.15);hl.position.y=2.5;medG.add(hl);u.halo=hl;}
+ if(r>=4){const sg=new THREE.Group(),hd=S1(0xffffff,.55,.28),bd=mk(gK,col2,.45);bd.scale.set(.42,1.1,.42);bd.position.y=-.55;sg.add(hd,bd);sg.position.y=3.6;sg.scale.setScalar(.6+(r-3)*.09);medG.add(sg);u.soul=sg;}
+ if(r>=10){const wg=new THREE.Group();[-1,1].forEach(k=>{for(let j=0;j<4;j++){const c=mk(gK,col2,.4);c.scale.set(.18,1.9+j*.4,.18);c.position.set(k*(.5+j*.28),1.9+j*.12,-.4);c.rotation.z=-k*(.7+j*.22);wg.add(c);}});medG.add(wg);u.wings=wg;}
+ if(r===6){const v=mk(gS,0x000010,.7,0);v.scale.setScalar(1.1);v.position.y=1.4;medG.add(v);u.void=v;}
+ const N=24+r*14,geo=new THREE.BufferGeometry();geo.userData.own=1;geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(N*3),3));const pmt=new THREE.PointsMaterial({color:col2,size:.14+r*.012,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});pmt.userData.o=1;const pts=new THREE.Points(geo,pmt);pts.frustumCulled=false;medG.add(pts);u.pts=pts;u.ph=Array.from({length:N},()=>R());
+ if(r>=12){const M=260,g2=new THREE.BufferGeometry(),p2=new Float32Array(M*3);g2.userData.own=1;for(let i=0;i<M;i++){const a=i/M*6.283*3,rr=1.5+i/M*6;p2[i*3]=Math.cos(a)*rr;p2[i*3+1]=.6+(R()-.5)*.8;p2[i*3+2]=Math.sin(a)*rr;}g2.setAttribute('position',new THREE.BufferAttribute(p2,3));const m2=new THREE.PointsMaterial({color:0xffffff,size:.22,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});m2.userData.o=1;const gl=new THREE.Points(g2,m2);gl.frustumCulled=false;medG.add(gl);u.gal=gl;}
+ medU=u;}
+function medTick(dt){const on=P.med&&!P.fly&&P.dead<=0;medG.visible=on;if(!on)return;const r=Math.min(12,Math.floor(P.lvl/9));if(r!==medR){medR=r;medBuild(r);}medG.position.set(P.x,P.y,P.z);const u=medU,t=clock,fc=Math.atan2(cam.position.x-P.x,cam.position.z-P.z);
+ u.rings.forEach((m,i)=>{m.rotation.z=t*(i%2?-.7:.7)*(1+r*.1);m.scale.setScalar(1.3+i*.75+Math.sin(t*2+i)*.08);});
+ u.gyro.forEach((m,i)=>{m.rotation.x=t*(.8+i*.3);m.rotation.y=t*(.5-i*.2);});
+ u.orbs.forEach((m,i)=>{const n=u.orbs.length,a=t*(1+r*.12)+i/n*6.283,rr=1.7+(i%3)*.35;m.position.set(Math.cos(a)*rr,.9+((i*37)%10)*.18+Math.sin(t*2+i)*.2,Math.sin(a)*rr);});
+ if(u.beam)u.beam.material.opacity=(.16+r*.015)*(.8+.2*Math.sin(t*3));
+ if(u.halo){u.halo.rotation.set(0,fc,t*.6);}if(u.soul){u.soul.position.y=3.6+Math.sin(t*1.5)*.25;u.soul.rotation.y=t;}
+ if(u.wings){u.wings.rotation.y=fc+Math.PI;u.wings.scale.setScalar(1+Math.sin(t*2)*.05);}if(u.void)u.void.scale.setScalar(1.1+Math.sin(t*3)*.08);if(u.gal)u.gal.rotation.y=t*.4;
+ const a=u.pts.geometry.attributes.position.array;for(let i=0;i<u.ph.length;i++){const q=(u.ph[i]+t*(.25+r*.03))%1,an=i*2.4+t*(1.5+r*.15),rr=(1-q)*(2.8+r*.15)+.25;a[i*3]=Math.cos(an)*rr;a[i*3+1]=.2+q*(1.8+r*.1);a[i*3+2]=Math.sin(an)*rr;}u.pts.geometry.attributes.position.needsUpdate=true;
+ if(r>=5&&r<=6){u.bt=(u.bt||0)-dt;if(u.bt<=0){u.bt=.9;bolt(new THREE.Vector3(P.x,P.y+3.8,P.z),new THREE.Vector3(P.x+(R()-.5)*5,P.y+.2,P.z+(R()-.5)*5),0xd49bff,.05,.25);}}
+ if(r>=9){u.bt2=(u.bt2||0)-dt;if(u.bt2<=0){u.bt2=.15;burst(P.x+(R()-.5)*3,P.y+7+R()*3,P.z+(R()-.5)*3,r>=11?0xffe08a:0xffffff,3,1.5,2,.3);}}}
+// ---- NPC sombong (Pembentukan Jiwa)
+mkNpc('Tuan Muda Ye Chen',6,8,0x6a3fd0,{hair:0x111122,s:1.12,sword:1},0,()=>arTalk());
+const ar=NPCS[NPCS.length-1];ar.rm={x:6,z:8};ar.wt=15;ar.so=12;ar.g.remove(ar.tg);ar.tg.visible=false;const arPl=mpPlate('Tuan Muda Ye Chen',mpInfo(47),'#ff8aff');arPl.position.y=4.3;ar.g.add(arPl);
+const AW=[[6,8],[SX,SZ+16],[SPS.x,SPS.z+38],[SPS.x+10,SPS.z+8],[-30,-6],[SX+10,SZ-20],[90,20]];
+function arTalk(){const l=P.lvl;let t;if(l>=53)t='Hm…? Auramu setara denganku?! Tidak mungkin… maaf, aku salah menilai.';else if(l>=45)t='Pembentukan Jiwa juga? Boleh juga. Tapi bakatku tetap di atasmu, ingat itu.';else if(l>=27)t=['Inti Emas saja? Ha! Aku Pembentukan Jiwa sejak dulu. Menyingkirlah.','Hanya Inti Emas dan berani menyapaku?'][Math.floor(R()*2)];else if(l>=18)t='Fondasi? Kau baru belajar berjalan, nak.';else t=['Hmph. Serangga rendah ini berani menyapaku?','Pergi sana. Napasmu mengotori udara di sekitarku.','Manusia biasa… menjauh sebelum auraku menghancurkanmu.'][Math.floor(R()*3)];
+ say('Tuan Muda Ye Chen',t+' <small>(Pembentukan Jiwa Tahap 3)</small>',[['Minta ia pamer kekuatan',()=>arShow()],['Abaikan']]);}
+function arShow(){const g=ar.g,x=g.position.x,y=g.position.y,z=g.position.z,k=Math.floor(R()*3);
+ if(k===0){const pil=mk(gY,0xc77bff,.5);vfx(pil,2.4,(o,q)=>{o.position.set(x,y+10,z);o.scale.set(1.8*(1+Math.sin(q*30)*.05),20,1.8);fade(o,q>.7?(1-q)/.3*.5:.5);});[0,.3,.6,.9].forEach(dl=>{const rg=mk(gD,0xc77bff,.4);rg.rotation.x=-Math.PI/2;vfx(rg,1.3,(o,q)=>{o.position.set(x,y+.2,z);o.scale.setScalar(2+q*12);fade(o,1-q);},dl);});burst(x,y+1,z,0xe0b4ff,60,6,-2,.5);}
+ else if(k===1){for(let i=0;i<4;i++){const a=R()*6.283,rr=5+R()*7,px=x+Math.sin(a)*rr,pz=z+Math.cos(a)*rr,gy=H(px,pz);bolt(new THREE.Vector3(px,gy+50,pz),new THREE.Vector3(px,gy+.4,pz),0xe0b4ff,.2,.45,i*.12);setTimeout(()=>boom(px,gy+1,pz,0xd49bff,2.6),i*120);}}
+ else{boom(x,y+1.2,z,0xffd54a,6);burst(x,y+1,z,0xffd54a,50,12,8,.6);disc(x,z,0xffd54a,10,1,.4);}
+ wreck(x,y,z,9,1.6);const L=[['😏','Lihat? Inilah Pembentukan Jiwa!'],['🤏','Kalian semua cuma semut.'],['😎','Rasakan tekanan auraku!'],['🥱','Terlalu mudah, membosankan.']],q=L[Math.floor(R()*L.length)];sbub(ar,q[0],q[1]);}
+function arTick(dt){const g=ar.g,d=Math.hypot(P.x-g.position.x,P.z-g.position.z);arPl.visible=d<45;if(ar.bub){ar.bubT-=dt;if(ar.bubT<=0)ar.bub.visible=false;}
+ const e=Math.hypot(ar.rm.x-g.position.x,ar.rm.z-g.position.z);if(e<2){ar.wt-=dt;if(ar.wt<=0){ar.wt=40+R()*40;const w=AW[Math.floor(R()*AW.length)];ar.rm={x:w[0]+(R()-.5)*10,z:w[1]+(R()-.5)*10};}}
+ ar.so-=dt;if(ar.so<=0){ar.so=30+R()*30;if(g.visible&&Math.hypot(P.x-g.position.x,P.y-g.position.y,P.z-g.position.z)<70)arShow();}}
+// ---- jendela: tombol ❌ di setiap sisi + scrollbar
+[['jp',()=>{$('jp').style.display='none';}],['dlg',()=>{$('dlg').style.display='none';dlgN=null;}]].forEach(([id,close])=>{const el=$(id);
+ const mkb=c=>{const d=document.createElement('div');d.className='xbar '+c;[0,1].forEach(()=>{const b=document.createElement('button');b.textContent='❌';b.onclick=e=>{e.stopPropagation();close();};d.appendChild(b);});return d;};
+ new MutationObserver(()=>{el.querySelectorAll('button').forEach(b=>{if(b.textContent.trim()==='Tutup'&&!b.closest('.xbar'))b.remove();});if(!el.querySelector(':scope>.xbar.t')){el.insertBefore(mkb('t'),el.firstChild);el.appendChild(mkb('b'));}}).observe(el,{childList:true});
+ ['touchstart','touchmove','pointerdown'].forEach(ev=>el.addEventListener(ev,e=>e.stopPropagation(),{passive:true}));});
 /* ---------- aksi ---------- */
 function hurtM(m,dmg,skill){if(m.sct&&!SPW.war&&!(SPW.dm&&SPW.dm.m===m))spWar('hit');if(m.sct&&SPW.war&&SPW.mode==='trespass'&&m.role==='disc'){SPW.mode='hit';spAll(x=>{if(x.role!=='gate'&&x.role!=='core')sbub(x,'😠','Dia menyerang kita!');});}if(m.sct&&SPW.duel&&m.t!=='spl')SPW.duel=false;const cr=R()<.12;dmg=Math.round(dmg*(cr?2:1));m.hp-=dmg;m.flash=.12;pop(m.g.position.x,m.g.position.y+2.4*m.sc,m.g.position.z,(cr?'💥':'')+dmg,skill?'#7fe9ff':cr?'#ffd54a':'#fff');
  if(m.hp<=0){m.dead=m.d.rs||25;m.g.visible=false;m.bar2.visible=false;const st=m.d.st[0]+Math.floor(R()*(m.d.st[1]-m.d.st[0]+1));P.qi+=m.d.qi;P.stones+=st;P.kills++;miKill(m.t);if(m.sct)spDeath(m);if(m.ld)ldrDeath(m);toast((m.nm||m.d.n)+' dikalahkan  +'+m.d.qi+' Qi  +'+st+' 💎');}}
@@ -867,7 +919,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
    if(P.hp<=0)die();
   }
   /* monster */
-  mpTick(dt);spWatch(dt);ldWatch(dt);asTick(dt);wrTick();miTick(dt);airUpdate(dt);mons.forEach(m=>{if(m.air){airTick(m,dt);return;}const g=m.g;if(m.dead>0){m.dead-=dt;if(m.dead<=0){m.hp=m.max;g.visible=true;m.bar2.visible=true;g.position.set(m.hx,H(m.hx,m.hz),m.hz);}return;}
+  mpTick(dt);spWatch(dt);ldWatch(dt);asTick(dt);arTick(dt);medTick(dt);wrTick();miTick(dt);airUpdate(dt);mons.forEach(m=>{if(m.air){airTick(m,dt);return;}const g=m.g;if(m.dead>0){m.dead-=dt;if(m.dead<=0){m.hp=m.max;g.visible=true;m.bar2.visible=true;g.position.set(m.hx,H(m.hx,m.hz),m.hz);}return;}
    const dx=P.x-g.position.x,dz=P.z-g.position.z,d=Math.hypot(dx,dz);if(d>90){g.visible=m.bar2.visible=false;return;}g.visible=m.bar2.visible=true;
    if(m.sct){spTick(m,dt,d);return;}
    if(m.ld){ldTick(m,dt,d);return;}
