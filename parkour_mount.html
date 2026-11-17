@@ -30,6 +30,14 @@ h1{margin:0;font-size:30px;letter-spacing:1px}h2{margin:0}
 input#nm{padding:11px 14px;border-radius:10px;border:1px solid #ffffff55;background:#ffffff14;color:#fff;font-size:16px;text-align:center;width:220px}
 button.go{padding:12px 30px;border-radius:12px;border:0;background:linear-gradient(90deg,#39f4ff,#ffd54a);color:#041018;font-weight:800;font-size:16px}
 .ft{position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:10px;opacity:.5;pointer-events:none}
+#st{position:fixed;top:max(100px,calc(env(safe-area-inset-top) + 92px));right:10px;width:42px;height:42px;border-radius:50%;border:1px solid #ffffff45;background:#0b1424b8;color:#fff;font-size:18px;z-index:6;display:flex;align-items:center;justify-content:center;padding:0}
+#sw{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(300px,84vw);background:#0b1424f2;border:1px solid #ffffff40;border-radius:16px;padding:16px;z-index:30;display:none;flex-direction:column;gap:14px;box-shadow:0 10px 40px #000a}
+#sw h3{margin:0;font-size:16px}
+#sx{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;border:0;background:#ffffff1c;font-size:14px;color:#fff;padding:0}
+.sr{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:700}
+.sr div{display:flex;align-items:center;gap:6px}
+.sr button{min-width:38px;padding:8px 12px;border-radius:10px;border:1px solid #ffffff45;background:#ffffff14;color:#fff;font-weight:800;font-size:14px}
+.sr button.on{background:linear-gradient(90deg,#39f4ff,#ffd54a);color:#041018;border:0}
 </style>
 </head>
 <body>
@@ -38,11 +46,13 @@ button.go{padding:12px 30px;border-radius:12px;border:0;background:linear-gradie
 <div class="pill" id="hh">⛰ <span id="alt">0</span> m · ⏱ <span id="tm">0:00</span></div>
 <div class="pill" id="hp">👥 <span id="pc">1</span></div>
 <button id="rs" aria-label="Kembali ke checkpoint">⟲</button>
+<button id="st" aria-label="Pengaturan">⚙️</button>
+<div id="sw"><button id="sx" aria-label="Tutup">❌</button><h3>⚙️ Pengaturan</h3><div class="sr"><span>Grafik</span><div><button id="gl">Rendah</button><button id="gh" class="on">Tinggi</button></div></div><div class="sr"><span>Zoom kamera</span><div><button id="zo">−</button><b id="zv">50%</b><button id="zi">+</button></div></div></div>
 <div id="joy"><div id="knob"></div></div>
 <div id="jb">LOMPAT</div>
 <div id="toast"></div><div id="fade"></div>
 <div id="menu"><h1>⛰ MOUNT PARKOUR</h1><p>Daki gunung lewat 12 tantangan. Injak lantai kotak, kalau jatuh kamu kembali ke checkpoint terakhir. Joystick kiri untuk jalan, tombol kanan untuk lompat, geser layar kanan untuk memutar kamera.</p><input id="nm" maxlength="14" placeholder="Nama kamu" autocomplete="off"><button class="go" id="go">MULAI PANJAT</button></div>
-<div id="win"><h2>🏆 Puncak tercapai!</h2><p id="wt"></p><button class="go" id="again">Main lagi dari bawah</button></div>
+<div id="win"><h2>🏆 Puncak tercapai!</h2><p id="wt"></p><p id="wc"></p><button class="go" id="again">🌴 Masuk Dunia 2</button></div>
 <div class="ft">© 2026 TaherJs · NEXORIA</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -51,7 +61,7 @@ const $=id=>document.getElementById(id),cl=(v,a,b)=>Math.max(a,Math.min(b,v)),R=
 const MP_CFG={apiKey:"AIzaSyBp4P3nv9w1xYEH_9wNPxq2E-no292ugDM",authDomain:"server-taher.firebaseapp.com",databaseURL:"https://server-taher-default-rtdb.firebaseio.com",projectId:"server-taher",storageBucket:"server-taher.firebasestorage.app",messagingSenderId:"79596136495",appId:"1:79596136495:web:93779c3b3983376253beda"};
 /* ================= RENDERER ================= */
 const cv=$('cv'),renderer=new THREE.WebGLRenderer({canvas:cv,antialias:(devicePixelRatio||1)<2,powerPreference:'high-performance'});
-let PR=Math.min(devicePixelRatio||1,1.75);const PRmax=PR;renderer.setPixelRatio(PR);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+let PR=Math.min(devicePixelRatio||1,1.75);let PRmax=PR;const PR0=PR;renderer.setPixelRatio(PR);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x8fd0ff);scene.fog=new THREE.Fog(0x8fd0ff,60,520);
 const cam=new THREE.PerspectiveCamera(60,1,.1,900);
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}addEventListener('resize',resize);resize();
@@ -117,6 +127,26 @@ for(let k=0;k<STAGES;k++){stage(k,LEN[k],DYS,SF[k]);}
 plaza(12);CPS[CPS.length-1].summit=true;
 /* karakter spawn */
 const SPAWN=CPS[0];
+/* ================= DUNIA 2 (LOBI) ================= */
+const LB={x:1500,y:0,z:1500,on:false};
+const lbPad={x:LB.x+28,z:LB.z+10};
+let bdTex=null;
+function drawBoard(rows){const c=bdTex.image,x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.fillStyle='#0b1424';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#ffd54a';x.lineWidth=8;x.strokeRect(6,6,c.width-12,c.height-12);x.textAlign='center';x.fillStyle='#ffd54a';x.font='bold 46px sans-serif';x.fillText('🏆 TERCEPAT',c.width/2,70);
+ x.font='bold 30px sans-serif';
+ if(!rows||!rows.length){x.fillStyle='#fff';x.fillText(rows?'Belum ada rekor':'Gagal memuat',c.width/2,330);}
+ else rows.forEach((v,i)=>{const y=130+i*52;x.textAlign='left';x.fillStyle=i<3?['#ffd54a','#dfe6ee','#e0a070'][i]:'#8fe8ff';x.fillText((i+1)+'.',34,y);x.fillStyle='#fff';x.fillText(String(v.n||'?').slice(0,14),96,y);x.textAlign='right';x.fillStyle='#8fe8ff';x.fillText(fmt(v.t||0),c.width-34,y);});
+ bdTex.needsUpdate=true;}
+(function(){const grass=new THREE.MeshStandardMaterial({color:0x5fb85a,roughness:.9}),wood=new THREE.MeshStandardMaterial({color:0x8a5a34,roughness:.8});
+ box(LB.x,LB.y,LB.z,90,3,90,grass);
+ for(const [dx,dz] of [[-35,-35],[35,-35],[-38,0],[38,-5],[-35,35],[0,38],[-12,-38],[14,36]]){const t=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,5,8),wood),l=new THREE.Mesh(new THREE.SphereGeometry(3,10,8),new THREE.MeshStandardMaterial({color:0x2f9a55,roughness:.85}));t.position.set(LB.x+dx,2.5,LB.z+dz);l.position.set(LB.x+dx,7,LB.z+dz);t.castShadow=l.castShadow=true;scene.add(t,l);}
+ for(const [dx,dz] of [[-14,6],[14,6],[-22,22],[22,22]])box(LB.x+dx,.9,LB.z+dz,4,.9,1.2,wood);
+ const cv2=document.createElement('canvas');cv2.width=560;cv2.height=680;bdTex=new THREE.CanvasTexture(cv2);bdTex.encoding=THREE.sRGBEncoding;
+ const bd=new THREE.Mesh(new THREE.PlaneGeometry(14,17),new THREE.MeshBasicMaterial({map:bdTex,side:THREE.DoubleSide}));bd.position.set(LB.x,10.5,LB.z-22);scene.add(bd);
+ for(const sx of [-6,6]){const p=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,10,8),wood);p.position.set(LB.x+sx,5,LB.z-22.1);scene.add(p);}
+ const ring=new THREE.Mesh(new THREE.RingGeometry(2,2.8,32),new THREE.MeshBasicMaterial({color:0x39f4ff,transparent:true,opacity:.8,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.set(lbPad.x,LB.y+.05,lbPad.z);scene.add(ring);
+ const lb=labelSprite('⛰ Panjat lagi','#39f4ff');lb.position.set(lbPad.x,LB.y+4.5,lbPad.z);scene.add(lb);
+ const lb2=labelSprite('🌴 DUNIA 2','#ffd54a');lb2.position.set(LB.x,LB.y+22,LB.z-22);lb2.scale.set(10,2.5,1);scene.add(lb2);
+ drawBoard(null);})();
 /* ================= KARAKTER REALISTIS ================= */
 function faceTex(skin,eye,female){const c=document.createElement('canvas');c.width=1024;c.height=512;const x=c.getContext('2d');const sk='#'+skin.toString(16).padStart(6,'0');x.fillStyle=sk;x.fillRect(0,0,1024,512);
  const g=x.createRadialGradient(256,270,10,256,270,170);g.addColorStop(0,'rgba(255,255,255,.12)');g.addColorStop(1,'rgba(0,0,0,.18)');x.fillStyle=g;x.fillRect(0,0,1024,512);
@@ -187,7 +217,7 @@ let toastT=0;function toast(t,ms){const e=$('toast');e.textContent=t;e.classList
 const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 /* ================= FISIKA ================= */
 const PW=.32,PH=1.75,GR=30;
-function respawn(manual){const c=CPS[P.cp],f=$('fade');f.style.opacity=1;if(!manual)P.falls++;sfx(300,60,.5,.1,'sawtooth');setTimeout(()=>{P.x=c.x;P.y=c.y+.25;P.z=c.z;P.vx=P.vy=P.vz=0;P.ground=null;P.stun=0;burst(c.x,c.y+1,c.z,0x39f4ff);f.style.opacity=0;},240);}
+function respawn(manual){const c=LB.on?{x:LB.x,y:LB.y,z:LB.z+15}:CPS[P.cp],f=$('fade');f.style.opacity=1;if(!manual)P.falls++;sfx(300,60,.5,.1,'sawtooth');setTimeout(()=>{P.x=c.x;P.y=c.y+.25;P.z=c.z;P.vx=P.vy=P.vz=0;P.ground=null;P.stun=0;burst(c.x,c.y+1,c.z,0x39f4ff);f.style.opacity=0;},240);}
 const parts=[];const pg=new THREE.SphereGeometry(.08,6,5);
 function burst(x,y,z,col){for(let i=0;i<18;i++){const m=new THREE.Mesh(pg,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:1}));m.position.set(x,y,z);const a=R()*6.283,s=2+R()*4;parts.push({m,vx:Math.cos(a)*s,vy:2+R()*5,vz:Math.sin(a)*s,l:.8});scene.add(m);}}
 function collide(sdt){const oy=P.y;P.y+=P.vy*sdt;let g=null;
@@ -239,7 +269,23 @@ $('go').onclick=()=>{let nm=$('nm').value.trim();try{if(!nm)nm=(localStorage.get
  try{MPs.seed=parseInt(localStorage.getItem('pk_seed'))||0;}catch(e){}if(!MPs.seed){MPs.seed=(R()*1e9)|0;try{localStorage.setItem('pk_seed',MPs.seed);}catch(e){}}
  try{FIN=parseInt(localStorage.getItem('pk_fin')||'0')||0;}catch(e){}refreshMe();$('menu').style.display='none';sfx(400,800,.15,.06);mpStart();};
 try{$('nm').value=localStorage.getItem('pk_name')||localStorage.getItem('nexoria_user')||'';}catch(e){}
-$('again').onclick=()=>{$('win').style.display='none';P.cp=0;try{localStorage.setItem('pk_cp','0');}catch(e){}CPS.forEach(c=>{c.got=false;if(c.cloth)c.cloth.material.color.setHex(0xd94f3d);});P.falls=0;P.t=0;P.started=false;P.done=false;respawn(true);};
+/* --- jendela finis (hanya 1) + Dunia 2 --- */
+let winT=0,winOn=false;
+function showWin(){if(winOn||LB.on)return;winOn=true;$('win').style.display='flex';let n=8;const w=$('wc');w.textContent='Otomatis ke Dunia 2 dalam '+n+' detik';clearInterval(winT);winT=setInterval(()=>{n--;if(n<=0)goLobby();else w.textContent='Otomatis ke Dunia 2 dalam '+n+' detik';},1000);}
+function goLobby(){if(LB.on)return;clearInterval(winT);winOn=false;$('win').style.display='none';LB.on=true;P.done=false;P.started=false;P.vx=P.vy=P.vz=0;P.ground=null;P.stun=0;P.x=LB.x;P.y=LB.y+.3;P.z=LB.z+15;P.face=Math.PI;camYaw=0;burst(P.x,P.y+1,P.z,0x39f4ff);toast('🌴 Selamat datang di Dunia 2',2200);sfx(500,1000,.3,.08);loadBoard();}
+function startOver(){if(!LB.on)return;LB.on=false;P.cp=0;try{localStorage.setItem('pk_cp','0');}catch(e){}CPS.forEach(c=>{c.got=false;if(c.cloth)c.cloth.material.color.setHex(0xd94f3d);if(c.ring)c.ring.material.color.setHex(0xffd54a);});P.falls=0;P.t=0;P.started=false;P.done=false;const c=CPS[0];P.x=c.x;P.y=c.y+.3;P.z=c.z;P.vx=P.vy=P.vz=0;P.ground=null;P.face=Math.PI/2;camYaw=-Math.PI/2;toast('⛰ Panjat lagi!',1500);sfx(400,800,.15,.06);}
+$('again').onclick=goLobby;
+function submitBoard(){try{if(!MPs.on)return;const u=firebase.auth().currentUser;if(!u)return;firebase.database().ref('nexoria/parkour/board/'+u.uid).set({u:u.uid,n:MPs.name,t:+P.t.toFixed(2),ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});}catch(e){}}
+function loadBoard(){try{if(!MPs.on){drawBoard(null);return;}firebase.database().ref('nexoria/parkour/board').orderByChild('t').limitToFirst(10).once('value').then(sn=>{const r=[];sn.forEach(x=>{const v=x.val();if(v)r.push(v);});drawBoard(r);}).catch(()=>drawBoard(null));}catch(e){drawBoard(null);}}
+setInterval(()=>{if(LB.on)loadBoard();},15000);
+/* --- pengaturan --- */
+let gfx='high';try{gfx=localStorage.getItem('pk_gfx')==='low'?'low':'high';const z=parseFloat(localStorage.getItem('pk_zoom'));if(z)camD=cl(z,4,16);}catch(e){}
+function zl(){$('zv').textContent=Math.round((16-camD)/12*100)+'%';try{localStorage.setItem('pk_zoom',String(camD));}catch(e){}}
+function setGfx(m){gfx=m;try{localStorage.setItem('pk_gfx',m);}catch(e){}PRmax=m==='low'?Math.min(PR0,.7):PR0;PR=m==='low'?Math.min(PR,PRmax):PRmax;renderer.setPixelRatio(PR);resize();sun.castShadow=m==='high';$('gl').classList.toggle('on',m==='low');$('gh').classList.toggle('on',m==='high');}
+$('st').onclick=()=>{$('sw').style.display='flex';zl();};$('sx').onclick=()=>{$('sw').style.display='none';};
+$('gl').onclick=()=>setGfx('low');$('gh').onclick=()=>setGfx('high');
+$('zi').onclick=()=>{camD=cl(camD-1.5,4,16);zl();};$('zo').onclick=()=>{camD=cl(camD+1.5,4,16);zl();};
+setGfx(gfx);
 let last=performance.now(),tt=0,hudT=0,fpsA=60,fpsT=0,frameN=0;
 const SKY=[new THREE.Color(0x8fd0ff),new THREE.Color(0x5aa0ee),new THREE.Color(0x2b5fc0)],tmpC=new THREE.Color();
 function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;fpsA+=(1/Math.max(dt,.001)-fpsA)*.05;fpsT+=dt;if(fpsT>1.2){fpsT=0;if(fpsA<48&&PR>.66){PR=Math.max(.66,PR-.12);renderer.setPixelRatio(PR);resize();}else if(fpsA>58&&PR<PRmax){PR=Math.min(PRmax,PR+.06);renderer.setPixelRatio(PR);resize();}}renderer.shadowMap.autoUpdate=(frameN++%(PR<.85?3:2))===0;
@@ -267,8 +313,8 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last
   // checkpoint & puncak
   for(const c of CPS){if(Math.hypot(P.x-c.x,P.z-c.z)>5.2||Math.abs(P.y-c.y)>2.2)continue;
    if(c.k>=P.cp&&!c.got){P.cp=c.k;c.got=true;if(c.cloth)c.cloth.material.color.setHex(0x2fc46b);if(c.ring)c.ring.material.color.setHex(0x2fc46b);try{localStorage.setItem('pk_cp',String(c.k));}catch(e){}if(c.k>0&&!c.summit){toast('✅ Checkpoint '+(c.k+1),1200);sfx(520,1040,.3,.08);}}
-   if(c.summit&&!P.done){P.done=true;sfx(500,1500,.6,.1);burst(c.x,c.y+2,c.z,0xffd54a);burst(c.x,c.y+3,c.z,0xff6ab0);let b=0;try{b=parseFloat(localStorage.getItem('pk_best')||'0');}catch(e){}const better=!b||P.t<b;if(better)try{localStorage.setItem('pk_best',String(P.t));}catch(e){}const r0=rankOf(FIN);FIN++;try{localStorage.setItem('pk_fin',String(FIN));}catch(e){}const r1=rankOf(FIN);refreshMe();$('wt').innerHTML='Waktu <b>'+fmt(P.t)+'</b> · jatuh '+P.falls+'×'+(better?' · 🏅 rekor baru!':b?' · rekor '+fmt(b):'')+'<br>+150 poin → <b>'+r1.pts+'</b> poin<br>Peringkat: <b>'+r1.r[2]+' '+r1.r[1]+'</b>'+(r1.i>r0.i?'<br>🎉 Naik peringkat dari '+r0.r[1]+'!':'')+(r1.nx?'<br><small>Berikutnya: '+r1.nx[1]+' ('+r1.nx[0]+' poin)</small>':'');setTimeout(()=>{$('win').style.display='flex';},900);}}
-  const cp=CPS[P.cp];if(P.y<-3||P.y<cp.y-26)respawn(false);
+   if(c.summit&&!P.done){P.done=true;sfx(500,1500,.6,.1);burst(c.x,c.y+2,c.z,0xffd54a);burst(c.x,c.y+3,c.z,0xff6ab0);let b=0;try{b=parseFloat(localStorage.getItem('pk_best')||'0');}catch(e){}const better=!b||P.t<b;if(better)try{localStorage.setItem('pk_best',String(P.t));}catch(e){}const r0=rankOf(FIN);FIN++;try{localStorage.setItem('pk_fin',String(FIN));}catch(e){}const r1=rankOf(FIN);refreshMe();$('wt').innerHTML='Waktu <b>'+fmt(P.t)+'</b> · jatuh '+P.falls+'×'+(better?' · 🏅 rekor baru!':b?' · rekor '+fmt(b):'')+'<br>+150 poin → <b>'+r1.pts+'</b> poin<br>Peringkat: <b>'+r1.r[2]+' '+r1.r[1]+'</b>'+(r1.i>r0.i?'<br>🎉 Naik peringkat dari '+r0.r[1]+'!':'')+(r1.nx?'<br><small>Berikutnya: '+r1.nx[1]+' ('+r1.nx[0]+' poin)</small>':'');submitBoard();setTimeout(showWin,900);}}
+  const cp=LB.on?LB:CPS[P.cp];if(P.y<-3||P.y<cp.y-26)respawn(false);if(LB.on&&P.y<1.5&&Math.hypot(P.x-lbPad.x,P.z-lbPad.z)<2.8)startOver();
  }
  // visual karakter
  me.root.position.set(P.x,P.y,P.z);me.root.rotation.y=P.face;if(mePlate)mePlate.position.set(P.x,P.y+2.45,P.z);fxTick(me,tt);
@@ -284,6 +330,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last
  // langit mengikuti ketinggian
  const h=cl(P.y/130,0,1)*2,i0=Math.min(1,Math.floor(h)),f=h-i0;tmpC.copy(SKY[i0]).lerp(SKY[Math.min(2,i0+1)],f);scene.background.copy(tmpC);scene.fog.color.copy(tmpC);scene.fog.far=520+P.y*3;hemi.intensity=.75-cl(P.y/200,0,1)*.15;
  hudT-=dt;if(hudT<=0){hudT=.15;$('alt').textContent=Math.max(0,Math.round(P.y));$('tm').textContent=fmt(P.t);const k=P.cp;$('sn').textContent=(k+1<CPS.length?'Tantangan '+(k+1)+': '+STN[k]:'🏁 Puncak');$('sc').textContent='Checkpoint '+Math.min(k+1,12)+'/12 · jatuh '+P.falls+'×';$('pbi').style.width=(k/(CPS.length-1)*100)+'%';const rk=rankOf(FIN);$('rk').textContent=rk.r[2]+' '+rk.r[1]+' · '+rk.pts+' poin';}
+ if(LB.on){$('sn').textContent='🌴 Dunia 2';$('sc').textContent='Leaderboard & tempat santai';$('alt').textContent=0;$('pbi').style.width='100%';}
  renderer.render(scene,cam);}
 requestAnimationFrame(frame);
 </script>
