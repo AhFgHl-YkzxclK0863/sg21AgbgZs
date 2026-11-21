@@ -347,6 +347,38 @@ main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env
 </style>
 </head>
 <body>
+<style>
+#nxIntro{position:fixed;inset:0;z-index:2147483000;background:#08080d;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;transition:opacity .5s ease}
+#nxIntro.out{opacity:0;pointer-events:none}
+#nxIntro h1{margin:0;padding-left:.06em;display:flex;justify-content:center;font-family:inherit;font-size:clamp(46px,16vw,160px);font-weight:800;line-height:1;letter-spacing:.06em;color:#fff}
+#nxIntro h1 span{opacity:0;transform:translateY(14px);animation:nxIn .5s ease forwards}
+#nxIntro h1 span.b{color:#8b8fa3}
+#nxIntro .nxl{height:2px;width:0;margin-top:28px;background:#fff;opacity:.45;animation:nxLine .8s ease 2.5s forwards}
+#nxIntro button{margin-top:46px;padding:15px 54px;border:0;border-radius:10px;font-family:inherit;font-size:17px;font-weight:700;letter-spacing:.18em;color:#08080d;background:#fff;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .5s,transform .15s}
+#nxIntro button.on{opacity:1;pointer-events:auto}
+#nxIntro button:active{transform:scale(.97)}
+@keyframes nxIn{to{opacity:1;transform:none}}
+@keyframes nxLine{to{width:min(50vw,300px)}}
+</style>
+<div id="nxIntro" role="dialog" aria-label="NEXORIA"><h1 id="nxW" aria-label="NEXORIA"></h1><div class="nxl"></div><button id="nxGo" type="button">MULAI</button></div>
+<script>
+(function(){
+  var o=document.getElementById('nxIntro'),w=document.getElementById('nxW'),b=document.getElementById('nxGo'),T='NEXORIA',done=false;
+  for(var i=0;i<T.length;i++){var sp=document.createElement('span');sp.setAttribute('aria-hidden','true');sp.textContent=T[i];if(i>3)sp.className='b';sp.style.animationDelay=(0.3+i*0.3)+'s';w.appendChild(sp);}
+  document.documentElement.style.overflow='hidden';
+  var show=setTimeout(function(){b.classList.add('on');},3000);
+  function start(){
+    if(done)return;done=true;clearTimeout(show);
+    try{var de=document.documentElement,rf=de.requestFullscreen||de.webkitRequestFullscreen||de.msRequestFullscreen;if(rf){var p=rf.call(de);if(p&&p.catch)p.catch(function(){});}}catch(e){}
+    o.classList.add('out');document.documentElement.style.overflow='';
+    setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},600);
+    document.removeEventListener('keydown',key);
+  }
+  function key(e){if(b.classList.contains('on')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();start();}}
+  b.addEventListener('click',start);document.addEventListener('keydown',key);
+})();
+</script>
+
 <canvas id="stars" aria-hidden="true"></canvas>
 <audio id="bgm" src="music.mp3" loop preload="auto"></audio>
 <button id="sndBtn" type="button" aria-label="Suara musik" title="Musik" style="position:fixed;right:12px;bottom:12px;z-index:90;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#0f0c1ecc;color:var(--ink);font-size:20px;cursor:pointer;backdrop-filter:blur(6px)">🔊</button>
@@ -356,8 +388,8 @@ main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env
   <div class="bh" aria-hidden="true"></div>
   <div class="sp-card">
     <h1 class="logo">NEXORIA</h1>
-    <p class="logo-sub">Platform game online html.</p>
-    <div class="qlbox" id="qlBox" hidden><div class="qlcap">⚡ LOGIN CEPAT </div><div class="qllist" id="qlList"></div></div>
+    <p class="logo-sub">Platform game mabar. Buat username dan langsung main.</p>
+    <div class="qlbox" id="qlBox" hidden><div class="qlcap">⚡ LOGIN CEPAT · KETUK UNTUK MASUK</div><div class="qllist" id="qlList"></div></div>
     <div class="field">
       <label for="uname">Username</label>
       <input id="uname" type="text" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="contoh: Budi_123">
@@ -367,6 +399,7 @@ main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env
       <label for="upw">Password (opsional)</label>
       <input id="upw" type="password" maxlength="999" autocomplete="off" spellcheck="false" placeholder="Kosongkan jika tidak pakai password">
       <p class="pwhint" id="pwHint" hidden>🔒 Akun ini memiliki password. Masukkan password yang benar untuk masuk.</p>
+      <p style="font-size:11px;color:var(--mute2);margin:8px 0 0">🛡️ Demi keamanan, NEXORIA mencatat IP & info perangkat. Pelanggaran bisa berujung blokir permanen.</p>
     </div>
     <div class="err" id="err" role="alert"></div>
     <button class="btn" id="goBtn">MASUK</button>
@@ -412,9 +445,9 @@ main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env
       <h2>Game</h2>
       <div class="sp"></div>
       <div class="seg" role="group" aria-label="Filter game">
-        <button class="on" id="filAll">🎮Semua game</button>
-        <button id="filStudio">🛠️ Studio game</button>
+        <button class="on" id="filAll">Semua game</button>
         <button id="filFav">⭐ Favorit</button>
+        <button id="filStudio">🛠️ Studio game</button>
       </div>
       <input class="search" id="search" type="search" placeholder="Cari game…" aria-label="Cari game">
     </div>
@@ -457,7 +490,7 @@ const GAMES=[
    desc:'Menjadi murid sekte, bertapa, dan menembus tingkat demi tingkat menuju keabadian.',
    art:{a:'#1b1240',b:'#ffd54a',emoji:'🧘'}},
   {id:'parkour',name:'Mount Parkour',file:'parkour_mount.html',img:'parkour.png',tag:'Parkour · Mabar Realtime',
-   desc:'Mount parkour Chekpoint 20 ',
+   desc:'Taklukkan gunung lewat 12 tantangan parkour 3D: titian sempit, lantai rapuh, baling-baling, lift, dan pegas langit. Satu joystick dan satu tombol lompat. Jatuh? Kamu kembali ke checkpoint terakhir. Mendaki bersama pemain lain secara realtime, kejar rekor waktu menuju puncak!',
    art:{a:'#0d2b45',b:'#39f4ff',emoji:'🧗'}}
 ];
 
@@ -972,11 +1005,15 @@ async function openWarnPanel(){
   q('#wnQ').oninput=paintList;
   q('#wnQ').onkeydown=e=>{if(e.key==='Enter'){const k=q('#wnQ').value.trim().toLowerCase();if(valid(k)&&!isDev(k)){SEL.add(k);q('#wnQ').value='';paintSel();paintList();}}};
   br.on('value',sn=>{if(!m.isConnected){br.off();return;}BD=sn.val()||{};paintList();paintSel();},()=>msg('Gagal membaca daftar pemain. Ketik username manual lalu Enter.'));
-  paintSel();
+  const admChk=async er=>{const au=await authReady();let ok=false;try{ok=(await d.ref('nexoria/admins/'+au.uid).once('value')).val()===true;}catch(e){}
+    if(ok){if(er)msg('Gagal mengirim ('+(er.code||er.message||'error')+'). Admin sudah terdaftar, jadi pastikan rules yang dipublish adalah file terbaru lengkap (ada bagian "warns").');return;}
+    q('#wnE').style.color='';q('#wnE').innerHTML='Akunmu belum terdaftar sebagai admin di perangkat ini, jadi server menolak. <button class="btn small" id="wnAdm" type="button" style="margin-top:8px">Daftarkan saya sebagai admin</button><div id="wnAdmE" style="margin-top:6px;font-size:12px"></div>';
+    q('#wnAdm').onclick=async()=>{const b=q('#wnAdm');b.disabled=true;try{await d.ref('nexoria/admins/'+au.uid).set(true);msg('✅ Terdaftar sebagai admin. Coba kirim lagi.',1);}catch(x){b.disabled=false;q('#wnAdmE').textContent='Ditolak server (sudah ada admin dengan UID lain). Cara manual: di Firebase tambahkan nexoria/admins/'+au.uid+' = true.';}};};
+  admChk();paintSel();
   q('#wnGo').onclick=async()=>{const t=q('#wnT').value.trim();if(!SEL.size){msg('Pilih minimal 1 target.');return;}if(!t){msg('Tulis peringatannya dulu.');return;}
     const b=q('#wnGo');b.disabled=true;
     try{await Promise.all([...SEL].map(k=>d.ref('nexoria/warns/'+k).push({text:t,by:USER,n:nm(k),ts:firebase.database.ServerValue.TIMESTAMP})));msg('✅ Peringatan terkirim ke '+SEL.size+' pemain',1);SEL.clear();q('#wnT').value='';paintSel();paintList();}
-    catch(e){msg('Gagal mengirim. Pastikan rules terbaru sudah dipublish.');}b.disabled=false;};
+    catch(e){admChk(e);}b.disabled=false;};
   wr.on('value',sn=>{if(!m.isConnected){wr.off();return;}const v=sn.val()||{},A=[],f=t=>t?new Date(+t).toLocaleString('id-ID'):'';
     Object.keys(v).forEach(k=>Object.keys(v[k]||{}).forEach(i=>A.push(Object.assign({k,i},v[k][i]))));A.sort((a,b)=>(+b.ts||0)-(+a.ts||0));
     q('#wnHist').innerHTML=A.length?A.slice(0,60).map(w=>'<div class="dv-ck"><b>'+esc(w.n||w.k)+'</b> · <small>'+f(w.ts)+'</small><br>⚠️ '+esc(w.text||'')+'<br>'+(w.reply?'💬 <b>Balasan player:</b> '+esc(w.reply)+' <small>('+f(w.rts)+')</small>':'<span style="color:#ffb020">⏳ Belum dibalas</span>')+'<br><button class="btn ghost small" data-wd="'+esc(w.k+'/'+w.i)+'" type="button">Hapus</button></div>').join(''):'<p style="color:var(--mute);font-size:13px">Belum ada peringatan.</p>';
@@ -2187,7 +2224,7 @@ $('navKeys').addEventListener('click',()=>{closeDrawer();keyHelp();});
 </script>
 <script>
 /* daftarkan service worker: halaman offline (anda_offline.html) */
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+if('serviceWorker' in navigator){var hadSW=!!navigator.serviceWorker.controller,swRl=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(hadSW&&!swRl){swRl=true;location.reload();}});window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js?v=20261120',{updateViaCache:'none'}).then(function(r){try{r.update();}catch(e){}}).catch(function(){});});}
 </script>
 </body>
 </html>
